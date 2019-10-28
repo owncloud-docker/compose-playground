@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ./idp/idp-configure-autoprovision.sh:/etc/pre_server.d/idp-configure.sh
+  idp:
+    volumes:
+      - ./idp/simplesamlphp/enabled:/var/simplesamlphp/modules/exampleauth/enable
+      - ./idp/simplesamlphp/metadata/saml20-idp-hosted-basicauth.php:/var/simplesamlphp/metadata/saml20-idp-hosted.php

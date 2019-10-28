@@ -1,0 +1,6 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ./idp/apache-oauth.conf:/root/owncloud/toppath.conf

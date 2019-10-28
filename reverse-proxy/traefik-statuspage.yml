@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+
+  traefik:
+    image: traefik
+    restart: always
+    ports:
+      - ${TRAEFIK_STATUS_PORT:-8080}:8080

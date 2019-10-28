@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  test_runner:
+    image: owncloud/smashbox
+    environment:
+      - SMASHBOX_URL=${SMASHBOX_URL:-owncloud}
+      - SMASHBOX_TIMEOUT=${SMASHBOX_TIMEOUT:-3600}
+      - SMASHBOX_WAIT=${SMASHBOX_WAIT:-false}
+      - SMASHBOX_SSL_ENABLED=${SMASHBOX_SSL_ENABLED:-false}
+      - SMASHBOX_ACCOUNT_PASSWORD=${SMASHBOX_ACCOUNT_PASSWORD:-qwertzuiop}
+      - SMASHBOX_USERNAME=${SMASHBOX_USERNAME:-admin}
+      - SMASHBOX_PASSWORD=${SMASHBOX_USERNAME:-admin}
+      - SMASHBOX_TEST_NAME=${SMASHBOX_TESTSUITE:-basicSync}
+      - SMASHBOX_ROOT
+      - SMASHBOX_CHECK_URL
+
+
+
+
+
+

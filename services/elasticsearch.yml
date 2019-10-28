@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: elasticsearch.Dockerfile
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
