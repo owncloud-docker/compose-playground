@@ -1,6 +1,6 @@
-# docker-compose
+# compose-playground
 
-This directory provides different docker-compose yaml files acting as various "infrastructure components".
+This repository provides different docker-compose yaml files acting as various "infrastructure components".
 
 The aim of these components is, to provide an easy way of setting up owncloud with different infrastrucutre scenarions.
 
