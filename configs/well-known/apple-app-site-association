@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+    {
+      "appID": "8T8932TY.com.AppName”,
+      "paths": ["*"]
+    }
+    ]
+  }
+}
