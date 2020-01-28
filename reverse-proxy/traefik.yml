@@ -8,10 +8,10 @@ services:
       - "traefik.enable=true"
       - "traefik.backend=owncloud"
       - "traefik.frontend.rule=Host:${OWNCLOUD_DOMAIN}"
-      - "traefik.port=80"
+      - "traefik.port=8080"
 
   traefik:
-    image: traefik
+    image: traefik:v1.7-alpine
     restart: always
     ports:
       - ${TRAEFIK_HTTPS_PORT:-443}:443
