@@ -6,4 +6,4 @@ services:
     image: traefik
     restart: always
     ports:
-      - ${TRAEFIK_STATUS_PORT:-8080}:8080
+      - ${TRAEFIK_STATUS_PORT:-8000}:8000

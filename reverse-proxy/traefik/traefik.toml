@@ -2,7 +2,7 @@ defaultEntryPoints = ["http", "https"]
 
 [web]
 # Port for the status page
-address = ":8080"
+address = ":8000"
 
 # Entrypoints, http and https
 [entryPoints]
