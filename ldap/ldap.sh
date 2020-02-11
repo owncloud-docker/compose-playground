@@ -23,7 +23,7 @@ CONFIG=$(cat <<EOF
             "s01ldap_dynamic_group_member_url": "",
             "s01ldap_email_attr": "",
             "s01ldap_experienced_admin": "0",
-            "s01ldap_expert_username_attr": "",
+            "s01ldap_expert_username_attr": "uid",
             "s01ldap_expert_uuid_group_attr": "",
             "s01ldap_expert_uuid_user_attr": "",
             "s01ldap_group_display_name": "cn",
@@ -51,7 +51,7 @@ CONFIG=$(cat <<EOF
             "s01ldap_userfilter_groups": "",
             "s01ldap_userfilter_objectclass": "",
             "s01ldap_userlist_filter": "(objectclass=*)",
-            "s01use_memberof_to_detect_membership": "1"
+            "s01use_memberof_to_detect_membership": "1",
         }
     }
 }
