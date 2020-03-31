@@ -4,15 +4,20 @@ version: '3.4'
 services:
   ocis:
     restart: always
-    image: owncloud/ocis:${OCIS_DOCKER_TAG:-1.0.0-beta1}
+    image: owncloud/ocis:${OCIS_DOCKER_TAG:-latest}
     ports:
         - ${OCIS_HTTP_PORT:-9200}:9200
     volumes:
         - ${OCIS_OWNCLOUD_DATADIR:-/tmp/}:/var/tmp/reva/data
+        - ${PWD}/config:/etc/ocis/:rw
     environment:
-        - KONNECTD_ISS
-        - REVA_OIDC_ISSUER
-        - PHOENIX_OIDC_AUTHORITY
-        - PHOENIX_WEB_CONFIG_SERVER
-        - PHOENIX_OIDC_METADATA_URL
-        - PHOENIX_ASSET_PATH
+        - PROXY_HTTP_ADDR=0.0.0.0:9200
+        - KONNECTD_ISS=https://${OCIS_BASE_URL:-localhost}:9200
+        - REVA_OIDC_ISSUER=https://${OCIS_BASE_URL:-localhost}:9200
+        - PHOENIX_OIDC_AUTHORITY=https://${OCIS_BASE_URL:-localhost}:9200
+        - PHOENIX_WEB_CONFIG_SERVER=https://${OCIS_BASE_URL:-localhost}:9200
+        - PHOENIX_OIDC_METADATA_URL=https://${OCIS_BASE_URL:-localhost}:9200/.well-known/openid-configuration
+        - KONNECTD_TLS=0
+        - OCIS_LOG_LEVEL=debug
+        - KONNECTD_LOG_LEVEL=debug
+        - KONNECTD_IDENTIFIER_REGISTRATION_CONF=/etc/ocis/identifier-registration.yml
