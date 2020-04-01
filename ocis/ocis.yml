@@ -8,7 +8,8 @@ services:
     ports:
         - ${OCIS_HTTP_PORT:-9200}:9200
     volumes:
-        - ${OCIS_OWNCLOUD_DATADIR:-/tmp/}:/var/tmp/reva/data
+        # Currently not supported
+        #- ${OCIS_OWNCLOUD_DATADIR:-/tmp/}:/var/tmp/reva/data
         - ${PWD}/config:/etc/ocis/:rw
     environment:
         - PROXY_HTTP_ADDR=0.0.0.0:9200
