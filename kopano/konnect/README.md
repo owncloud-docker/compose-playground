@@ -4,8 +4,9 @@ Setup the domain name in /etc/hosts - assuming you are on linux
 127.0.0.1 owncloud.docker-playground.local
 
 ```console
-KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
-OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+export KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
+export OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+
 docker-compose \
     -f owncloud-base.yml \
     -f owncloud-official.yml \
