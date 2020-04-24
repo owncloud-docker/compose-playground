@@ -1,0 +1,61 @@
+{
+  "HTTP": {
+    "Namespace": "com.owncloud"
+  },
+  "oidc": {
+    "endpoint": "https://ocis-proxy:9200",
+    "realm": "",
+    "signing_algs": ["RS256", "PS256"],
+    "insecure": true
+  },
+  "policy_selector": {
+    "static": {"policy" : "reva"}
+  },
+  "policies": [
+    {
+      "name": "reva",
+      "routes": [
+        {
+          "endpoint": "/",
+          "backend": "http://ocis-phoenix:9100"
+        },
+        {
+          "endpoint": "/.well-known/",
+          "backend": "http://ocis-konnectd:9130"
+        },
+        {
+          "endpoint": "/konnect/",
+          "backend": "http://ocis-konnectd:9130"
+        },
+        {
+          "endpoint": "/signin/",
+          "backend": "http://ocis-konnectd:9130"
+        },
+        {
+          "endpoint": "/ocs/",
+          "backend": "http://ocis-reva-frontend:9140"
+        },
+        {
+          "endpoint": "/remote.php/",
+          "backend": "http://ocis-reva-frontend:9140"
+        },
+        {
+          "endpoint": "/dav/",
+          "backend": "http://ocis-reva-frontend:9140"
+        },
+        {
+          "endpoint": "/webdav/",
+          "backend": "http://ocis-reva-frontend:9140"
+        },
+        {
+          "endpoint": "/status.php",
+          "backend": "http://ocis-reva-frontend:9140"
+        },
+        {
+          "endpoint": "/index.php/",
+          "backend": "http://ocis-reva-frontend:9140"
+        }
+      ]
+    }
+  ]
+}

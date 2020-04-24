@@ -1,0 +1,158 @@
+version: '3.7'
+
+volumes:
+  files:
+    driver: local
+
+services:
+  ocis-proxy:
+    image: owncloud/ocis-proxy:latest
+    ports:
+      - 9200:9200
+    environment:
+      - PROXY_CONFIG_FILE=/config/proxy-config.json
+    volumes:
+      - ./proxy-config.json:/config/proxy-config.json
+
+
+  ocis-konnectd:
+    image: owncloud/ocis-konnectd:latest
+    expose:
+      - 9130
+    environment:
+      - KONNECTD_ISS=https://ocis-proxy:9200
+      - KONNECTD_TLS=false
+      - LDAP_URI=ldap://ocis-glauth:9125
+    volumes:
+    - ./identifier-registration.yml:/config/identifier-registration.yaml
+
+  ocis-accounts:
+    image: owncloud/ocis-accounts:latest
+
+  ocis-phoenix:
+    image: owncloud/ocis-phoenix:latest
+    expose:
+      - 9100
+    environment:
+      - PHOENIX_WEB_CONFIG_SERVER=https://ocis-proxy:9200
+      - PHOENIX_OIDC_METADATA_URL=https://ocis-proxy:9200/.well-known/openid-configuration
+      - PHOENIX_OIDC_AUTHORITY=https://ocis-proxy:9200
+
+  ocis-graph:
+    image: owncloud/ocis-graph:latest
+    expose:
+      - 9120
+    environment:
+      - GRAPH_LDAP_USERNAME=admin
+      - GRAPH_LDAP_PASSWORD=admin
+      - GRAPH_OIDC_ENDPOINT=http://ocis-proxy:9130
+
+  ocis-ocs:
+    image: owncloud/ocis-ocs:latest
+    expose:
+      - 9110
+
+  ocis-webdav:
+    image: owncloud/ocis-webdav:latest
+    expose:
+      - 9115
+
+  ocis-glauth:
+    image: owncloud/ocis-glauth:latest
+
+  ocis-thumbnails:
+    image: owncloud/ocis-thumbnails:latest
+
+  ocis-reva-frontend:
+    image: owncloud/ocis-reva:latest
+    command: frontend
+    expose:
+      - 9140
+    environment:
+      - REVA_FRONTEND_URL=ocis-reva-frontend:9140
+      - REVA_GATEWAY_URL=ocis-reva-gateway:9142
+
+  ocis-reva-gateway:
+    image: owncloud/ocis-reva:latest
+    command: gateway
+    expose:
+      - 9142
+    environment:
+      - REVA_GATEWAY_URL=ocis-reva-gateway:9142
+      - REVA_FRONTEND_URL=ocis-reva-frontend:9140
+      - REVA_USER_URL=ocis-reva-users:9144
+      - REVA_AUTH_BASIC_URL=ocis-reva-auth-basic:9146
+      - REVA_AUTH_BEARER_URL=ocis-reva-auth-bearer:9148
+      - REVA_SHARING_URL=ocis-reva-sharing:9150
+      - REVA_STORAGE_ROOT_URL=ocis-reva-storage-root:9152
+      - REVA_STORAGE_HOME_URL=ocis-reva-storage-home:9154
+      - REVA_STORAGE_OC_URL=ocis-reva-storage-oc:9162
+
+  ocis-reva-users:
+    image: owncloud/ocis-reva:latest
+    command: users
+
+  ocis-reva-auth-basic:
+    image: owncloud/ocis-reva:latest
+    command: auth-basic
+    expose:
+      - 9146
+
+  ocis-reva-auth-bearer:
+    image: owncloud/ocis-reva:latest
+    command: auth-bearer
+    expose:
+      - 9148
+    environment:
+      - REVA_OIDC_ISSUER=https://ocis-proxy:9200
+
+  ocis-reva-sharing:
+    image: owncloud/ocis-reva:latest
+    command: sharing
+    expose:
+      - 9150
+
+  ocis-reva-storage-root:
+    image: owncloud/ocis-reva:latest
+    command: storage-root
+    expose:
+      - 9152
+
+  ocis-reva-storage-home:
+    image: owncloud/ocis-reva:latest
+    command: storage-home
+    expose:
+      - 9154
+    environment:
+      - REVA_STORAGE_HOME_DATA_SERVER_URL=http://ocis-reva-storage-home-data:9156/data
+      - REVA_STORAGE_HOME_ENABLE_HOME_CREATION=true
+      - REVA_STORAGE_OWNCLOUD_REDIS_ADDR=redis:6379
+    volumes:
+    - files:/var/tmp/reva
+
+  ocis-reva-storage-home-data:
+    image: owncloud/ocis-reva:latest
+    command: storage-home-data
+    expose:
+      - 9156
+    volumes:
+      - files:/var/tmp/reva
+
+  ocis-reva-storage-oc:
+    image: owncloud/ocis-reva:latest
+    command: storage-oc
+    expose:
+      - 9162
+    environment:
+      - REVA_STORAGE_OC_DATA_URL=http://ocis-reva-storage-oc-data:9164/data
+      - REVA_STORAGE_OC_ENABLE_HOME_CREATION=true
+  ocis-reva-storage-oc-data:
+    image: owncloud/ocis-reva:latest
+    command: storage-oc-data
+    expose:
+      - 9164
+  redis:
+    image: redis:latest
+
+
+
