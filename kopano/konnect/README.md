@@ -9,10 +9,12 @@ git clone git@github.com:owncloud-docker/compose-playground
 cd compose-playground
 export KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
 export OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+export OWNCLOUD_HTTP_PORT=9680
 
 docker-compose \
     -f owncloud-base.yml \
     -f owncloud-official.yml \
+    -f owncloud-exported-ports.yml \
     -f cache/redis.yml \
     -f database/mariadb.yml \
     -f ldap/openldap.yml \
