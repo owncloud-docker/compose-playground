@@ -23,7 +23,7 @@ services:
       - kopano_ssl
     volumes:
       - /etc/machine-id:/etc/machine-id
-      - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id
+      - /etc/machine-id:/var/lib/dbus/machine-id
       - ./kopano/konnect/konnectd-identifier-registration.yaml:/etc/kopano/konnectd-identifier-registration.yaml
       - kopanosocket/:/run/kopano
       - kopanossl/:/kopano/ssl
