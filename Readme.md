@@ -4,6 +4,8 @@ Here are a lot of examples and snippets you can use and learn from.
 
 Please don't run any of this in production.
 
-# Docker-compose Snippets
+# docker-compose snippets
 
-Note: Moved to (./compose)[/compose] folder
+See [./compose/README.md](/compose/README.md) on composable infrastructure
+
+Note: Moved to [./compose](/compose) folder
