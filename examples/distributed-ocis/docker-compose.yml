@@ -5,6 +5,9 @@ volumes:
     driver: local
   etcd_data:
       driver: local
+  accounts:
+      driver: local
+
 
 services:
   etcd:
@@ -13,6 +16,7 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
     volumes:
       - etcd_data:/bitnami/etcd
+
   micro:
     env_file: .global.env
     image: micro/micro
@@ -21,6 +25,13 @@ services:
       - 8082:8082
     command:
       server
+
+  migration:
+    env_file: .global.env
+    image: owncloud/ocis-migration:latest
+    command:
+      ocis-migration test
+
   proxy:
     env_file: .global.env
     image: owncloud/ocis-proxy:latest
@@ -50,6 +61,8 @@ services:
       - ACCOUNTS_ADDRESS=0.0.0.0:9180
     expose:
       - 9180
+    volumes:
+      - accounts:/ocis-store
 
   phoenix:
     env_file: .global.env
