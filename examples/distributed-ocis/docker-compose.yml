@@ -3,9 +3,26 @@ version: '3.7'
 volumes:
   files:
     driver: local
+  etcd_data:
+      driver: local
 
 services:
-  ocis-proxy:
+  etcd:
+    image: bitnami/etcd:3
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+    volumes:
+      - etcd_data:/bitnami/etcd
+  micro:
+    env_file: .global.env
+    image: micro/micro
+    ports:
+      - 8080:8080
+      - 8082:8082
+    command:
+      server
+  proxy:
+    env_file: .global.env
     image: owncloud/ocis-proxy:latest
     ports:
       - 9200:9200
@@ -14,8 +31,8 @@ services:
     volumes:
       - ./proxy-config.json:/config/proxy-config.json
 
-
-  ocis-konnectd:
+  konnectd:
+    env_file: .global.env
     image: owncloud/ocis-konnectd:latest
     expose:
       - 9130
@@ -26,10 +43,16 @@ services:
     volumes:
     - ./identifier-registration.yml:/config/identifier-registration.yaml
 
-  ocis-accounts:
+  accounts:
+    env_file: .global.env
     image: owncloud/ocis-accounts:latest
+    environment:
+      - ACCOUNTS_ADDRESS=0.0.0.0:9180
+    expose:
+      - 9180
 
-  ocis-phoenix:
+  phoenix:
+    env_file: .global.env
     image: owncloud/ocis-phoenix:latest
     expose:
       - 9100
@@ -39,6 +62,7 @@ services:
       - PHOENIX_OIDC_AUTHORITY=https://ocis-proxy:9200
 
   ocis-graph:
+    env_file: .global.env
     image: owncloud/ocis-graph:latest
     expose:
       - 9120
@@ -48,22 +72,27 @@ services:
       - GRAPH_OIDC_ENDPOINT=http://ocis-proxy:9130
 
   ocis-ocs:
+    env_file: .global.env
     image: owncloud/ocis-ocs:latest
     expose:
       - 9110
 
   ocis-webdav:
+    env_file: .global.env
     image: owncloud/ocis-webdav:latest
     expose:
       - 9115
 
   ocis-glauth:
+    env_file: .global.env
     image: owncloud/ocis-glauth:latest
 
   ocis-thumbnails:
+    env_file: .global.env
     image: owncloud/ocis-thumbnails:latest
 
   ocis-reva-frontend:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: frontend
     expose:
@@ -73,6 +102,7 @@ services:
       - REVA_GATEWAY_URL=ocis-reva-gateway:9142
 
   ocis-reva-gateway:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: gateway
     expose:
@@ -89,16 +119,19 @@ services:
       - REVA_STORAGE_OC_URL=ocis-reva-storage-oc:9162
 
   ocis-reva-users:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: users
 
   ocis-reva-auth-basic:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: auth-basic
     expose:
       - 9146
 
   ocis-reva-auth-bearer:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: auth-bearer
     expose:
@@ -107,18 +140,21 @@ services:
       - REVA_OIDC_ISSUER=https://ocis-proxy:9200
 
   ocis-reva-sharing:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: sharing
     expose:
       - 9150
 
   ocis-reva-storage-root:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: storage-root
     expose:
       - 9152
 
   ocis-reva-storage-home:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: storage-home
     expose:
@@ -131,6 +167,7 @@ services:
     - files:/var/tmp/reva
 
   ocis-reva-storage-home-data:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: storage-home-data
     expose:
@@ -139,6 +176,7 @@ services:
       - files:/var/tmp/reva
 
   ocis-reva-storage-oc:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: storage-oc
     expose:
@@ -146,7 +184,9 @@ services:
     environment:
       - REVA_STORAGE_OC_DATA_URL=http://ocis-reva-storage-oc-data:9164/data
       - REVA_STORAGE_OC_ENABLE_HOME_CREATION=true
+  
   ocis-reva-storage-oc-data:
+    env_file: .global.env
     image: owncloud/ocis-reva:latest
     command: storage-oc-data
     expose:
