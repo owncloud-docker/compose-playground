@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  owncloud:
-    ports:
-      - ${OWNCLOUD_HTTPS_PORT:-9643}:443
-      - ${OWNCLOUD_HTTP_PORT:-9680}:80

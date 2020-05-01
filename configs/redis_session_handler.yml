@@ -1,6 +1,0 @@
-version: '3.4'
-
-services:
-  owncloud:
-    volumes:
-      - ./configs/redis_session_handler.sh:/etc/pre_server.d/50-redis_session_handler.sh

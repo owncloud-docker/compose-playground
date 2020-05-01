@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  owncloud:
+    depends_on:
+      - idp
+    volumes:
+      - ./idp/idp-shib-install.sh:/etc/pre_install.d/idp-shib-install.sh
+      - ./idp/idp-configure.sh:/etc/pre_server.d/idp-configure.sh
+      - ./idp/idp-start-shibd.sh:/etc/pre_server.d/idp-start-shibd.sh
+      - ./idp/simplesaml-shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
+
+  idp:
+    image: jnyryan/simplesamlphp:${SIMPLESAML_CONTAINER_TAG:-latest}
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./idp/simplesamlphp/config/config.php:/var/simplesamlphp/config/config.php
+      - ./idp/simplesamlphp/config/authsources.php:/var/simplesamlphp/config/authsources.php
+      - ./idp/simplesamlphp/metadata/saml20-sp-remote.php:/var/simplesamlphp/metadata/saml20-sp-remote.php
+      - ./idp/simplesamlphp/cert:/var/simplesamlphp/cert

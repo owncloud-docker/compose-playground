@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  owncloud:
+    environment:
+      - OWNCLOUD_PORT=${OWNCLOUD_PORT:-8080}
+    volumes:
+      - ./services/onlyoffice-configure.sh:/etc/pre_server.d/99-onlyoffice-configure.sh
+

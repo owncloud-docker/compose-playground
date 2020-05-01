@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  owncloud:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    restart: always

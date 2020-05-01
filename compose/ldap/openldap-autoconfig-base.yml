@@ -1,0 +1,6 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ${LDAP_AUTOCONFIG_FILE:-./ldap/ldap.sh}:/etc/pre_server.d/10-ldap.sh

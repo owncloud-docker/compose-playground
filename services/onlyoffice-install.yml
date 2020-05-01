@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  owncloud:
-    volumes:
-      - ./services/onlyoffice-install.sh:/etc/pre_server.d/00-onlyoffice-install.sh
-

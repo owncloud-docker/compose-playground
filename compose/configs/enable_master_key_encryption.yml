@@ -1,0 +1,6 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ./configs/enable_master_key_encryption.sh:/etc/pre_server.d/50-enable_master_key_encryption.sh
