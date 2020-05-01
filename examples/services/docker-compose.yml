@@ -31,7 +31,7 @@ services:
     environment:
       - ACCOUNTS_ADDRESS=0.0.0.0:9180
     volumes: 
-      - files:/ocis-data
+      - files:/ocis-store
 
   add-user:
     env_file: .global.env

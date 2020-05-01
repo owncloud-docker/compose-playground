@@ -20,7 +20,8 @@ docker-compose run --rm list-nodes
 
 # How to talk to accounts service in golang
 docker-compose run --rm add-user Peter
-docker-compose exec accounts ls ocis-data
+docker-compose exec accounts ls ocis-store
+docker-compose exec accounts cat ocis-store/Peter
 
 # Now scale out accounts service and look at services again
 docker-compose up -d --scale accounts=3
