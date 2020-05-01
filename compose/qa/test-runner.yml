@@ -1,0 +1,6 @@
+version: '3.4'
+
+services:
+  test_runner:
+    image: owncloudci/php:${OWNCLOUD_CI_IMAGE_TAG:-latest}
+    entrypoint: ["/bin/sleep", "86400"]

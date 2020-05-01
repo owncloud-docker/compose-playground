@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  owncloud:
+    environment:
+      - OWNCLOUD_SHIB_HOST=${OWNCLOUD_SHIB_HOST:-owncloud.test}
+      - OWNCLOUD_SHIB_PORT=${OWNCLOUD_SHIB_PORT:-9680}
+    volumes:
+      #- ./idp/testshib-shibboleth2.xml:/etc/shibboleth/shibboleth2.xml
+      - ./idp/testshib-install.sh:/etc/pre_install.d/testshib-install.sh
+      - ./idp/testshib-configure.sh:/etc/pre_server.d/testshib-configure.sh
+      - ./idp/testshib-start-shibd.sh:/etc/pre_server.d/testshib-start-shibd.sh
+      - ./idp/testshib-upload-metdata.sh:/etc/post_server.d/testshib-upload-metdata.sh

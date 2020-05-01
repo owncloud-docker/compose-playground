@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  owncloud:
-    image: owncloud/base:${OWNCLOUD_BASE_DOCKER_TAG:-latest}
-    volumes:
-      - ${OWNCLOUD_FOLDER:-./owncloud}:/var/www/owncloud

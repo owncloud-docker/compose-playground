@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  owncloud:
+    restart: always
+    environment:
+      - OWNCLOUD_DOMAIN
+      - OWNCLOUD_ADMIN_USERNAME
+      - OWNCLOUD_ADMIN_PASSWORD
+      - OWNCLOUD_CROND_ENABLED
+      - OWNCLOUD_LICENSE_KEY
+      - OWNCLOUD_APPS_INSTALL
+      - OWNCLOUD_APPS_ENABLE
+      - OWNCLOUD_MARKETPLACE_APIKEY

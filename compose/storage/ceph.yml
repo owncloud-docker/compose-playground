@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  owncloud:
+    depends_on:
+      - ceph
+
+  ceph:
+   image: ceph/demo:${CEPH_CONTAINER_TAG:-tag-build-master-jewel-ubuntu-16.04}
+   environment:
+      - NETWORK_AUTO_DETECT=4
+      - RGW_NAME=ceph
+      - CEPH_DEMO_UID=owncloud
+      - CEPH_DEMO_ACCESS_KEY=owncloud123456
+      - CEPH_DEMO_SECRET_KEY=secret123456
