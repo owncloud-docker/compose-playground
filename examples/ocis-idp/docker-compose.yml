@@ -1,0 +1,46 @@
+---
+version: '3.7'
+
+volumes:
+  tmp:
+    driver: local
+
+services:
+  ocis:
+    image: owncloud/ocis:latest
+    ports:
+      - 9200:9200
+    expose:
+      - 9125 #ldap
+      - 9126 #ldaps
+    environment:
+      - OCIS_LOG_LEVEL=debug
+      - OCIS_CONFIG_FILE=/config/proxy-config.json
+      - PROXY_TRANSPORT_TLS_CERT=/proxy_certs/localhost.crt
+      - PROXY_TRANSPORT_TLS_KEY=/proxy_certs/localhost.key
+      - PHOENIX_OIDC_METADATA_URL=https://ocis:9200/.well-known/openid-configuration
+      - PHOENIX_OIDC_AUTHORITY=https://ocis:9200
+      - GRAPH_OIDC_ENDPOINT=http://ocis:9200
+      - REVA_OIDC_ISSUER=https://ocis:9200
+    volumes:
+      - ./ocis/proxy-config.json:/config/proxy-config.json
+      - ./ocis/identifier-registration.yml:/config/identifier-registration.yml
+      - tmp:/tmp/shared
+
+  konnectd:
+    image: kopano/konnectd:latest
+    command: serve --listen 0.0.0.0:9130 --iss https://ocis:9200 ldap
+    expose:
+      - 9130
+    environment:
+      - LDAP_URI=ldap://ocis:9125
+      - LDAP_BINDDN=cn=konnectd,ou=sysusers,dc=example,dc=org
+      - LDAP_BINDPW=konnectd
+      - LDAP_BASEDN=ou=users,dc=example,dc=org
+      - LDAP_SCOPE=sub
+      - LDAP_LOGIN_ATTRIBUTE=cn
+      - LDAP_EMAIL_ATTRIBUTE=mail
+      - LDAP_NAME_ATTRIBUTE=sn
+      - LDAP_UUID_ATTRIBUTE=uid
+      - LDAP_UUID_ATTRIBUTE_TYPE=text
+      - LDAP_FILTER=(objectClass=posixaccount)

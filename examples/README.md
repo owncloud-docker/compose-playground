@@ -11,3 +11,6 @@ owncloud10 and OCIS with proxy deployment, good to test migration
 
 ## services
 picking some ocis services for deploy. two small golang programms communicate with ocis services
+
+## ocis-idp
+configure ocis with an external oidc-idp
