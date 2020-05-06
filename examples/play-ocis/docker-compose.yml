@@ -20,7 +20,7 @@ services:
       target: 9200
     restart: always
     volumes:
-    - /Users/felix/work/github/owncloud/compose-playground/examples/play-ocis/config:/etc/ocis:rw
+    - ${PWD}/config:/etc/ocis:rw
   redis:
     environment:
       REDIS_MAXCONN: '10000'
