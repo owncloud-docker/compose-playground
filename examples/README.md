@@ -14,3 +14,6 @@ picking some ocis services for deploy. two small golang programms communicate wi
 
 ## ocis-idp
 configure ocis with an external oidc-idp
+
+## hetzner-deploy
+deploy a machine (or an entire ocis-eos setup) to hetzner cloud
