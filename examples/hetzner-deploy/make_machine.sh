@@ -53,6 +53,7 @@ if [ "$name" = '-h' ]; then
     export TF_SSHKEY_NAMES="jw@owncloud.com"
     export TF_VAR_hcloud_token=123..........xyz
     $0 [OPTIONS] MACHINE_NAME
+    $0 [OPTIONS] %s-NAME-%s
 
   Where options are:
 
@@ -70,6 +71,17 @@ if [ "$name" = '-h' ]; then
   TF_USER is optional. Default: derived from the first element of \$TF_SSHKEY_NAMES or \$USER.
 
   The MACHINE_NAME should mention the user, and must be unique in the project.
+  `%s` interpolation is done twice on the MACHINE_NAME. The first occurance,
+  (if any) is replaced with TF_USER, the second occurance is replaced with a
+  short random string.
+  Example: `%s-eostest-%s` might result in `jw-eostest-3z4ya`
+
+  When the script finishes, you can extract the ip-address and the (exact) name with
+
+    cd terraform
+    bin/terraform output ipv4
+    bin/terraform output name
+
 EOF
   exit 1
 fi
@@ -90,8 +102,15 @@ if [ -z "$ssh_key_names$ssh_keys" ]; then
 fi
 
 if [ -z "$name" ]; then
-  name="$TF_USER-$(echo "$server_image" | tr ._ -)-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
-  echo "No MACHINE_NAME specified, generating one: name=$name"
+  name="%s-$(echo "$server_image" | tr ._ -)-%s"
+  echo "No MACHINE_NAME specified, generating one: '$name'"
+fi
+
+name_pattern=$name
+name=$(printf "$name" "$TF_USER" "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)")
+
+if [ "$name" != "$name_pattern" ]; then
+  echo "MACHINE_NAME '$name_pattern' expanded to '$name'"
 fi
 
 if [ ! -e "terraform/bin/terraform" ]; then
