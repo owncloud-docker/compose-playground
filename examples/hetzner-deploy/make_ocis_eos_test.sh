@@ -10,18 +10,12 @@
 #
 # 2020-05-07, jw@owncloud.com
 
-if [ -z "$TF_USER" ]; then
-  echo "Env variable TF_USER is not set. Please specify what should be shown as the owner of the machine"
-  exit 1;
-fi
-suffix=$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)
-
 echo "Estimated setup time (when weather is fine): 10 minutes ..."
 sleep 2; echo ""; sleep 2; echo ""; sleep 2
 
-name=$TF_USER-ocis-eos-test-$suffix
-bash ./make_machine.sh $name -p git,screen,build-essential,docker.io
+bash ./make_machine.sh %s-ocis-eos-test-%s -p git,screen,build-essential,docker.io
 ipaddr=$(cd terraform; bin/terraform output ipv4)
+name=$(cd terraform; bin/terraform output name)
 
 if [ -z "$ipaddr" ]; then
   echo "Error: make_machine.sh failed."
