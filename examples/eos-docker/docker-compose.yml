@@ -50,13 +50,24 @@ services:
     hostname: ocis.testnet
     networks:
       - testnet
+    volumes:
+      - ${PWD}/config:/etc/ocis:rw
     environment: 
-      - OCIS_LOG_LEVEL=debug
-      - REVA_STORAGE_HOME_DRIVER=eos
-      - REVA_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158
-      - REVA_STORAGE_HOME_DATA_DRIVER=eos
-      - DAV_FILES_NAMESPACE="/eos/"
-  
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
+      KONNECTD_ISS: https://49.12.107.137:9200
+      KONNECTD_LOG_LEVEL: debug
+      KONNECTD_TLS: '0'
+      PHOENIX_OIDC_AUTHORITY: https://49.12.107.137:9200
+      PHOENIX_OIDC_METADATA_URL: https://49.12.107.137:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://49.12.107.137:9200
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      REVA_OIDC_ISSUER: https://49.12.107.137:9200
+      OCIS_LOG_LEVEL: debug
+      REVA_STORAGE_HOME_DRIVER: eos
+      REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
+      REVA_STORAGE_HOME_DATA_DRIVER: eos
+      DAV_FILES_NAMESPACE: "/eos/"
+
   eos-test:
     container_name: eos-test
     image: cloudservices/eos/eos-citrine-test:test
@@ -138,7 +149,7 @@ services:
     volumes:
     - ./e/eos.keytab:/etc/eos.keytab:ro
     - ./e/log:/var/log/eos
-    - ./e/eos:/eos
+    - ./e/eos:/eos:shared
     devices:
     - /dev/fuse:/dev/fuse:rwm
     environment:
@@ -162,7 +173,7 @@ services:
     - ./e/eos.keytab:/etc/eos.keytab:ro
     - ./e/log:/var/log/eos
     - ./e/fusex:/var/eos/fusex
-    - ./e/eosxd:/eos
+    - ./e/eosxd:/eos:shared
     devices:
     - /dev/fuse:/dev/fuse:rwm
     environment:
