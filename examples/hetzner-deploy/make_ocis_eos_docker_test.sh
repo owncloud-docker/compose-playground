@@ -2,16 +2,16 @@
 #
 # see also:
 #  https://github.com/AARNet/eos-docker/blob/master/README.md
-#  https://github.com/owncloud/ocis/blob/master/docs/eos.md#run-it
-#  https://golang.org/doc/install
+#  https://github.com/owncloud-docker/compose-playground/tree/master/examples/play-ocis
+#  https://github.com/owncloud-docker/compose-playground/tree/eos/examples/eos-docker#eos-docker
 #  https://owncloud.github.io/
 #
-# 2020-05-11, jw@owncloud.com
+# 2020-05-14, jw@owncloud.com
 
-echo "Estimated setup time (when weather is fine): 7 minutes ..."
+echo "Estimated setup time (when weather is fine): 6 minutes ..."
 sleep 2; echo ""; sleep 2; echo ""; sleep 2
 
-bash ./make_machine.sh %s-aarnet-eos-test-%s -p git,screen,build-essential,docker.io,docker-compose
+bash ./make_machine.sh %s-ocis-eos-docker-test-%s -p git,screen,docker.io,docker-compose
 ipaddr=$(cd terraform; bin/terraform output ipv4)
 name=$(cd terraform; bin/terraform output name)
 
@@ -20,9 +20,7 @@ if [ -z "$ipaddr" ]; then
   exit 1;
 fi
 
-# https://github.com/AARNet/eos-docker/blob/master/README.md#system-requirements
-
-ssh root@$ipaddr sh -x -s <<EOF
+ssh root@$ipaddr tee init.bashrc > /dev/null <<EOF
   svcfile=/usr/lib/systemd/system/docker.service			# ubuntu-20.04
   test -e \$svcfile || svcfile=/lib/systemd/system/docker.service	# ubuntu-18.04
   sed -i -e 's@\(\[Service\]\)@\1\nMountFlags=shared@' \$svcfile
@@ -30,18 +28,18 @@ ssh root@$ipaddr sh -x -s <<EOF
   systemctl daemon-reload
   service docker restart
 
-  git clone https://github.com/AARNet/eos-docker.git
-  cd eos-docker
+  git clone https://github.com/owncloud-docker/compose-playground.git -b eos
+  cd compose-playground/examples/eos-docker
 
-  # skip defunct aarnet private repos, as suggested by felix:
-  rm -f containers/content/yum/rhel7-dev.repo containers/content/yum/rhscl.repo
-
-  # do not fail filesystem creation, when no tty is connected.
-  sed -i -e 's/docker exec -ti /docker exec /' setup
+  # FIXME: shouldn't eos-docker.env be able to do this?
+  sed -i -e "s/@IPADDR@/$ipaddr/g" docker-compose.yml
 
   ./build -t test
+  ./setup -a
+  docker-compose up ocis &
 
-  cat <<EOM>/tmp/blurb.txt
+  sleep 5
+  cat <<EOM
 ---------------------------------------------
 # Machine prepared.
 #
@@ -49,7 +47,7 @@ ssh root@$ipaddr sh -x -s <<EOF
 
 # follow the instructions at
 
-	https://github.com/AARNet/eos-docker/blob/master/README.md#building-eos-docker-containers
+   https://github.com/owncloud-docker/compose-playground/tree/eos/examples/eos-docker#eos-docker
 
 # Enter 'exit' when done.
 # Finally, you should destroy the machine e.g. with
@@ -57,13 +55,10 @@ ssh root@$ipaddr sh -x -s <<EOF
 
 ---------------------------------------------
 EOM
+  . ~/.bashrc
 EOF
 
-## FIXME: this is an ugly hack, to get tty allocation working.
-## We should push the above as a script to the remote host,
-## then start an interactive shell, that runs that script as an rc file, then prompts.
-
-ssh -t root@$ipaddr sh -x -c "echo dummy; cd eos-docker; ./setup -a; cat /tmp/blurb.txt; exec bash"
+ssh -t root@$ipaddr bash --rcfile init.bashrc
 
 sleep 2; echo ""; sleep 2
 cat <<EOF

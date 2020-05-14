@@ -11,7 +11,8 @@
 # jw, 2020-04-15	v0.1	initial draft
 # jw, 2020-05-11	v0.2	package install option, remember names for later destroy
 # jw, 2020-05-12	v0.3	poor man's option parser added. getopts is so silly. not used.
-version=0.3
+# jw, 2020-05-14	v0.4	%s interpolation on the machine name, support for direct login
+version=0.4
 
 if [ -z "$TF_VAR_hcloud_token" ]; then
   echo "Environment variable TF_VAR_hcloud_token not set."
@@ -71,10 +72,10 @@ if [ "$name" = '-h' ]; then
   TF_USER is optional. Default: derived from the first element of \$TF_SSHKEY_NAMES or \$USER.
 
   The MACHINE_NAME should mention the user, and must be unique in the project.
-  `%s` interpolation is done twice on the MACHINE_NAME. The first occurance,
+  '%s' interpolation is done twice on the MACHINE_NAME. The first occurance,
   (if any) is replaced with TF_USER, the second occurance is replaced with a
   short random string.
-  Example: `%s-eostest-%s` might result in `jw-eostest-3z4ya`
+  Example: '%s-eostest-%s' might result in 'jw-eostest-3z4ya'
 
   When the script finishes, you can extract the ip-address and the (exact) name with
 
@@ -145,7 +146,7 @@ for i in 1 2 3 4 5 6 7 8 last; do
   sleep 5
   echo -n .
   ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$(bin/terraform output ipv4) uptime && break
-  if [ $i == last ]; then
+  if [ $i = last ]; then
     echo "Error: cannot ssh into machine at $ipaddr -- tried multiple times."
     exit 1
   fi

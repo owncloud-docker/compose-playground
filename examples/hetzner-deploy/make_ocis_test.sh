@@ -14,11 +14,10 @@ if [ -z "$TF_USER" ]; then
   echo "Env variable TF_USER is not set. Please specify what should be shown as the owner of the machine"
   exit 1;
 fi
-suffix=$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)
 
-name=$TF_USER-ocis-test-$suffix
-bash ./make_machine.sh $name -p git,screen,build-essential,docker.io,docker-compose
+bash ./make_machine.sh %s-ocis-test-%s -p git,screen,build-essential,docker.io,docker-compose
 ipaddr=$(cd terraform; bin/terraform output ipv4)
+name=$(cd terraform; bin/terraform output name)
 
 if [ -z "$ipaddr" ]; then
   echo "Error: make_machine.sh failed."
