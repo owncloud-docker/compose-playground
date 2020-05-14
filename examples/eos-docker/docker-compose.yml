@@ -54,14 +54,14 @@ services:
       - ${PWD}/config:/etc/ocis:rw
     environment: 
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
-      KONNECTD_ISS: https://49.12.107.137:9200
+      KONNECTD_ISS: https://@IPADDR@:9200
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
-      PHOENIX_OIDC_AUTHORITY: https://49.12.107.137:9200
-      PHOENIX_OIDC_METADATA_URL: https://49.12.107.137:9200/.well-known/openid-configuration
-      PHOENIX_WEB_CONFIG_SERVER: https://49.12.107.137:9200
+      PHOENIX_OIDC_AUTHORITY: https://@IPADDR@:9200
+      PHOENIX_OIDC_METADATA_URL: https://@IPADDR@:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://@IPADDR@:9200
       PROXY_HTTP_ADDR: 0.0.0.0:9200
-      REVA_OIDC_ISSUER: https://49.12.107.137:9200
+      REVA_OIDC_ISSUER: https://@IPADDR@:9200
       OCIS_LOG_LEVEL: debug
       REVA_STORAGE_HOME_DRIVER: eos
       REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
