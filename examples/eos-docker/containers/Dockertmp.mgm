@@ -1,0 +1,10 @@
+### DOCKER FILE FOR eos/mgm IMAGE BASED ON EOS CITRINE -- EOS 4.x Version ###
+
+FROM eos/base:VERSION_PLACEHOLDER
+
+MAINTAINER David Jericho <david.jericho@aarnet.edu.au>
+MAINTAINER Crystal Chua <crystal.chua@aarnet.edu.au>
+
+# ----- Copy some scripts so we can run them ----- #
+COPY containers/content/scripts/eos_graphite.py /eos_graphite.py
+COPY containers/content/scripts/entrypoint.mgm /entrypoint

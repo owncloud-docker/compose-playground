@@ -1,0 +1,58 @@
+###########################################################
+xrootd.fslib libXrdEosMgm.so
+xrootd.seclib libXrdSec.so
+xrootd.async off nosf
+xrootd.chksum adler32
+###########################################################
+xrd.sched mint 64 maxt 4096 idle 300
+###########################################################
+all.export / nolock
+all.role manager
+###########################################################
+oss.fdlimit 16384 32768
+###########################################################
+# UNIX authentication
+sec.protocol unix
+# SSS authentication
+sec.protocol sss -c /etc/eos.keytab -s /etc/eos.keytab
+# KRB  authentication
+#sec.protocol krb5 -exptkn:/var/eos/auth/krb5#<uid> host/<host>@CERN.CH
+#sec.protocol krb5 host/mgm-master.testnet@testnet
+# GSI authentication
+#sec.protocol gsi -crl:0 -cert:/etc/grid-security/daemon/hostcert.pem -key:/etc/grid-security/daemon/hostkey.pem -gridmap:/etc/grid-security/grid-mapfile -d:0 -gmapopt:2 -vomsat:1 -moninfo:1 -exppxy:/var/eos/auth/gsi#<uid>
+#sec.protocol gsi -crl:0 -cert:/etc/grid-security/daemon/hostcert.pem -key:/etc/grid-security/daemon/hostkey.pem -gridmap:/etc/grid-security/grid-mapfile -d:0 -gmapopt:2 -vomsat:1 -moninfo:1 
+#sec.protocol  gsi -crl:1 -moninfo:1 -cert:/etc/grid-security/daemon/hostcert.pem -key:/etc/grid-security/daemon/hostkey.pem -gridmap:/etc/grid-security/grid-mapfile -d:1 -gmapopt:2
+###########################################################
+sec.protbind localhost.localdomain sss unix
+sec.protbind localhost sss unix
+sec.protbind * only sss unix
+###########################################################
+mgmofs.fs /
+mgmofs.targetport 1095
+#mgmofs.authlib libXrdAliceTokenAcc.so
+#mgmofs.authorize 1
+###########################################################
+# mgmofs.trace all debug
+# this URL can be overwritten by EOS_BROKER_URL defined in /etc/sysconfig/eos
+mgmofs.broker root://localhost:1097//eos/
+# this name can be overwritten by EOS_INSTANCE_NAME defined in /etc/sysconfig/eos
+mgmofs.instance testinstance
+# configuration, namespace , transfer and authentication export directory 
+mgmofs.configdir /var/eos/config
+mgmofs.metalog /var/eos/md
+mgmofs.txdir /var/eos/tx
+mgmofs.authdir /var/eos/auth
+mgmofs.archivedir /var/eos/archive
+# report store path
+mgmofs.reportstorepath /var/eos/report
+mgmofs.reportstore false
+mgmofs.reportnamespace false
+# this defines the default config to load
+mgmofs.autoloadconfig default
+# this enables immediate storage of changes to the active configuration - can be overwritten by EOS_AUTOSAVE_CONFIG defined in /etc/sysconfig/eos
+mgmofs.autosaveconfig true
+# this has to be defined if we have a failover configuration via alias - can be overwritten by EOS_MGM_ALIAS in /etc/sysconfig/eos
+#mgmofs.alias localhost
+###########################################################
+mgmofs.nslib /usr/lib64/libEosNsInMemory.so
+#mgmofs.nslib /usr/lib64/libEosNsQuarkdb.so

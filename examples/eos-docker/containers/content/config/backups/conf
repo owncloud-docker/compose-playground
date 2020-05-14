@@ -1,0 +1,1 @@
+0 */4 * * * root source /cron.env && /qdb-backup.sh > /dev/stdout

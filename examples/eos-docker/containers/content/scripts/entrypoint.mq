@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# set variables
+. /etc/sysconfig/eos
+XRD_COREDIR="/var/spool/eos/core"
+EOS_MQ_MASTER_FILE="/var/eos/eos.mq.master"
+PATH=$PATH:/sbin
+
+# remove all ipv6
+sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+
+# check eos keytab exists, otherwise exit
+if [ ! -s /etc/eos.keytab ]; then
+  if [ -d /etc/k8screds ]; then
+    cp /etc/k8screds/eos.keytab /etc/eos.keytab
+    if [ -e /etc/k8screds/eos.client.keytab ]; then
+      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
+    else
+      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
+    fi
+  else
+    exit 1
+  fi
+else
+  cp /etc/eos.keytab /etc/eos.client.keytab
+fi
+
+sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.mq
+chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
+
+chown -R daemon:daemon /var/log/eos/
+chown -R daemon:daemon /var/eos/
+
+# check if this node is a master - if so, create the relevant file
+if [ "z${EOS_SET_MASTER}" = "ztrue" ] || [ ${EOS_SET_MASTER} -eq 1 ]; then
+    touch ${EOS_MQ_MASTER_FILE}
+fi
+
+# remove potential duplicate lines from mq config
+sed -i '/mqofs.qdbcluster/d' /etc/xrd.cf.mq
+sed -i '/mqofs.qdbpassword_file/d' /etc/xrd.cf.mq
+
+# check if we should use quarkdb, if so set correct config
+if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
+  echo "mqofs.qdbcluster ${EOS_QDB_NODES}" >> /etc/xrd.cf.mq
+  echo "mqofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.mq
+fi
+
+# start mq
+mkdir -p ${XRD_COREDIR} && chown daemon:daemon ${XRD_COREDIR}
+echo "Starting mq for " $(rpm -q eos-server | sed s/eos-server-//g)
+cd ${XRD_COREDIR}
+
+XRDPROG=/usr/bin/xrootd
+test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
+
+exec $XRDPROG -n mq -c /etc/xrd.cf.mq -l /var/log/eos/xrdlog.mq -Rdaemon

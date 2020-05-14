@@ -1,0 +1,56 @@
+#!/bin/sh
+
+# check eos keytab exists, otherwise quit out
+if [ ! -s /etc/eos.keytab ]; then
+  if [ -d /etc/k8screds ]; then
+    if [ -e /etc/k8screds/eos.client.keytab ]; then
+      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
+    else
+      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
+    fi
+  else
+    exit 1
+  fi
+else
+  cp /etc/eos.keytab /etc/eos.client.keytab
+fi
+
+chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
+chown -R daemon:daemon /var/log/eos/
+
+# remove all ipv6
+sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+
+# create xrootd config file
+QDB_CONF=/etc/xrd.cf.qdb
+
+echo "xrd.port ${EOS_QDB_PORT}"                                        > ${QDB_CONF}
+echo "xrd.protocol redis:${EOS_QDB_PORT} /usr/lib64/libXrdQuarkDB.so" >> ${QDB_CONF}
+echo "redis.database ${EOS_QDB_DIR}"                                  >> ${QDB_CONF}
+if ! [ "${EOS_QDB_MODE}" = "bulkload" ]; then
+  echo "redis.password_file /etc/eos.client.keytab"                     >> ${QDB_CONF}
+fi
+echo "redis.mode ${EOS_QDB_MODE}"                                     >> ${QDB_CONF}
+if [ "${EOS_QDB_MODE}" = "raft" ]; then
+  echo "redis.myself `hostname -f`:${EOS_QDB_PORT}"                   >> ${QDB_CONF}
+fi
+
+# create quarkdb database folder if it doesn't exist
+if ! [ -d "${EOS_QDB_DIR}" ]; then
+  if [ "${EOS_QDB_MODE}" = "raft" ]; then
+    quarkdb-create --path ${EOS_QDB_DIR} --clusterID ${EOS_QDB_CLUSTER_ID} --nodes ${EOS_QDB_NODES}
+  else
+    quarkdb-create --path ${EOS_QDB_DIR}
+  fi
+else
+  if [ "${EOS_QDB_MODE}" = "raft" ] && ! [ -d "${EOS_QDB_DIR}/current/raft-journal" ]; then
+    quarkdb-journal --create --path ${EOS_QDB_DIR}/current/raft-journal --clusterID ${EOS_QDB_CLUSTER_ID} --nodes ${EOS_QDB_NODES}
+  fi
+fi
+chown -R daemon:daemon ${EOS_QDB_DIR}
+
+XRDPROG=/usr/bin/xrootd
+test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
+
+exec $XRDPROG -R daemon -n quarkdb -c /etc/xrd.cf.qdb -l /var/log/eos/xrdlog.qdb

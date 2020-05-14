@@ -1,0 +1,99 @@
+#!/bin/sh
+
+export PATH=$PATH:/sbin:/usr/sbin
+
+# check eos keytab exists, otherwise exit
+if [ ! -s /etc/eos.keytab ]; then
+  if [ -d /etc/k8screds ]; then
+    cp /etc/k8screds/eos.keytab /etc/eos.keytab
+    if [ -e /etc/k8screds/eos.client.keytab ]; then
+      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
+    else
+      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
+    fi
+  else
+    exit 1
+  fi
+else
+  cp /etc/eos.keytab /etc/eos.client.keytab
+fi
+
+sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.fst
+chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
+
+# remove potential duplicate lines from fst config
+sed -i '/fstofs.qdbcluster/d' /etc/xrd.cf.fst
+sed -i '/fstofs.qdbpassword_file/d' /etc/xrd.cf.fst
+
+# check if we should use quarkdb, if so set correct config
+if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
+  echo "fstofs.qdbcluster ${EOS_QDB_NODES}" >> /etc/xrd.cf.fst
+  echo "fstofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.fst
+fi
+
+# check we have a passphrase set
+if [ -z "${LUKSPASSPHRASE}" ]; then
+  echo "NO PASSPHRASE TO DECRYPT VOLUME" && exit 1
+else
+  if [ "${LUKSPASSPHRASE}" = "vault" ]; then
+    VAULT_HOST="consul.aarnet.edu.au"
+    VAULT_USER="svc_cs_fst_luks_ro"
+    VAULT_PATH="secret/cloudstor/storage_servers/${NODE_NAME}.${FST_DOMAIN-cdn.aarnet.edu.au}/${FST_DISK}"
+    if ! [ -e /etc/vaultcreds/pass ]; then
+      echo "can't get keys from vault without vault creds" && exit 1
+    fi
+    VAULT_TOKEN=$(curl -s --request POST --data "{\"password\": \"$(cat /etc/vaultcreds/pass)\"}" https://${VAULT_HOST}/v1/auth/userpass/login/${VAULT_USER} | jq -r '.auth.client_token')
+    LUKSPASSPHRASE=$(curl -s --header "X-Vault-Token:${VAULT_TOKEN}"  https://${VAULT_HOST}/v1/${VAULT_PATH} | jq -r '.data.luks_key')
+  fi
+fi
+
+. /etc/sysconfig/eos
+
+MAPPERNAME=LUKS$(basename ${FST_DISK})
+
+# in case disk is already open, close it first
+cryptsetup luksClose ${MAPPERNAME}
+
+echo ${LUKSPASSPHRASE} | cryptsetup luksOpen /mnt/disks/${FST_DISK} ${MAPPERNAME}
+if [ $? -ne 0 ]; then
+  echo "could not decrypt disk" && exit 1
+fi
+
+unset LUKSPASSPHRASE
+
+mkdir -p /data
+mount -o defaults,rw,noatime,nodiratime,swalloc,logbsize=256k,logbufs=8,inode64 -t xfs /dev/mapper/${MAPPERNAME} /data
+if [ $? -ne 0 ]; then
+  echo "could not mount disk" && exit 1
+fi
+chown -f daemon:daemon /data
+
+# set up required directories etc for FST
+echo "Setting /tmp to mode 1777"
+chmod 1777 /tmp
+if [ $? -ne 0 ]; then
+  echo "Cannot set permissions on /tmp, existing"
+fi
+
+echo "Creating directories we need"
+mkdir -p /var/log/eos/fst
+mkdir -p /var/eos/auth
+
+chown daemon:daemon /var/log/eos/fst
+chown daemon:daemon /var/eos/auth
+
+# set geotag
+export EOS_GEOTAG=$(echo ${NODE_NAME} | awk -F "-" '{printf "%s::%s-%s",$1,$1,$2}')
+
+# remove all ipv6
+sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+
+echo "Starting EOS FST " $(rpm -q eos-server | sed s/eos-server-//g)
+
+XRDPROG=/usr/bin/xrootd
+test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
+
+exec $XRDPROG -n fst -c /etc/xrd.cf.fst -l /var/log/eos/xrdlog.fst -Rdaemon
+
