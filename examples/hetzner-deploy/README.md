@@ -9,6 +9,7 @@ Have access to a project at https://cloud.hetzner.com
 Have the public ssh key uploaded, have the private ssh key installed locally.
 Have a hcloud API token for your project.
 ```
+  export TF_USER=jw
   export TF_SSHKEY_NAMES=jw@owncloud.com
   export TF_VAR_hcloud_token=mZdZX......................................................L8bml
 ```
