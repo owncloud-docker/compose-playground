@@ -113,9 +113,10 @@ function setup {
 
   sudo docker-compose up -d mgm-master
   sudo docker-compose up -d fst
-
-  sudo docker-compose up -d eosd
-  sudo docker-compose up -d eosxd
+  
+  sudo docker-compose up -d ocis
+  # sudo docker-compose up -d eosd
+  # sudo docker-compose up -d eosxd
 
   echo; echo "===== RUNNING SOME CHECKS =====";
   echo; sudo docker exec mgm-master eos ns || { echo 'Master MGM failed to start - check logs in e/master/log/mgm/xrdlog.mgm' ; exit 1; }
@@ -165,16 +166,16 @@ function setup {
   echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";
   sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/test
 
-  for dir in "eos" "eosxd"; do
-    testfile="e/${dir}/test/hello.txt"
+  # for dir in "eos" "eosxd"; do
+  #   testfile="e/${dir}/test/hello.txt"
 
-    echo; echo "${dir}: Writing a test file.."
-    sudo echo "  hello, world!" > ${testfile}
-    echo; echo "Reading the test file.."
-    sudo cat ${testfile}
-  done
+  #   echo; echo "${dir}: Writing a test file.."
+  #   sudo echo "  hello, world!" > ${testfile}
+  #   echo; echo "Reading the test file.."
+  #   sudo cat ${testfile}
+  # done
 
-  echo; echo "..All done!"
+  # echo; echo "..All done!"
 }
 
 #==============================================================================
