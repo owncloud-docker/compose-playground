@@ -9,18 +9,15 @@
 # 2020-05-14, jw@owncloud.com
 
 echo "Estimated setup time (when weather is fine): 6 minutes ..."
-sleep 2; echo ""; sleep 2; echo ""; sleep 2
 
-bash ./make_machine.sh %s-ocis-eos-docker-test-%s -p git,screen,docker.io,docker-compose
-ipaddr=$(cd terraform; bin/terraform output ipv4)
-name=$(cd terraform; bin/terraform output name)
+source ./make_machine.sh -u ocis-eos-docker-test -p git,screen,docker.io,docker-compose)
 
-if [ -z "$ipaddr" ]; then
+if [ -z "$IPADDR" ]; then
   echo "Error: make_machine.sh failed."
   exit 1;
 fi
 
-ssh root@$ipaddr tee init.bashrc > /dev/null <<EOF
+LOAD_SCRIPT <<EOF
   svcfile=/usr/lib/systemd/system/docker.service			# ubuntu-20.04
   test -e \$svcfile || svcfile=/lib/systemd/system/docker.service	# ubuntu-18.04
   sed -i -e 's@\(\[Service\]\)@\1\nMountFlags=shared@' \$svcfile
@@ -49,22 +46,8 @@ ssh root@$ipaddr tee init.bashrc > /dev/null <<EOF
 
    https://github.com/owncloud-docker/compose-playground/tree/eos/examples/eos-docker#eos-docker
 
-# Enter 'exit' when done.
-# Finally, you should destroy the machine e.g. with
-        ./destroy_machine.sh $name
-
 ---------------------------------------------
 EOM
-  . ~/.bashrc
 EOF
 
-ssh -t root@$ipaddr bash --rcfile init.bashrc
-
-sleep 2; echo ""; sleep 2
-cat <<EOF
----------------------------------------------
-# When you no longer need the machine, destroy it with e.g.
-        ./destroy_machine.sh $name
-
----------------------------------------------
-EOF
+RUN_SCRIPT

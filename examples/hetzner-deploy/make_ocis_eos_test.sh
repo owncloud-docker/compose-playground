@@ -10,27 +10,20 @@
 #
 # 2020-05-07, jw@owncloud.com
 
-echo "Estimated setup time (when weather is fine): 10 minutes ..."
-sleep 2; echo ""; sleep 2; echo ""; sleep 2
+source ./make_machine.sh -u ocis-eos-test -p git,screen,build-essential,docker.io
 
-bash ./make_machine.sh %s-ocis-eos-test-%s -p git,screen,build-essential,docker.io
-ipaddr=$(cd terraform; bin/terraform output ipv4)
-name=$(cd terraform; bin/terraform output name)
-
-if [ -z "$ipaddr" ]; then
-  echo "Error: make_machine.sh failed."
-  exit 1;
-fi
-
-ssh root@$ipaddr bash -x -s << EOF
+LOAD_SCRIPT <<EOF
   git clone https://github.com/owncloud/ocis.git # -b v1.0.0-beta4
   wget -q https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
   mkdir -p /usr/local/bin
   tar xf go1.14.2.linux-amd64.tar.gz -C /usr/local
   ln -s /usr/local/go/bin/* /usr/local/bin
-EOF
 
-cat <<EOF | ssh root@$ipaddr dd of=/tmp/blurb.txt
+  cd ocis
+  make eos-start
+
+  sleep 10
+  cat <<EOM
 ---------------------------------------------
 # Machine prepared.
 #
@@ -52,18 +45,10 @@ cat <<EOF | ssh root@$ipaddr dd of=/tmp/blurb.txt
 #
 # Enter 'exit' when done.
 # Finally, you should destroy the machine e.g. with
-        bash ./destroy_machine.sh $name
+        bash ./destroy_machine.sh $NAME
 
 ---------------------------------------------
+EOM
 EOF
 
-ssh -t root@$ipaddr sh -c "echo dummy; cd ocis; make eos-start; (sleep 15; cat /tmp/blurb.txt)& exec bash"
-
-sleep 2; echo ""; sleep 2; echo ""; sleep 2
-cat <<EOF2
----------------------------------------------
-# When you no longer need the machine, destroy it with e.g.
-        bash ./destroy_machine.sh $name
-
----------------------------------------------
-EOF2
+RUN_SCRIPT

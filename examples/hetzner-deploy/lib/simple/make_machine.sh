@@ -1,10 +1,10 @@
 #! /bin/sh
-version=0.4
+version=0.5
 
 exec 3>&1 1>&2	# all output goes to stderr.
 set -e
 
-name=
+NAME=
 # getopts cannot do long names and needs more code.
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -13,15 +13,15 @@ while [ "$#" -gt 0 ]; do
     -p|--packages) extra_pkg="$2"; shift ;;
     -i|--image) server_image="$2"; shift ;;
     -t|--type) server_type="$2"; shift ;;
-    -h|--help) name="$1" ;;
+    -h|--help) NAME=-h ;;
     -l|--login) do_login=true ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
-    *) name="$1" ;;
+    *) NAME="$1" ;;
   esac
   shift
 done
 
-if [ "$name" = '-h' ]; then
+if [ "$NAME" = '-h' ]; then
   cat <<EOF
   make_machine.sh V$version
 
@@ -42,13 +42,14 @@ if [ "$name" = '-h' ]; then
 
   The MACHINE_NAME is optional. Default is derived from OC_DEPLOY_ADDR
 
-  "export ipaddr=... name=..." is printed on stdout describing the deploy target.
+  "export IPADDR=... NAME=..." is printed on stdout describing the deploy target.
 EOF
+  test ! -t 3 && echo 1>&3 "export IPADDR= NAME=-h"
   exit 1
 fi
 
-if [ -z "$name" ]; then
-  name="$(echo "$OC_DEPLOY_ADDR" | tr ._ -)"
+if [ -z "$NAME" ]; then
+  NAME="$(echo "$OC_DEPLOY_ADDR" | tr ._ -)"
 fi
 
 there="ssh -t root@$OC_DEPLOY_ADDR"
@@ -74,5 +75,5 @@ if [ "$do_login" = true ]; then
   $there bash	# sudo or ssh ...
 fi
 
-echo 1>&3 "export ipaddr=$OC_DEPLOY_ADDR name=$name"
+echo 1>&3 "export IPADDR=$OC_DEPLOY_ADDR NAME=$NAME"
 exit 0

@@ -12,7 +12,8 @@
 # jw, 2020-05-11	v0.2	package install option, remember names for later destroy
 # jw, 2020-05-12	v0.3	poor man's option parser added. getopts is so silly. not used.
 # jw, 2020-05-14	v0.4	%s interpolation on the machine name, support for direct login
-version=0.4
+# jw, 2020-05-15	v0.5	major refactoring to support local and predeployed systems too.
+version=0.5
 
 exec 3>&1 1>&2	# all output goes to stderr.
 set -e
@@ -28,8 +29,9 @@ packages=""
 server_image="ubuntu-20.04"
 datacenter="fsn1-dc14"
 server_type="cx21"
+mk_unique=false
 do_login=false
-name=
+NAME=
 
 # getopts cannot do long names and needs more code.
 while [ "$#" -gt 0 ]; do
@@ -39,10 +41,11 @@ while [ "$#" -gt 0 ]; do
     -p|--packages) extra_pkg="$2"; shift ;;
     -i|--image) server_image="$2"; shift ;;
     -t|--type) server_type="$2"; shift ;;
-    -h|--help) name="$1" ;;
+    -u|--unique) mk_unique=true ;;
     -l|--login) do_login=true ;;
+    -h|--help) NAME=-h ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
-    *) name="$1" ;;
+    *) NAME="$1" ;;
   esac
   shift
 done
@@ -50,7 +53,7 @@ done
 test -z "$TF_USER" && TF_USER=$(echo "$ssh_key_names" | sed -e 's/[\s,@].*$//')
 test -z "$TF_USER" && TF_USER=$USER
 
-if [ "$name" = '-h' ]; then
+if [ "$NAME" = '-h' ]; then
   cat <<EOF
   make_machine.sh V$version
 
@@ -58,7 +61,6 @@ if [ "$name" = '-h' ]; then
     export TF_SSHKEY_NAMES="jw@owncloud.com"
     export TF_VAR_hcloud_token=123..........xyz
     $0 [OPTIONS] MACHINE_NAME
-    $0 [OPTIONS] %s-NAME-%s
 
   Where options are:
 
@@ -67,6 +69,7 @@ if [ "$name" = '-h' ]; then
     -d|--datacenter ...	    server datacenter. Default: $datacenter
     -s|--ssh-key-names ...  comma-separated names of uploaded public keys
     -p|--packages ...       comma-separated list of linux packages to install
+    -u|--unique             make name unique by prepending user and appending a suffix
     -l|--login              ssh into the machine, when ready
 
   TF_VAR_hcloud_token is specific to a project at https://console.hetzner.cloud
@@ -76,18 +79,13 @@ if [ "$name" = '-h' ]; then
   TF_USER is optional. Default: derived from the first element of \$TF_SSHKEY_NAMES or \$USER.
 
   The MACHINE_NAME should mention the user, and must be unique in the project.
-  '%s' interpolation is done twice on the MACHINE_NAME. The first occurance,
-  (if any) is replaced with TF_USER, the second occurance is replaced with a
-  short random string.
-  Example: '%s-eostest-%s' might result in 'jw-eostest-3z4ya'
+  Use -u to assert that.
+  Example: 'make_machine.sh -u eostest' might result in a machine named 'jw-eostest-3z4ya'
 
-  When the script finishes, you can extract the ip-address and the (exact) name with
-
-    cd terraform
-    bin/terraform output ipv4
-    bin/terraform output name
-
+  Return values:
+    "export IPADDR=... NAME=..." is printed on stdout describing the deploy target.
 EOF
+  test ! -t 3 && echo 1>&3 "export IPADDR= NAME=-h"
   exit 1
 fi
 
@@ -106,17 +104,17 @@ if [ -z "$ssh_key_names$ssh_keys" ]; then
   exit 1
 fi
 
-if [ -z "$name" ]; then
-  name="%s-$(echo "$server_image" | tr ._ -)-%s"
-  echo "No MACHINE_NAME specified, generating one: '$name'"
+if [ -z "$NAME" ]; then
+  NAME="$(echo $server_image | tr ._ -)"
+  mk_unique=true
+  echo "No MACHINE_NAME specified, generating one: '$NAME'"
 fi
 
-## FIXME: printf bug alert: A name with one '%s' leads to ugly undocumented duplicaiton of the fmt string here.
-name_pattern=$name
-name=$(printf "$name" "$TF_USER" "$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)")
+NAME_BASE=$NAME
+test $mk_unique && NAME="$TF_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
 
-if [ "$name" != "$name_pattern" ]; then
-  echo "MACHINE_NAME '$name_pattern' expanded to '$name'"
+if [ "$NAME" != "$NAME_BASE" ]; then
+  echo "MACHINE_NAME '$NAME_BASE' expanded to '$NAME'"
 fi
 
 cd $(dirname $0)
@@ -138,15 +136,15 @@ bin/terraform plan -var="server_owner=$TF_USER" -var="server_names=[\"$name\"]" 
                    -var="ssh_keys=[$ssh_keys]" -var="server_keys=[$ssh_key_names]" \
                    -var="server_datacenter=$datacenter" \
                    -var="server_types=[\"$server_type\"]" \
-                   -var="server_image=$server_image" -out $name.plan
+                   -var="server_image=$server_image" -out $NAME.plan
 
-bin/terraform apply $name.plan
-ipaddr=$(bin/terraform output ipv4)
-test -z "$ipaddr" && exit 1
+bin/terraform apply $NAME.plan
+IPADDR=$(bin/terraform output ipv4)
+test -z "$IPADDR" && exit 1
 
-test -f .cache/terraform.tfstate && cp .cache/terraform.tfstate $name.tfstate
+test -f .cache/terraform.tfstate && cp .cache/terraform.tfstate $NAME.tfstate
 
-ssh-keygen -f ~/.ssh/known_hosts -R $ipaddr	# needed to make life easier later.
+ssh-keygen -f ~/.ssh/known_hosts -R $IPADDR	# needed to make life easier later.
 # StrictHostKeyChecking=no automatically adds new host keys and accepts changed host keys.
 
 for i in 1 2 3 4 5 6 7 8 last; do
@@ -154,7 +152,7 @@ for i in 1 2 3 4 5 6 7 8 last; do
   echo -n .
   ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$(bin/terraform output ipv4) uptime && break
   if [ $i = last ]; then
-    echo "Error: cannot ssh into machine at $ipaddr -- tried multiple times."
+    echo "Error: cannot ssh into machine at $IPADDR -- tried multiple times."
     exit 1
   fi
 done
@@ -162,14 +160,14 @@ done
 if [ -n "$extra_pkg" ]; then
   case "$server_image" in
     ubuntu*|debian*)
-      ssh root@$ipaddr sh -x -s <<END
+      ssh root@$IPADDR sh -x -s <<END
         apt-get update
         apt-get upgrade -y
         apt-get install -y $extra_pkg
 END
 	;;
     fedora*|centos*)
-      ssh root@$ipaddr sh -x -s <<END
+      ssh root@$IPADDR sh -x -s <<END
         yum install -y $extra_pkg
 END
 	;;
@@ -178,16 +176,16 @@ END
   esac
 fi
 
-rm -f $name.plan	# keeping $name.tftate should be enough...
+rm -f $NAME.plan	# keeping $NAME.tftate should be enough...
 
 if [ "$do_login" = true ]; then
-  echo "+ ssh root@$ipaddr"
-  ssh root@$ipaddr
+  echo "+ ssh root@$IPADDR"
+  ssh root@$IPADDR
   cat <<END
 --------------------------------------------------
 When no longer needed, please destroy the machine with e.g.
 
-  ./destroy_machine.sh $name
+  ./destroy_machine.sh $NAME
 --------------------------------------------------
 END
 else
@@ -195,15 +193,15 @@ else
 --------------------------------------------------
 Machine created. Try
 
-    ssh root@$ipaddr
+    ssh root@$IPADDR
 
 To destroy the machine later, you can use
 
-    ./destroy_machine.sh $name
+    ./destroy_machine.sh $NAME
 --------------------------------------------------
 END
 fi
 sleep 2
 
-echo 1>&3 "export ipaddr=$ipaddr name=$name"
+echo 1>&3 "export IPADDR=$IPADDR NAME=$NAME"
 exit 0
