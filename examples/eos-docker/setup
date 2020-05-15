@@ -1,0 +1,214 @@
+#!/bin/bash
+PROGNAME=`basename "$0"`
+export EOS_DIR=`pwd`
+
+#==============================================================================
+# print script usage information
+#==============================================================================
+
+function usage {
+  echo "./${PROGNAME} -d|-s|-a"
+  echo "  -d delete/destroy all existing containers and images"
+  echo "  -s start up containers and configure eos"
+  echo "  -c only create files"
+  echo "  -a do everything, in above order"
+  echo "  -e turn on extra debugging: XrdSecDEBUG=3 & XRD_LOGLEVEL=Dump"
+  exit 1
+}
+
+#==============================================================================
+# tear down existing containers
+#==============================================================================
+
+function destroy {
+  sudo docker-compose stop
+  sudo docker-compose rm -f
+  sudo docker network rm testnet > /dev/null 2>&1
+
+  sudo umount ${EOS_DIR}/e/eos
+  sudo umount ${EOS_DIR}/e/eosxd
+  sudo rm -rf ${EOS_DIR}/e
+}
+
+#==============================================================================
+# recreate files
+#==============================================================================
+
+function create_files {
+  if ! [ -z ${1} ]; then
+    role="/${1}"
+  else
+    role="/master"
+  fi
+
+  sudo mkdir  -p ${EOS_DIR}/e
+  sudo mkdir  ${EOS_DIR}/e${role}
+  sudo mkdir  ${EOS_DIR}/e${role}/log
+  sudo mkdir  ${EOS_DIR}/e${role}/log/tx
+  sudo mkdir  ${EOS_DIR}/e${role}/md
+  sudo mkdir  ${EOS_DIR}/e${role}/config
+  sudo mkdir  ${EOS_DIR}/e${role}/ns-queue
+  sudo mkdir  -p ${EOS_DIR}/e/disks
+  sudo mkdir  -p ${EOS_DIR}/e/log
+  sudo mkdir  -p ${EOS_DIR}/e/eos
+  sudo mkdir  -p ${EOS_DIR}/e/eosxd
+  sudo mkdir  -p ${EOS_DIR}/e/fusex
+  sudo mkdir  -p ${EOS_DIR}/e/grid_hammer
+  sudo cp ${EOS_DIR}/containers/content/eos.keytab ${EOS_DIR}/e/eos.keytab
+  sudo cp ${EOS_DIR}/containers/content/qdb.keytab ${EOS_DIR}/e/qdb.keytab
+  for i in {1..3}; do
+    sudo mkdir -p ${EOS_DIR}/e/quark${i}/ns
+    sudo mkdir -p ${EOS_DIR}/e/quark${i}/log
+  done
+
+  sudo chown -R 2:2 ${EOS_DIR}/e
+  sudo chmod 600 ${EOS_DIR}/e/eos.keytab
+  sudo chmod 400 ${EOS_DIR}/e/qdb.keytab
+}
+
+#==============================================================================
+# create environment variable file
+#==============================================================================
+# these variables overwrite any defaults within the docker containers.
+# they act as a stand-in for any environment variables to be set manually in rancher
+
+function set_env {
+
+  eos_env_file="${EOS_DIR}/eos-docker.env"
+
+  echo "EOS_GEOTAG=test" > $eos_env_file
+  echo "EOS_INSTANCE_NAME=eostest" >> $eos_env_file
+  echo "EOS_MAIL_CC=eos@localhost" >> $eos_env_file
+  echo "EOS_MQ_URL=mq-master.testnet" >> $eos_env_file
+  echo "EOS_MGM_ALIAS=mgm-master.testnet" >> $eos_env_file
+  echo "EOS_USE_QDB=1" >> $eos_env_file
+  echo "EOS_USE_QDB_MASTER=1" >> $eos_env_file
+  echo "EOS_QDB_NODES='quark-1.testnet:7777 quark-2.testnet:7777 quark-3.testnet:7777'" >> $eos_env_file
+  if [ $extra ]; then
+    echo "XrdSecDEBUG=3" >> $eos_env_file
+    echo "XRD_LOGLEVEL=Dump" >> $eos_env_file
+  fi
+
+}
+
+#==============================================================================
+# set up eos test instances
+#==============================================================================
+
+function setup {
+  set_env
+
+  sudo docker network create testnet > /dev/null
+
+  create_files
+
+  sleep 5
+ 
+  # single master setup
+  sudo docker-compose up -d mq-master
+
+  # start quarkdb
+  sudo docker-compose up -d quark-1
+  sudo docker-compose up -d quark-2
+  sudo docker-compose up -d quark-3
+
+  sudo docker-compose up -d mgm-master
+  sudo docker-compose up -d fst
+
+#   sudo docker-compose up -d eosd
+#   sudo docker-compose up -d eosxd
+
+  echo; echo "===== RUNNING SOME CHECKS =====";
+  echo; sudo docker exec mgm-master eos ns || { echo 'Master MGM failed to start - check logs in e/master/log/mgm/xrdlog.mgm' ; exit 1; }
+  echo; sudo docker exec mgm-master eos node ls
+
+  sleep 5
+  echo; echo "===== DOING SOME CONFIGURATION ====="
+  echo;
+  sudo docker exec mgm-master eos -r 0 0 -b vid enable sss
+  sudo docker exec mgm-master eos -r 0 0 -b vid enable unix
+  sudo docker exec mgm-master eos -r 0 0 -b vid enable https
+  sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -uids adm
+  sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -gids adm
+  sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon +sudo
+  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosd.testnet sss
+  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosxd.testnet sss
+  sudo docker exec mgm-master eos -r 0 0 -b debug err
+
+  # create filesystems
+  echo; echo "===== CREATING FILESYSTEMS ====="
+  echo;
+  for i in {1..4}; do
+    sudo docker exec fst mkdir /disks/eosfs${i}
+    sudo docker exec fst chown daemon:daemon /disks/eosfs${i}
+    sudo docker exec fst eos -r 0 0 -b fs add eosfs${i} fst.testnet:1095 /disks/eosfs${i} default rw
+  done
+
+  echo; echo ".. Done!"
+
+  echo; echo "===== RUNNING SOME MORE CHECKS =====";
+  sudo docker exec mgm-master eos group set default.0 on
+  echo; sudo docker exec mgm-master eos space set default on
+
+  echo "Giving FSes some time.."
+
+  sleep 20
+
+  sudo docker exec mgm-master eos fs ls
+  sudo docker exec mgm-master eos space ls
+  sudo docker exec mgm-master eos group ls
+
+  for q in "quark-1" "quark-2" "quark-3"; do
+    echo; echo "===== ${q} ====="; echo;
+    sudo docker exec ${q} redis-cli -p 7777 raft-info
+  done
+
+  echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";
+  sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/test
+
+  # for dir in "eos" "eosxd"; do
+  #   testfile="e/${dir}/test/hello.txt"
+
+  #   echo; echo "${dir}: Writing a test file.."
+  #   sudo echo "  hello, world!" > ${testfile}
+  #   echo; echo "Reading the test file.."
+  #   sudo cat ${testfile}
+  # done
+
+  echo; echo "..All done! To start ocis at port 9200, please do"
+  echo  "    docker-compose up ocis"
+}
+
+#==============================================================================
+# main script logic
+#==============================================================================
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+# check which options are set
+while getopts "dscaet:" opt; do
+  case "$opt" in
+    d) D=true ;;
+    s) S=true ;;
+    c) C=true ;;
+    a) A=true ;;
+    e) extra=true ;;
+    \?) usage ;;
+  esac
+done
+
+# run actions in order
+if [ $D ] || [ $A ]; then
+  destroy
+fi
+
+if [ $C ]; then
+  set_env
+  create_files
+fi
+
+if [ $S ] || [ $A ]; then
+  setup
+fi

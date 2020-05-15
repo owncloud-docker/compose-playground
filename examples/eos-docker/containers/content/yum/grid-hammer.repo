@@ -1,0 +1,5 @@
+[grid-hammer]
+name=Grid Hammer
+baseurl=http://storage-ci.web.cern.ch/storage-ci/grid-hammer/master/el7/x86_64/
+gpgcheck=0
+enabled=1

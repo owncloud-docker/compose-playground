@@ -1,0 +1,344 @@
+version: '2'
+services:
+  mq-master:
+    container_name: mq-master
+    image: cloudservices/eos/eos-citrine-mq:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: mq-master.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/master/log:/var/log/eos
+    - ./e/master/config:/var/eos/config
+    - ./e/master/md:/var/eos/md
+    - ./e/master/ns-queue:/var/eos/ns-queue
+    environment:
+      EOS_SET_MASTER: 1
+
+  mgm-master:
+    container_name: mgm-master
+    image: cloudservices/eos/eos-citrine-mgm:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: mgm-master.testnet
+    networks:
+    - testnet
+    volumes_from:
+    - mq-master
+    environment:
+      EOS_SET_MASTER: 1
+
+  ocis:
+    container_name: ocis
+    image: cloudservices/eos/eos-citrine-ocis:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports: 
+      - 9200:9200
+    env_file:
+      - ./eos-docker.env
+    hostname: ocis.testnet
+    networks:
+      - testnet
+    volumes:
+      - ${PWD}/config:/etc/ocis:rw
+    environment: 
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
+      KONNECTD_ISS: https://@IPADDR@:9200
+      KONNECTD_LOG_LEVEL: debug
+      KONNECTD_TLS: '0'
+      PHOENIX_OIDC_AUTHORITY: https://@IPADDR@:9200
+      PHOENIX_OIDC_METADATA_URL: https://@IPADDR@:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://@IPADDR@:9200
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      REVA_OIDC_ISSUER: https://@IPADDR@:9200
+      OCIS_LOG_LEVEL: debug
+      REVA_STORAGE_HOME_DRIVER: eos
+      REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
+      REVA_STORAGE_HOME_DATA_DRIVER: eos
+      DAV_FILES_NAMESPACE: "/eos/"
+
+  eos-test:
+    container_name: eos-test
+    image: cloudservices/eos/eos-citrine-test:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: eos-test.testnet
+    networks:
+    - testnet
+    volumes_from:
+    - mq-master
+    environment:
+      EOS_MGM_URL: "root://mgm-master.testnet"
+
+  mq-slave:
+    container_name: mq-slave
+    image: cloudservices/eos/eos-citrine-mq:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: mq-slave.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/slave/log:/var/log/eos
+    - ./e/slave/config:/var/eos/config
+    - ./e/slave/md:/var/eos/md
+
+  mgm-slave:
+    container_name: mgm-slave
+    image: cloudservices/eos/eos-citrine-mgm:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: mgm-slave.testnet
+    networks:
+    - testnet
+    volumes_from:
+    - mq-slave
+
+  fst:
+    container_name: fst
+    image: cloudservices/eos/eos-citrine-fst:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: fst.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/log:/var/log/eos
+    - ./e/disks:/disks
+    environment:
+      EOS_MGM_URL: "root://mgm-master.testnet"
+
+  eosd:
+    container_name: eosd
+    image: cloudservices/eos/eos-citrine-eosd:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    pid: "host"
+    env_file:
+    - ./eos-docker.env
+    hostname: eosd.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/log:/var/log/eos
+    - ./e/eos:/eos:shared
+    devices:
+    - /dev/fuse:/dev/fuse:rwm
+    environment:
+      EOS_FUSE_MGM_ALIAS: "mgm-master.testnet"
+    cap_add:
+    - SYS_ADMIN
+
+  eosxd:
+    container_name: eosxd
+    image: cloudservices/eos/eos-citrine-eosxd:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    pid: "host"
+    env_file:
+    - ./eos-docker.env
+    hostname: eosxd.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/log:/var/log/eos
+    - ./e/fusex:/var/eos/fusex
+    - ./e/eosxd:/eos:shared
+    devices:
+    - /dev/fuse:/dev/fuse:rwm
+    environment:
+      EOS_FUSE_MGM_ALIAS: "mgm-master.testnet"
+    cap_add:
+    - SYS_ADMIN
+
+  sync:
+    container_name: sync
+    image: cloudservices/eos/eos-citrine-sync:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: sync.testnet
+    networks:
+    - testnet
+    volumes_from:
+    - mq-slave
+
+  eossync-files:
+    container_name: eossync-files
+    image: cloudservices/eos/eos-citrine-eossync:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    volumes_from:
+    - mq-master
+    networks:
+    - testnet
+    environment:
+      SYNC_TYPE: "file"
+      SYNCFILE_NAME: "files"
+      SYNCFILE_TYPE: "mdlog"
+      EOS_MGM_HOST: "mgm-master.testnet"
+      EOS_MGM_HOST_TARGET: "sync.testnet"
+
+  eossync-dirs:
+    container_name: eossync-dirs
+    image: cloudservices/eos/eos-citrine-eossync:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    networks:
+    - testnet
+    volumes_from:
+    - mq-master
+    environment:
+      SYNC_TYPE: "file"
+      SYNCFILE_NAME: "directories"
+      SYNCFILE_TYPE: "mdlog"
+      EOS_MGM_HOST: "mgm-master.testnet"
+      EOS_MGM_HOST_TARGET: "sync.testnet"
+
+  eossync-iostat:
+    container_name: eossync-iostat
+    image: cloudservices/eos/eos-citrine-eossync:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    networks:
+    - testnet
+    volumes_from:
+    - mq-master
+    environment:
+      SYNC_TYPE: "file"
+      SYNCFILE_NAME: "iostat"
+      SYNCFILE_TYPE: "dump"
+      EOS_MGM_HOST: "mgm-master.testnet"
+      EOS_MGM_HOST_TARGET: "sync.testnet"
+
+  eossync-config:
+    container_name: eossync-config
+    image: cloudservices/eos/eos-citrine-eossync:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    networks:
+    - testnet
+    volumes_from:
+    - mq-master
+    environment:
+      SYNC_TYPE: "dir"
+      EOS_MGM_HOST: "mgm-master.testnet"
+      EOS_MGM_HOST_TARGET: "sync.testnet"
+
+  quark-1:
+    container_name: quark-1
+    image: cloudservices/eos/eos-citrine-qdb:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: quark-1.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark1/log:/var/log/eos
+    - ./e/quark1/ns:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"
+
+  quark-2:
+    container_name: quark-2
+    image: cloudservices/eos/eos-citrine-qdb:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: quark-2.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark2/log:/var/log/eos
+    - ./e/quark2/ns:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"
+
+  quark-3:
+    container_name: quark-3
+    image: cloudservices/eos/eos-citrine-qdb:test
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./eos-docker.env
+    hostname: quark-3.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/eos.keytab:/etc/eos.keytab:ro
+    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark3/log:/var/log/eos
+    - ./e/quark3/ns:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"
+
+networks:
+  testnet:
+    external:
+      name: testnet

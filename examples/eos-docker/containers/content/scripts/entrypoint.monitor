@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# remove all ipv6
+sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+
+# check eos keytab exists, otherwise exit
+if [ ! -s /etc/eos.keytab ]; then
+  if [ -d /etc/k8screds ]; then
+    cp /etc/k8screds/eos.keytab /etc/eos.keytab
+    if [ -e /etc/k8screds/eos.client.keytab ]; then
+      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
+    else
+      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
+    fi
+  else
+    exit 1
+  fi
+else
+  cp /etc/eos.keytab /etc/eos.client.keytab
+fi
+
+chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
+
+echo ${EOS_MGM_URL} > /eosmgm
+
+crond -n

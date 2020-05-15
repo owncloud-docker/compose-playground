@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -z ${FST_K8S+x} ] || ! [ "${FST_K8S}" == "true" ]; then 
+  exec ./entrypoint.fst
+else 
+  exec ./entrypoint.fst.k8s
+fi
