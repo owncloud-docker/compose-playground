@@ -13,7 +13,7 @@ fi
 test -z "$TF_USER" && TF_USER=$USER
 name=$1
 
-cd $(dirname $0)/terraform
+cd $(dirname $0)/lib/hcloud_tf/terraform
 
 if [ -z "$name" ]; then
   echo "Usage: $0 MACHINE_NAME_GLOB ..."
