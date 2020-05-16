@@ -1,17 +1,26 @@
 # Hetzner Deployment Scripts
 
-The tools here use terraform to deploy machines into hetzner cloud.
-The machines will be accessible via ssh.
+The tools here can use terraform to deploy machines into Hetzner cloud.
+The machines will be accessible via ssh then.
 
-## Preconditions
+Alternatively you can deploy into existing machines, using either:
 
-Have access to a project at https://cloud.hetzner.com
+ * `export OC_DEPLOY_ADDR=xx.yy.zz.aa` -- this will use `ssh root@$OC_DEPLOY_ADDR` to access the macine. Your ssh-key should be installed at the root account.
+
+ * `export OC_DEPLOY_ADDR=localhost` -- this will use `sudo` to install locally.
+
+
+## Preconditions for Using Hetzner Cloud
+
+Have access to a project at https://console.hetzner.cloud
 Have the public ssh key uploaded, have the private ssh key installed locally.
 Have a hcloud API token for your project.
 ```
   export TF_SSHKEY_NAMES=jw@owncloud.com
   export TF_VAR_hcloud_token=mZdZX......................................................L8bml
 ```
+If you don't have a token, you can create a machine manually (with your ssh-key) at the web interface and use its IP address with OC_DEPLOY_ADDR.
+
 
 ## Scripts
 
@@ -26,14 +35,15 @@ and deploys a specific setup there (or at least does it half way and gives instr
 
  * `./make_aarnet_eos.sh` -- run an eos setup, but no ocis there yet. 
 
- * `./make_machine.sh` -- creates a machine and returns its IP-ADDR.
+ * `./make_machine.sh` -- creates a machine and returns its IP address.
    This is a general purpose script, check out the command line options.
-   The other scripts are actually wrappers on this one.
+   In case of OC_DEPLOY_ADDR=localhost, an attempt is made to return the IP address associated with the default route.
+   The other scripts are actually wrappers on this one. Read and modify them. (But don't read make_machine.sh -- it does magic).
 
 In each case, wait several minutes, until the setup is done.
 Follow the instructions on screen.
 
-You can tear down hetzner machines either from the hetzne web GUI, or by using the command line.
+You can tear down a Hetzner machines either from https://console.hetzner.cloud, or by using the command line.
 In both cases, you will be prompted with the machine name again, and will have to confirm.
 
   * `./destroy_machine.sh MACHINE_NAME` -- destroy one specific machine.
