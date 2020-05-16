@@ -55,3 +55,5 @@ EOF
   fi
 }
 
+# not used normally, but fulfill what the usage says:
+echo export IPADDR=$IPADDR NAME=$NAME

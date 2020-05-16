@@ -25,7 +25,7 @@ fi
 tf_url="https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.12_linux_amd64.zip"
 ssh_key_names="$TF_SSHKEY_NAMES"
 ssh_keys="$TF_SSHKEY"
-packages=""
+extra_pkg=""
 server_image="ubuntu-20.04"
 datacenter="fsn1-dc14"
 server_type="cx21"
@@ -55,12 +55,14 @@ test -z "$TF_USER" && TF_USER=$USER
 
 if [ "$NAME" = '-h' ]; then
   cat <<EOF
-  make_machine.sh V$version
+  $0 V$version
 
   Usage:
     export TF_SSHKEY_NAMES="jw@owncloud.com"
     export TF_VAR_hcloud_token=123..........xyz
     $0 [OPTIONS] MACHINE_NAME
+    \$(bash ./make_machine.sh ...)
+    source ./make_machine.sh ...
 
   Where options are:
 
@@ -132,7 +134,7 @@ cd terraform
 rm -rf .cache           	# clean state
 bin/terraform init
 
-bin/terraform plan -var="server_owner=$TF_USER" -var="server_names=[\"$name\"]" \
+bin/terraform plan -var="server_owner=$TF_USER" -var="server_names=[\"$NAME\"]" \
                    -var="ssh_keys=[$ssh_keys]" -var="server_keys=[$ssh_key_names]" \
                    -var="server_datacenter=$datacenter" \
                    -var="server_types=[\"$server_type\"]" \
