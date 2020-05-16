@@ -2,7 +2,8 @@
 PROGNAME=`basename "$0"`
 
 function usage {
-    echo "./${PROGNAME} [-x <xrootd-version>] [-e <eos-version>] [-q <qdb-version>] [-i <list,of,images>] [-t <tag>] [-c] [-g] [-p] [-f] [-h]"
+    echo "./${PROGNAME} [-a <ipaddr>] [-x <xrootd-version>] [-e <eos-version>] [-q <qdb-version>] [-i <list,of,images>] [-t <tag>] [-c] [-g] [-p] [-f] [-h]"
+    echo "  -a specify IPADDR for docker-compose.yml and config/identifier-registration.yml patching..."
     echo "  -x specify xrootd version, defaults to latest known stable"
     echo "  -e specify eos version, defaults to latest known stable"
     echo "  -q specify quarkdb version, defaults to latest known stable"
@@ -23,9 +24,11 @@ set_base () {
   sed "s|BASE_IMAGE|${base_image}|g" containers/Dockertmp.$1 > containers/Dockerfile.$1
 }
 
+ipaddr=127.0.0.1	# harmless default
 # check which options are set
 while getopts "x:e:q:i:t:gcpfh" opt; do
   case "$opt" in
+    a) ipaddr=${OPTARG} ;;
     x) xrd_version=${OPTARG} ;;
     e) eos_version=${OPTARG} ;;
     q) qdb_version=${OPTARG} ;;
@@ -72,7 +75,7 @@ export standalone=""
 export dependencies=""
 
 for image in ${targets}; do
-  case "${image}" in 
+  case "${image}" in
     mq|mgm|fst|qdb|qdbackup|sync|eossync|monitor)
       if [ -z "$dependencies" ]; then
         dependencies="${image}"
@@ -149,6 +152,10 @@ fi
 sed "s|BASE_IMAGE|eos/base:test|g" containers/Dockertmp.ocis > containers/Dockerfile.ocis
 echo "sudo docker build ${force} --file containers/Dockerfile.ocis -t ${registry}${project}eos-citrine-ocis:${tag:-$qdb_version} ."
 sudo docker build ${force} --file containers/Dockerfile.ocis -t ${registry}${project}eos-citrine-ocis:${tag:-$qdb_version} .
+
+for patchypatchy in docker-compose.yml config/identifier-registration.yml; do
+  sed -e "s|@IPADDR@|$ipaddr|g" $patchypatchy.tmpl > $patchypatchy
+done
 
 ## delete all generated dockerfiles
 # rm containers/Dockerfile.*

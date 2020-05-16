@@ -61,6 +61,7 @@ function create_files {
     sudo mkdir -p ${EOS_DIR}/e/quark${i}/log
   done
 
+  # must be daemon:daemon
   sudo chown -R 2:2 ${EOS_DIR}/e
   sudo chmod 600 ${EOS_DIR}/e/eos.keytab
   sudo chmod 400 ${EOS_DIR}/e/qdb.keytab
@@ -76,17 +77,25 @@ function set_env {
 
   eos_env_file="${EOS_DIR}/eos-docker.env"
 
-  echo "EOS_GEOTAG=test" > $eos_env_file
-  echo "EOS_INSTANCE_NAME=eostest" >> $eos_env_file
-  echo "EOS_MAIL_CC=eos@localhost" >> $eos_env_file
-  echo "EOS_MQ_URL=mq-master.testnet" >> $eos_env_file
-  echo "EOS_MGM_ALIAS=mgm-master.testnet" >> $eos_env_file
-  echo "EOS_USE_QDB=1" >> $eos_env_file
-  echo "EOS_USE_QDB_MASTER=1" >> $eos_env_file
-  echo "EOS_QDB_NODES='quark-1.testnet:7777 quark-2.testnet:7777 quark-3.testnet:7777'" >> $eos_env_file
+  cat <<EOF > $eos_env_file
+EOS_GEOTAG=test
+EOS_INSTANCE_NAME=eostest
+EOS_MAIL_CC=eos@localhost
+EOS_MQ_URL=mq-master.testnet
+EOS_MGM_ALIAS=mgm-master.testnet
+EOS_MGM_URL=root://${EOS_MGM_ALIAS}:1094
+EOS_USE_QDB=1
+EOS_USE_QDB_MASTER=1
+EOS_QDB_NODES='quark-1.testnet:7777 quark-2.testnet:7777 quark-3.testnet:7777'
+EOS_NS_ACCOUNTING=1
+EOS_SYNCTIME_ACCOUNTING=1
+EOS_LDAP_HOST=ocis.testnet:9125
+EOF
   if [ $extra ]; then
-    echo "XrdSecDEBUG=3" >> $eos_env_file
-    echo "XRD_LOGLEVEL=Dump" >> $eos_env_file
+    cat <<EOF > $eos_env_file
+XrdSecDEBUG=3
+XRD_LOGLEVEL=Dump
+EOF
   fi
 
 }
@@ -115,6 +124,7 @@ function setup {
   sudo docker-compose up -d mgm-master
   sudo docker-compose up -d fst
 
+  sudo docker-compose up -d ocis	# FIXME: better do that separately at the end. But we have to do authconfig now.
 #   sudo docker-compose up -d eosd
 #   sudo docker-compose up -d eosxd
 
@@ -131,9 +141,23 @@ function setup {
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -uids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -gids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon +sudo
-  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosd.testnet sss
-  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosxd.testnet sss
+  # sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosd.testnet sss
+  # sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosxd.testnet sss
   sudo docker exec mgm-master eos -r 0 0 -b debug err
+
+  # from github.com/owncloud/ocis/Makefile
+  sudo docker exec mgm-master eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
+  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway ocis.testnet
+  for container in ocis mgm-master; do
+    sudo docker exec $container yum install -y nss-pam-ldapd nscd authconfig
+    sudo docker exec $container sh -c 'authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update'
+    sudo docker exec $container sh -c 'sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslcd.conf'
+    sudo docker exec $container sh -c 'sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf'
+    sudo docker exec $container nslcd
+    sleep 3
+    sudo docker exec $container authconfig --test 	# expect: nss_ldap is enabled
+    sudo docker exec $container id marie		# expect: uid=20001(marie) gid=30000(users) ...
+  done
 
   # create filesystems
   echo; echo "===== CREATING FILESYSTEMS ====="
@@ -154,6 +178,7 @@ function setup {
 
   sleep 20
 
+  sudo docker exec mgm-master eos ls -l eos
   sudo docker exec mgm-master eos fs ls
   sudo docker exec mgm-master eos space ls
   sudo docker exec mgm-master eos group ls
@@ -163,8 +188,13 @@ function setup {
     sudo docker exec ${q} redis-cli -p 7777 raft-info
   done
 
-  echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";
-  sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/test
+  ## cern style eos docker root default namespace
+  sudo docker exec mgm-master eos mkdir /eos/dockertest
+  sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/dockertest
+  sudo docker exec mgm-master eos -r 0 0 -b vid ls
+
+  # echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";
+  # sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/test
 
   # for dir in "eos" "eosxd"; do
   #   testfile="e/${dir}/test/hello.txt"

@@ -28,19 +28,19 @@ LOAD_SCRIPT <<EOF
   git clone https://github.com/owncloud-docker/compose-playground.git -b eos
   cd compose-playground/examples/eos-docker
 
-  # FIXME: shouldn't eos-docker.env be able to do this?
-  sed -i -e "s/@IPADDR@/$ipaddr/g" docker-compose.yml
+  # done in ./build, when used with -a
+  # sed -e "s/@IPADDR@/$IPADDR/g" < docker-compose.yml.tmpl > docker-compose.yml
 
-  ./build -t test
+  ./build -a $IPADDR -t test
   ./setup -a
-  docker-compose up ocis &
+  docker-compose up ocis &	# stop and restart, this time with log output visible.
 
   sleep 5
   cat <<EOM
 ---------------------------------------------
 # Machine prepared.
 #
-# This shell is now connected to root@$ipaddr
+# This shell is now connected to root@$IPADDR
 
 # follow the instructions at
 

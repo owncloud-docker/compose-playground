@@ -50,13 +50,14 @@ These ports must be open/ accessible
 ## QUICKSTART
 
 ```
-./build && ./setup -a
+./build -a IP.AD.DD.DR -t test && ./setup -a
 ```
 
 ### Building EOS-DOCKER Containers
 
 ```
-./build [-x <xrootd-version>] [-e <eos-version>] [-q <qdb-version>] [-i <list,of,images>] [-t <tag>] [-c] [-g] [-p] [-f] [-h]
+./build [-a <ipaddr>] [-x <xrootd-version>] [-e <eos-version>] [-q <qdb-version>] [-i <list,of,images>] [-t <tag>] [-c] [-g] [-p] [-f] [-h]
+  -a specify IPADDR for docker-compose.yml and config/identifier-registration.yml patching...
   -x specify xrootd version, defaults to latest known stable
   -e specify eos version, defaults to latest known working
   -q specify quarkdb version, defaults to latest known stable
