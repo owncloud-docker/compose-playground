@@ -8,9 +8,10 @@ if [ -z "$OC_DEPLOY" -a -n "$TF_VAR_hcloud_token" ]; then
 fi
 test -z "$OC_DEPLOY" -o ! -d $libdir/$OC_DEPLOY && { echo 1>&2 "OC_DEPLOY is undefined or unknown, try one of: $(ls -m $libdir)"; exit 1; }
 
+test "$OC_DEPLOY" = hcloud_py && suf=py || suf=sh
 NAME=
 IPADDR=
-$($libdir/$OC_DEPLOY/make_machine.sh "$@")
+$($libdir/$OC_DEPLOY/make_machine.$suf "$@")
 
 if [ -z "$IPADDR" ]; then
   if [ "$NAME" = '-h' ]; then		# usage was printed.

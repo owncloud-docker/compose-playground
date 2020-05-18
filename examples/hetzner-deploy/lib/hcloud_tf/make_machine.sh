@@ -152,7 +152,7 @@ ssh-keygen -f ~/.ssh/known_hosts -R $IPADDR	# needed to make life easier later.
 for i in 1 2 3 4 5 6 7 8 last; do
   sleep 5
   echo -n .
-  ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$(bin/terraform output ipv4) uptime && break
+  ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$IPADDR uptime && break
   if [ $i = last ]; then
     echo "Error: cannot ssh into machine at $IPADDR -- tried multiple times."
     exit 1

@@ -19,7 +19,8 @@ Have a hcloud API token for your project.
   export TF_SSHKEY_NAMES=jw@owncloud.com
   export TF_VAR_hcloud_token=mZdZX......................................................L8bml
 ```
-If you don't have a token, you can create a machine manually (with your ssh-key) at the web interface and use its IP address with OC_DEPLOY_ADDR.
+If you don't have a token, you can create a machine manually at the web interface. Always include your ssh-key when you do that.
+Then you can provide its IP address via OC_DEPLOY_ADDR.
 
 
 ## Scripts
