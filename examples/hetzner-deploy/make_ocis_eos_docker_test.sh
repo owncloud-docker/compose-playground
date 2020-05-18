@@ -34,7 +34,7 @@ LOAD_SCRIPT <<EOF
 
   ./build -a $IPADDR -t test
   ./setup -a
-  docker-compose up ocis &	# stop and restart, this time with log output visible.
+  # docker-compose up ocis &	# stop and restart, this time with log output visible.
 
   sleep 5
   cat <<EOM

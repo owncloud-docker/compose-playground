@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# usage
+# list-hcloud-server        list servers of all hcloud projects with an api-token in vault
+# list-hcloud-server name   list servers of project "name"
+
+projects=$(vault list -format=json secret/hcloud/ | jq -r '.[]' | sed 's/\///g')
+[[ "$1" ]] && projects="${1}"
+
+for project in ${projects}
+do 
+    token=$(vault read -field=api_key secret/hcloud/${project}/terraform)
+    echo "${project}:"
+    HCLOUD_TOKEN=${token} hcloud server list -o noheader -o columns=name,ipv4,status,type,labels
+done
