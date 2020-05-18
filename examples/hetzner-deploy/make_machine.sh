@@ -9,6 +9,7 @@ fi
 test -z "$OC_DEPLOY" -o ! -d $libdir/$OC_DEPLOY && { echo 1>&2 "OC_DEPLOY is undefined or unknown, try one of: $(ls -m $libdir)"; exit 1; }
 
 test "$OC_DEPLOY" = hcloud_py && suf=py || suf=sh
+echo 1>&2 "Using OC_DEPLOY=$OC_DEPLOY ..."
 NAME=
 IPADDR=
 $($libdir/$OC_DEPLOY/make_machine.$suf "$@")
@@ -41,7 +42,7 @@ function RUN_SCRIPT {
     echo 'set +x' >> $scriptfile
     echo '. ~/.bashrc' >> $scriptfile
     scp -q $scriptfile root@$IPADDR:make_machine.bashrc
-    ssh -t root@$IPADDR bash -x --rcfile make_machine.bashrc
+    ssh -t root@$IPADDR bash --rcfile make_machine.bashrc
   fi
   rm -f $scriptfile
 
