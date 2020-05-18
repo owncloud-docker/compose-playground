@@ -10,6 +10,16 @@ Alternatively you can deploy into existing machines, using either:
  * `export OC_DEPLOY_ADDR=localhost` -- this will use `sudo` to install locally.
 
 
+## Simple self test
+
+```
+sudo apt install git
+git clone https://github.com/owncloud-docker/compose-playground
+cd compose-playground/examples/eos-docker
+export OC_DEPLOY_ADDR=xx.yy.zz.aa
+./make_ocis_test.sh
+```
+
 ## Preconditions for Using Hetzner Cloud
 
 Have access to a project at https://console.hetzner.cloud
