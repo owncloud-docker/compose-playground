@@ -51,8 +51,9 @@ services:
     networks:
       - testnet
     volumes:
-      - ${PWD}/config:/etc/ocis:rw
+      - ./config:/etc/ocis:rw
     environment: 
+      EOS_MGM_URL=root://mgm-master.testnet:1094
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
       KONNECTD_ISS: https://@IPADDR@:9200
       KONNECTD_LOG_LEVEL: debug
@@ -66,6 +67,9 @@ services:
       REVA_STORAGE_HOME_DRIVER: eos
       REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
       REVA_STORAGE_HOME_DATA_DRIVER: eos
+      REVA_STORAGE_EOS_MASTER_URL: "root://mgm-master.testnet:1094"
+      REVA_STORAGE_EOS_SLAVE_URL: "root://mgm-master.testnet:1094"
+      REVA_STORAGE_EOS_NAMESPACE: "/eos/dockertest"
       DAV_FILES_NAMESPACE: "/eos/"
 
   eos-test:

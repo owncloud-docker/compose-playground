@@ -83,7 +83,6 @@ EOS_INSTANCE_NAME=eostest
 EOS_MAIL_CC=eos@localhost
 EOS_MQ_URL=mq-master.testnet
 EOS_MGM_ALIAS=mgm-master.testnet
-EOS_MGM_URL=root://mgm-master.testnet:1094
 EOS_USE_QDB=1
 EOS_USE_QDB_MASTER=1
 EOS_QDB_NODES='quark-1.testnet:7777 quark-2.testnet:7777 quark-3.testnet:7777'
@@ -97,6 +96,8 @@ XrdSecDEBUG=3
 XRD_LOGLEVEL=Dump
 EOF
   fi
+  ## Dave don't do that. It kills mgm-master (permission nobody, instead of root)
+  # EOS_MGM_URL=root://mgm-master.testnet:1094
 
 }
 
@@ -129,6 +130,9 @@ function setup {
 #   sudo docker-compose up -d eosxd
 
   echo; echo "===== RUNNING SOME CHECKS =====";
+  sleep 5
+  echo "Expect to see *sudo and effective uid 0 here:"
+  echo; sudo docker exec mgm-master eos whoami
   echo; sudo docker exec mgm-master eos ns || { echo 'Master MGM failed to start - check logs in e/master/log/mgm/xrdlog.mgm' ; exit 1; }
   echo; sudo docker exec mgm-master eos node ls
 
@@ -155,9 +159,13 @@ function setup {
     sudo docker exec $container sh -c 'sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf'
     sudo docker exec $container nslcd
     sleep 3
-    sudo docker exec $container authconfig --test 	# expect: nss_ldap is enabled
-    sudo docker exec $container id marie		# expect: uid=20001(marie) gid=30000(users) ...
+    sudo docker exec $container authconfig --test | grep ena 	# expect: nss_ldap is enabled
+    sudo docker exec $container id marie			# expect: uid=20001(marie) gid=30000(users) ...
   done
+  # FIXME: we have the ldap users in linux, but 'eos chown' fails, unless we put them into /etc/passwd
+  sudo docker exec ocis sh -c 'echo >>/etc/passwd "einstein:x:20001:30000:Albert Einstein:/:/sbin/nologin"'
+  sudo docker exec ocis sh -c 'echo >>/etc/passwd "marie:x:20001:30000:Marie Curie:/:/sbin/nologin"'
+  sudo docker exec ocis sh -c 'echo >>/etc/passwd "feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin"'
 
   # create filesystems
   echo; echo "===== CREATING FILESYSTEMS ====="
