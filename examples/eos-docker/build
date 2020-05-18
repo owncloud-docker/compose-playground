@@ -26,7 +26,7 @@ set_base () {
 
 ipaddr=127.0.0.1	# harmless default
 # check which options are set
-while getopts "x:e:q:i:t:gcpfh" opt; do
+while getopts "a:x:e:q:i:t:gcpfh" opt; do
   case "$opt" in
     a) ipaddr=${OPTARG} ;;
     x) xrd_version=${OPTARG} ;;

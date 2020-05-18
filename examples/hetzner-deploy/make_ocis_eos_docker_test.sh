@@ -11,6 +11,7 @@
 echo "Estimated setup time (when weather is fine): 6 minutes ..."
 
 source ./make_machine.sh -u ocis-eos-docker-test -p git,screen,docker.io,docker-compose
+set -x
 
 if [ -z "$IPADDR" ]; then
   echo "Error: make_machine.sh failed."
@@ -25,7 +26,7 @@ LOAD_SCRIPT <<EOF
   systemctl daemon-reload
   service docker restart
 
-  git clone https://github.com/owncloud-docker/compose-playground.git -b eos
+  git clone https://github.com/owncloud-docker/compose-playground.git
   cd compose-playground/examples/eos-docker
 
   # done in ./build, when used with -a
