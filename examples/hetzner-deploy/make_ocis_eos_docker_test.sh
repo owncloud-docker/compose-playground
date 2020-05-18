@@ -10,7 +10,7 @@
 
 echo "Estimated setup time (when weather is fine): 6 minutes ..."
 
-source ./make_machine.sh -u ocis-eos-docker-test -p git,screen,docker.io,docker-compose)
+source ./make_machine.sh -u ocis-eos-docker-test -p git,screen,docker.io,docker-compose
 
 if [ -z "$IPADDR" ]; then
   echo "Error: make_machine.sh failed."
