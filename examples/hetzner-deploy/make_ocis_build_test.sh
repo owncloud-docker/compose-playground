@@ -34,17 +34,16 @@ LOAD_SCRIPT << EOF
   sysctl -p
 
   ssh root@$IPADDR
-  cd compose-playground/compose/ocis
-  echo >> .env OCIS_BASE_URL=$IPADDR
-  echo >> .env OCIS_HTTP_PORT=9200
-  echo >> .env OCIS_DOCKER_TAG=1.0.0-beta4
-  docker-compose -f ocis.yml -f ../cache/redis-ocis.yml up
+  cd ocis
+  make generate build
+  mkdir -p /var/tmp/reva/root/{home,oc}
+  ./bin/ocis server
 
   cat <<EOM
 ---------------------------------------------
-# machine prepared.
-# connect from remote:
-	curl -k https://$IPADDR:9200/status.php
+
+# test connect from remote:
+  curl -k https://$IPADDR:9200/status.php
 
 # Follow the instructions at
 	https://github.com/owncloud/ocis/#quickstart
