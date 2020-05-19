@@ -33,7 +33,6 @@ LOAD_SCRIPT << EOF
   echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
   sysctl -p
 
-  ssh root@$IPADDR
   cd ocis
   make generate build
   mkdir -p /var/tmp/reva/root/{home,oc}

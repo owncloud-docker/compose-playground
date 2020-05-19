@@ -33,7 +33,6 @@ LOAD_SCRIPT << EOF
   echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
   sysctl -p
 
-  ssh root@$IPADDR
   cd compose-playground/compose/ocis
   echo >> .env OCIS_BASE_URL=$IPADDR
   echo >> .env OCIS_HTTP_PORT=9200
