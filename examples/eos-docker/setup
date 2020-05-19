@@ -87,6 +87,7 @@ EOS_USE_QDB=1
 EOS_USE_QDB_MASTER=1
 EOS_QDB_NODES='quark-1.testnet:7777 quark-2.testnet:7777 quark-3.testnet:7777'
 EOS_NS_ACCOUNTING=1
+EOS_UTF8=1
 EOS_SYNCTIME_ACCOUNTING=1
 EOS_LDAP_HOST=ocis.testnet:9125
 EOF
@@ -197,8 +198,8 @@ function setup {
   done
 
   ## cern style eos docker root default namespace
-  sudo docker exec mgm-master eos mkdir /eos/dockertest
-  sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/dockertest
+  sudo docker exec mgm-master eos mkdir /eos/dockertest/reva/users
+  sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/dockertest/reva/users
   sudo docker exec mgm-master eos -r 0 0 -b vid ls
 
   # echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";

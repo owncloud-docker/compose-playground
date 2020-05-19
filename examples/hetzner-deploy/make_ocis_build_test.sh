@@ -22,10 +22,6 @@ LOAD_SCRIPT << EOF
   tar xf go1.14.2.linux-amd64.tar.gz -C /usr/local
   ln -s /usr/local/go/bin/* /usr/local/bin
 
-  # compose docker container
-  git clone https://github.com/owncloud-docker/compose-playground.git
-  sed -i -e 's/your-url/$IPADDR/g' compose-playground/compose/ocis/config/identifier-registration.yml
-
   # disable ipv6, to not confuse ocis server:
   echo >> /etc/sysctl.conf "net.ipv6.conf.all.disable_ipv6 = 1"
   echo >> /etc/sysctl.conf "net.ipv6.conf.default.disable_ipv6 = 1"
@@ -40,6 +36,10 @@ LOAD_SCRIPT << EOF
 
   cat <<EOM
 ---------------------------------------------
+### FIXME: developer build may not works using a remote IPADDR
+### You may try to workaround using https://localhost:9200
+# after adding local port forwarding with
+    ssh -f -L 9200:localhost:9200 root@$IPADDR sleep 300
 
 # test connect from remote:
   curl -k https://$IPADDR:9200/status.php

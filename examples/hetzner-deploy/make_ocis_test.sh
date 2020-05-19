@@ -14,14 +14,6 @@
 source ./make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose
 
 LOAD_SCRIPT << EOF
-  # make from source
-  git clone https://github.com/owncloud/ocis.git # -b v1.0.0-beta4
-  git clone https://github.com/owncloud/ocis-phoenix.git		# from mbarz
-  wget -q https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
-  mkdir -p /usr/local/bin
-  tar xf go1.14.2.linux-amd64.tar.gz -C /usr/local
-  ln -s /usr/local/go/bin/* /usr/local/bin
-
   # compose docker container
   git clone https://github.com/owncloud-docker/compose-playground.git
   sed -i -e 's/your-url/$IPADDR/g' compose-playground/compose/ocis/config/identifier-registration.yml
@@ -37,7 +29,7 @@ LOAD_SCRIPT << EOF
   echo >> .env OCIS_BASE_URL=$IPADDR
   echo >> .env OCIS_HTTP_PORT=9200
   echo >> .env OCIS_DOCKER_TAG=1.0.0-beta4
-  docker-compose -f ocis.yml -f ../cache/redis-ocis.yml up
+  docker-compose -f ocis.yml -f ../cache/redis-ocis.yml up &
 
   cat <<EOM
 ---------------------------------------------

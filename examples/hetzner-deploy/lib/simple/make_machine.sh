@@ -63,11 +63,19 @@ fi
 
 THERE="ssh -t root@$OC_DEPLOY_ADDR"
 IPADDR=$OC_DEPLOY_ADDR
+if hostname -I | grep -q -w $OC_DEPLOY_ADDR; then
+  # we were called with an IP-address, that is actually our own address
+  echo "$OC_DEPLOY_ADDR found locally. switching to OC_DEPLOY_ADDR=localhost"
+  OC_DEPLOY_ADDR=localhost
+fi
 if [ "$OC_DEPLOY_ADDR" = localhost -o "$OC_DEPLOY_ADDR" = 127.0.0.1 ]; then
   THERE=sudo
   # IPADDR is used by the scripts to configure remote use. localhost won't do.
   #  Substitute the ip address associated with our first default route.
-  IPADDR=$(ip route show default | head -1 | sed -e 's/.* src //' -e 's/ .*$//')
+  if [ "$IPADDR" = localhost -o "$IPADDR" = 127.0.0.1 ]; then
+    # we were called with OC_DEPLOY_ADDR=localhost, that is fine, but we want to know a real IP-Address too.
+    IPADDR=$(ip route show default | head -1 | sed -e 's/.* src //' -e 's/ .*$//')
+  fi
 fi
 
 if [ -n "$extra_pkg" ]; then

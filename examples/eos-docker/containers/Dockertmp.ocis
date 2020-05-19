@@ -2,9 +2,18 @@ FROM BASE_IMAGE
 
 # Add ocis
 
-RUN curl -L https://github.com/owncloud/ocis/releases/download/v1.0.0-beta4/ocis-1.0.0-beta4-linux-amd64 > /usr/local/bin/ocis
-RUN chmod +x /usr/local/bin/ocis
+# Bug alert: https://github.com/owncloud/enterprise/issues/4026
+# -> Must not use https://github.com/owncloud/ocis/releases/download/v1.0.0-beta4/ocis-1.0.0-beta4-linux-amd64
 
+RUN yum install -y wget make gcc git
+RUN wget -q https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
+RUN mkdir -p /usr/local/bin
+RUN tar xf go1.14.2.linux-amd64.tar.gz -C /usr/local
+RUN ln -s /usr/local/go/bin/* /usr/local/bin
+RUN git clone https://github.com/owncloud/ocis.git # -b v1.0.0-beta4
+RUN cd ocis && make generate build
+RUN cp ocis/bin/ocis* /usr/local/bin/
+RUN chmod +x /usr/local/bin/ocis
 
 # ----- Copy some scripts so we can run them ----- #
 COPY containers/content/scripts/entrypoint.ocis /entrypoint
