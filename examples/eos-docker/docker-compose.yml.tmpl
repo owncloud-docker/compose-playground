@@ -53,7 +53,7 @@ services:
     volumes:
       - ./config:/etc/ocis:rw
     environment: 
-      EOS_MGM_URL=root://mgm-master.testnet:1094
+      EOS_MGM_URL: "root://mgm-master.testnet:1094"
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
       KONNECTD_ISS: https://@IPADDR@:9200
       KONNECTD_LOG_LEVEL: debug

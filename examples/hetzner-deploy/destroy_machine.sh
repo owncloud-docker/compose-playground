@@ -4,7 +4,7 @@
 #
 # 2020-05-11, jw, added loop to allow multiple deletions
 # 2020-05-12, jw, added globbing patterns, for I am lazy.
-
+# 2020-05-19, jw, added support for hcloud_cli, to ease the terraform dependency
 
 if [ -z "$TF_VAR_hcloud_token" ]; then
   echo "Environment variable TF_VAR_hcloud_token not set."
@@ -12,6 +12,12 @@ if [ -z "$TF_VAR_hcloud_token" ]; then
 fi
 test -z "$TF_USER" && TF_USER=$USER
 name=$1
+
+if [ -f "$(dirname $0)/lib/hcloud_cli/bin/hcloud" ]; then
+  test -z "HCLOUD_TOKEN" && export HCLOUD_TOKEN="$TF_VAR_hcloud_token"
+  "$(dirname $0)/lib/hcloud_cli/bin/hcloud" server delete "$name"
+  exit 0
+fi
 
 cd $(dirname $0)/lib/hcloud_tf/terraform
 
