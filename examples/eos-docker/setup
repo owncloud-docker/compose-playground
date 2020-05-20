@@ -163,10 +163,10 @@ function setup {
     sudo docker exec $container authconfig --test | grep ena 	# expect: nss_ldap is enabled
     sudo docker exec $container id marie			# expect: uid=20001(marie) gid=30000(users) ...
   done
-  # FIXME: we have the ldap users in linux, but 'eos chown' fails, unless we put them into /etc/passwd
-  sudo docker exec ocis sh -c 'echo >>/etc/passwd "einstein:x:20001:30000:Albert Einstein:/:/sbin/nologin"'
-  sudo docker exec ocis sh -c 'echo >>/etc/passwd "marie:x:20001:30000:Marie Curie:/:/sbin/nologin"'
-  sudo docker exec ocis sh -c 'echo >>/etc/passwd "feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin"'
+  ## emergency hotfix, if ldap fails...
+  # sudo docker exec ocis sh -c 'echo >>/etc/passwd "einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin"'
+  # sudo docker exec ocis sh -c 'echo >>/etc/passwd "marie:x:20001:30000:Marie Curie:/:/sbin/nologin"'
+  # sudo docker exec ocis sh -c 'echo >>/etc/passwd "feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin"'
 
   # create filesystems
   echo; echo "===== CREATING FILESYSTEMS ====="
