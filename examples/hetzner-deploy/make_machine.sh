@@ -45,11 +45,16 @@ function RUN_SCRIPT {
     scp -q $scriptfile root@$IPADDR:make_machine.bashrc
     ssh -t root@$IPADDR bash --rcfile make_machine.bashrc
   fi
+  set +x
   rm -f $scriptfile
 
   if [ "$OC_DEPLOY" != 'simple' ]; then
     cat <<EOF
 ---------------------------------------------
+# Log into the machine with
+
+	ssh root@$IPADDR
+
 # When you no longer need the machine, destroy it with e.g.
         ./destroy_machine.sh $NAME
 
