@@ -30,7 +30,7 @@ LOAD_SCRIPT <<EOF
   cd compose-playground/examples/eos-docker
 
   # make sure we build beta4
-  sed -i -e "s/ocis.git/ocis.git -b 1.0.0-beta4/g" containers/Dockertmp.ocis
+  # sed -i -e "s/ocis.git/ocis.git -b 1.0.0-beta4/g" containers/Dockertmp.ocis
 
   ./build -a $IPADDR -t test
   ./setup -a
