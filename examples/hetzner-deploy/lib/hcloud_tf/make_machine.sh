@@ -18,8 +18,9 @@ version=0.5
 exec 3>&1 1>&2	# all output goes to stderr.
 set -e
 
-if [ -z "$TF_VAR_hcloud_token" ]; then
-  echo "Environment variable TF_VAR_hcloud_token not set."
+test -z "$HCLOUD_TOKEN" && export HCLOUD_TOKEN=$TF_VAR_hcloud_token
+if [ -z "$HCLOUD_TOKEN" ]; then
+  echo "Environment variable HCLOUD_TOKEN not set."
   exit 1
 fi
 ## FIXME: detect, if we are running on a mac...
@@ -32,9 +33,9 @@ else
   tf_url="https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_darwin_amd64.zip"
 fi
 
-
-ssh_key_names="$TF_SSHKEY_NAMES"
-ssh_keys="$TF_SSHKEY"
+test -z "$HCLOUD_SSHKEY_NAMES" && export HCLOUD_SSHKEY_NAMES=$TF_SSHKEY_NAMES
+ssh_key_names="$HClOUD_SSHKEY_NAMES"
+ssh_keys="$HCLOUD_SSHKEY"
 extra_pkg=""
 server_image="ubuntu-20.04"
 datacenter="fsn1-dc14"
@@ -60,16 +61,16 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-test -z "$TF_USER" && TF_USER=$(echo "$ssh_key_names" | sed -e 's/[\s,@].*$//')
-test -z "$TF_USER" && TF_USER=$USER
+test -z "$HCLOUD_USER" && HCLOUD_USER=$(echo "$ssh_key_names" | sed -e 's/[\s,@].*$//')
+test -z "$HCLOUD_USER" && HCLOUD_USER=$USER
 
 if [ "$NAME" = '-h' ]; then
   cat <<EOF
   $0 V$version
 
   Usage:
-    export TF_SSHKEY_NAMES="jw@owncloud.com"
-    export TF_VAR_hcloud_token=123..........xyz
+    export HCLOUD_SSHKEY_NAMES="jw@owncloud.com"
+    export HCLOUD_TOKEN=123..........xyz
     $0 [OPTIONS] MACHINE_NAME
     \$(bash ./make_machine.sh ...)
     source ./make_machine.sh ...
@@ -84,11 +85,11 @@ if [ "$NAME" = '-h' ]; then
     -u|--unique             make name unique by prepending user and appending a suffix
     -l|--login              ssh into the machine, when ready
 
-  TF_VAR_hcloud_token is specific to a project at https://console.hetzner.cloud
+  HCLOUD_TOKEN is specific to a project at https://console.hetzner.cloud
   consult with the project owner to get a token.
-  TF_SSHKEY_NAMES: comma-separated list of names of one or more.
-  TF_SSHKEY: content of an ~/.ssh/id_XXX.pub file. This must not be an uploaded key.
-  TF_USER is optional. Default: derived from the first element of \$TF_SSHKEY_NAMES or \$USER.
+  HCLOUD_SSHKEY_NAMES: comma-separated list of names of one or more.
+  HCLOUD_SSHKEY: content of an ~/.ssh/id_XXX.pub file. This must not be an uploaded key.
+  HCLOUD_USER is optional. Default: derived from the first element of \$HCLOUD_SSHKEY_NAMES or \$USER.
 
   The MACHINE_NAME should mention the user, and must be unique in the project.
   Use -u to assert that.
@@ -112,7 +113,7 @@ test "$ssh_keys" = '""' && ssh_keys=''
 
 if [ -z "$ssh_key_names$ssh_keys" ]; then
   echo "ERROR: No ssh-key specified. The machine cannot be accessed without one."
-  echo "ERROR: Please set environment variable TF_SSHKEY_NAMES or TF_SSHKEY."
+  echo "ERROR: Please set environment variable HCLOUD_SSHKEY_NAMES or HCLOUD_SSHKEY."
   exit 1
 fi
 
@@ -123,7 +124,7 @@ if [ -z "$NAME" ]; then
 fi
 
 NAME_BASE=$NAME
-test $mk_unique && NAME="$TF_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
+test $mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
 
 if [ "$NAME" != "$NAME_BASE" ]; then
   echo "MACHINE_NAME '$NAME_BASE' expanded to '$NAME'"
@@ -144,7 +145,7 @@ cd terraform
 rm -rf .cache           	# clean state
 bin/terraform init
 
-bin/terraform plan -var="server_owner=$TF_USER" -var="server_names=[\"$NAME\"]" \
+bin/terraform plan -var="server_owner=$HCLOUD_USER" -var="server_names=[\"$NAME\"]" \
                    -var="ssh_keys=[$ssh_keys]" -var="server_keys=[$ssh_key_names]" \
                    -var="server_datacenter=$datacenter" \
                    -var="server_types=[\"$server_type\"]" \

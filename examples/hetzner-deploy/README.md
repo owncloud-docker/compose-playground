@@ -1,51 +1,73 @@
 # Hetzner Deployment Scripts
 
-The tools here can use terraform to deploy machines into Hetzner cloud.
-The machines will be accessible via ssh then.
+The tools here can deploy ocis and other installations into Hetzner cloud (or anywhere with root access).
+At Hetzner we use terraform or the hcloud API commands to create the machine. The machines will be made accessible via ssh.
 
-Alternatively you can deploy into existing machines, using either:
+Not tested on Mac. (Pull requests welcome)
 
- * `export OC_DEPLOY_ADDR=xx.yy.zz.aa` -- this will use `ssh root@$OC_DEPLOY_ADDR` to access the macine. Your ssh-key should be installed at the root account.
+## Example with full automation
 
- * `export OC_DEPLOY_ADDR=localhost` -- this will use `sudo` to install locally.
-
-
-## Synopsis
+* Have access to a project at https://console.hetzner.cloud (invitation accepted)
+* Have a hcloud API token for the project project.
+* Have your public ssh key uploaded into the project. Below use the name of your ssh-key instead of `jw@owncloud.com`
+* Run from your local Ubuntu machine:
 
 ```
 sudo apt install git
 git clone https://github.com/owncloud-docker/compose-playground
 cd compose-playground/examples/hetzner-deploy
-firefox https://console.hetzner.cloud/projects  # create a machine there, and note the IP-Address 
+
+export HCLOUD_SSHKEY_NAMES=jw@owncloud.com
+export HCLOUD_TOKEN=mZdZX......................................................L8bml
+./make_ocis_test.sh
+```
+
+## Example with manually created machine
+
+* Create a machine, e.g. at https://console.hetzner.cloud/projects, record its IP-address. Used below.
+* Make sure that you can login as root with ssh.
+* Run from your local Ubuntu machine:
+
+```
+sudo apt install git
+git clone https://github.com/owncloud-docker/compose-playground
+cd compose-playground/examples/hetzner-deploy
+
 export OC_DEPLOY_ADDR=xx.yy.zz.aa
 ./make_ocis_test.sh
 ```
 
-## Preconditions for Using Hetzner Cloud
+The initial ssh connection may not work. Please follow the on-screen instructions about host keys and fingerprints.
 
-Have access to a project at https://console.hetzner.cloud
-Have the public ssh key uploaded, have the private ssh key installed locally.
-Have a hcloud API token for your project.
-```
-  export TF_SSHKEY_NAMES=jw@owncloud.com
-  export TF_VAR_hcloud_token=mZdZX......................................................L8bml
-```
-If you don't have a token, you can create a machine manually at the web interface. Always include your ssh-key when you do that.
-Then you can provide its IP address via OC_DEPLOY_ADDR.
+## Example with manually created machine and doing everything there
 
+* Create a machine, e.g. at https://console.hetzner.cloud/projects, record its IP-address.
+* Login as root with ssh there.
+* Run from within that machine:
+
+```
+apt install git
+git clone https://github.com/owncloud-docker/compose-playground
+cd compose-playground/examples/hetzner-deploy
+
+export OC_DEPLOY_ADDR=localhost
+./make_ocis_test.sh
+```
 
 ## Scripts
 
-All these scripts are independant entry points. Each of them fires up a new hetzner machine 
-and deploys a specific setup there (or at least does it half way and gives instruction for what to do next).
+All these scripts are independant entry points. Each of them deploys a specific setup
+and gives some instruction for what to do next.
 
- * `./make_ocis_eos_docker_test.sh` -- run ocis with eos aarnet style
+ * `./make_ocis_eos_docker_test.sh` -- run ocis with eos.
 
  * `./make_ocis_test.sh` -- run ocis as docker compose, with latest phoenix.
 
- * `./make_ocis_eos_test.sh` -- run ocis with old style CERN eos
+ * `./make_ocis_build_test.sh` -- build ocis from source, and run the binary (without docker)
 
- * `./make_aarnet_eos.sh` -- run an eos setup, but no ocis there yet. 
+ * `./make_ocis_eos_test.sh` -- (unmaintained) run ocis with old style CERN eos
+
+ * `./make_aarnet_eos.sh` -- (unmaintained) run an eos setup, but no ocis there yet.
 
  * `./make_machine.sh` -- creates a machine and returns its IP address.
    This is a general purpose script, check out the command line options.
@@ -59,7 +81,8 @@ You can tear down a Hetzner machines either from https://console.hetzner.cloud, 
 In both cases, you will be prompted with the machine name again, and will have to confirm.
 
   * `./destroy_machine.sh MACHINE_NAME` -- destroy one specific machine.
-  
+
   * `./destroy_machine.sh "$USER-*"` -- destroy all machines prefixed with my user name. At the prompts you can say `yes` or `no` to select which ones to actually destroy.
   .
-  * `./destroy_machine.sh` -- without parameters, it returns a listing of running machines that were made with make_machine.sh
+  * `./destroy_machine.sh` -- without parameters, it returns a listing of running machines that were made with terraform.
+
