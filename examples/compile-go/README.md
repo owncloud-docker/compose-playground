@@ -10,4 +10,5 @@ docker run --rm -it user root
 ## Known Issues
 
 - User lookup: os user lookup fails getting ldap user, when compiling on Alpine and running on Centos:7
+todo: ldap setup for demonstration
 
