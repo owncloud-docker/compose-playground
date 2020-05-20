@@ -1,5 +1,4 @@
-# FROM golang:alpine as build
-FROM golang:centos as build
+FROM golang:alpine as build
 
 WORKDIR /build
 
