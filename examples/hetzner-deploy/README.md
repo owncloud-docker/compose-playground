@@ -25,7 +25,7 @@ export HCLOUD_TOKEN=mZdZX......................................................L
 ## Example with manually created machine
 
 * Create a machine, e.g. at https://console.hetzner.cloud/projects, record its IP-address. Used below.
-* Make sure that you can login as root with ssh.
+* Make sure that you can login as root with ssh. If needed accept hostkeys and fingerprints.
 * Run from your local Ubuntu machine:
 
 ```
@@ -37,7 +37,6 @@ export OC_DEPLOY_ADDR=xx.yy.zz.aa
 ./make_ocis_test.sh
 ```
 
-The initial ssh connection may not work. Please follow the on-screen instructions about host keys and fingerprints.
 
 ## Example with manually created machine and doing everything there
 
