@@ -29,8 +29,8 @@ LOAD_SCRIPT <<EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
   cd compose-playground/examples/eos-docker
 
-  # done in ./build, when used with -a
-  # sed -e "s/@IPADDR@/$IPADDR/g" < docker-compose.yml.tmpl > docker-compose.yml
+  # make sure we build beta4
+  sed -i -e "s/ocis.git/ocis.git -b 1.0.0-beta4/g" containers/Dockertmp.ocis
 
   ./build -a $IPADDR -t test
   ./setup -a
