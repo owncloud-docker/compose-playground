@@ -23,8 +23,8 @@ if [ -z "$TF_VAR_hcloud_token" ]; then
   exit 1
 fi
 ## FIXME: detect, if we are running on a mac...
-# tf_url="https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.25_linux_amd64.zip"
-tf_url="https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.25_darwin_amd64.zip"
+# tf_url="https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_linux_amd64.zip"
+tf_url="https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_darwin_amd64.zip"
 ssh_key_names="$TF_SSHKEY_NAMES"
 ssh_keys="$TF_SSHKEY"
 extra_pkg=""
