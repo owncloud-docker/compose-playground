@@ -142,7 +142,7 @@ function setup {
   echo;
   sudo docker exec mgm-master eos -r 0 0 -b vid enable sss
   sudo docker exec mgm-master eos -r 0 0 -b vid enable unix
-  sudo docker exec mgm-master eos -r 0 0 -b vid enable https
+  # sudo docker exec mgm-master eos -r 0 0 -b vid enable https
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -uids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -gids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon +sudo
@@ -152,7 +152,8 @@ function setup {
 
   # from github.com/owncloud/ocis/Makefile
   sudo docker exec mgm-master eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
-  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway ocis.testnet
+  sudo docker exec mgm-master eos -r 0 0 -b vid disable krb5
+  sudo docker exec mgm-master eos -r 0 0 -b vid add gateway ocis
   for container in ocis mgm-master; do
     sudo docker exec $container yum install -y nss-pam-ldapd nscd authconfig
     sudo docker exec $container sh -c 'authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update'
@@ -163,6 +164,7 @@ function setup {
     sudo docker exec $container authconfig --test | grep ena 	# expect: nss_ldap is enabled
     sudo docker exec $container id marie			# expect: uid=20001(marie) gid=30000(users) ...
   done
+
   ## emergency hotfix, if ldap fails...
   # sudo docker exec ocis sh -c 'echo >>/etc/passwd "einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin"'
   # sudo docker exec ocis sh -c 'echo >>/etc/passwd "marie:x:20001:30000:Marie Curie:/:/sbin/nologin"'

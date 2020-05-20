@@ -3,13 +3,13 @@
 # hcloud_py/make_machine.py -- a rewrite of hcloud_tf/make_machine.sh without using terraform.
 # (C) 2020 jw@owncloud.com -- distribute under GPLv2 or ask.
 #
-# We want to make the TF_SSHKEY_NAMES varible obsolete.
+# We want to make the HCLOUD_SSHKEY_NAMES varible obsolete.
 # This can be done by checking $HOME/.ssh/ for existing private/public key pairs.
 # The public key of an existing pair could then be added to the newly created machine.
 # This technique is more reliably (and less cumbersome) than uploading and naming correct keys 
-# with TF_SSHKEY_NAMES. Hcloud maintains keys per project. You need to re-upload when switching projects.
+# with HCLOUD_SSHKEY_NAMES. Hcloud maintains keys per project. You need to re-upload when switching projects.
 #
-# With terraform, we support an aditional TF_SSHKEY variable, where such a private key can be 
+# With terraform, we support an aditional HCLOUD_SSHKEY variable, where such a private key can be 
 # specified. Its use is however discouraged, and cannot reliably be automated, as terraform fails, if we specfy a key
 # that was already uploaded. Also with terraform there is no way to inspect uploaded keys and avoid sich conflicts.
 
@@ -26,11 +26,11 @@ from hcloud.images.domain import Image
 from hcloud.ssh_keys.domain import SSHKey
 from hcloud.server_types.domain import ServerType
 
-hcloud_api_token = os.environ.get('TF_VAR_hcloud_token')
+hcloud_api_token = os.environ.get('HCLOUD_TOKEN')
 if hcloud_api_token == None:
-  print("Environment variable TF_VAR_hcloud_token not set.", file=sys.stderr)
+  print("Environment variable HCLOUD_TOKEN not set.", file=sys.stderr)
   sys.exit(1)
-ssh_key_names = os.environ.get('TF_SSHKEY_NAMES', '')
+ssh_key_names = os.environ.get('HCLOUD_SSHKEY_NAMES', '')
 server_image = "ubuntu-20.04"
 datacenter = "fsn1-dc14"
 server_type = "cx21"
@@ -40,7 +40,7 @@ parser = argparse.ArgumentParser(description=sys.argv[0]+" V0.1")
 parser.add_argument('-i', '--image',       type=str, default=server_image, help="server image. Default: "+server_image)
 parser.add_argument('-t', '--type',        type=str, default=server_type, help="server type. Default: "+server_type)
 parser.add_argument('-d', '--datacenter',     type=str, default=datacenter, help="server datacenter. Default: "+datacenter)
-parser.add_argument('-s', '--ssh-key-names',  type=str, help="comma-separated names of uploaded public keys. Default: env TF_SSHKEY_NAMES", default=ssh_key_names)
+parser.add_argument('-s', '--ssh-key-names',  type=str, help="comma-separated names of uploaded public keys. Default: env HCLOUD_SSHKEY_NAMES", default=ssh_key_names)
 parser.add_argument('-p', '--packages',       type=str, help="comma-separated list of linux packages to install")
 parser.add_argument('-u', '--unique',         action='store_true', help="make name unique by prepending user and appending a suffix")
 parser.add_argument('-l', '--login',          action='store_true', help="ssh into the machine, when ready")
@@ -95,7 +95,7 @@ if not ssh_key_names:
       break
 
 if not ssh_key_names and not ssh_pub_key:
-  print("ERROR: env variable TF_SSHKEY_NAMES was empty, and could not find a key pair in ~/.ssh/", file=sys.stderr)
+  print("ERROR: env variable HCLOUD_SSHKEY_NAMES was empty, and could not find a key pair in ~/.ssh/", file=sys.stderr)
   sys.exit(1)
 
 user = ssh_key_names[0] if ssh_key_names else ssh_pub_key[2]    # get user from key name, from local pubkey suffix, or from $USER
