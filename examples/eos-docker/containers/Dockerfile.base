@@ -3,7 +3,7 @@
 # other EOS containers are built
 ###
 
-FROM BASE_IMAGE
+FROM centos:7
 
 MAINTAINER David Jericho <david.jericho@aarnet.edu.au>
 MAINTAINER Crystal Chua <crystal.chua@aarnet.edu.au>

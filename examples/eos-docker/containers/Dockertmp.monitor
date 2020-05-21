@@ -1,9 +1,0 @@
-### DOCKER FILE FOR eos/monitor IMAGE BASED ON EOS CITRINE -- EOS 4.x Version ###
-
-FROM eos/base:VERSION_PLACEHOLDER
-
-MAINTAINER Crystal Chua <crystal.chua@aarnet.edu.au>
-
-# ----- Copy some scripts so we can run them ----- #
-COPY containers/content/config/zabbix/conf /etc/cron.d/zabbix
-COPY containers/content/scripts/entrypoint.monitor /entrypoint
