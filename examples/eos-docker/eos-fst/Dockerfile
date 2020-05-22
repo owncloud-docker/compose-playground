@@ -9,4 +9,5 @@ RUN rpm --rebuilddb && yum -y install \
     yum clean all && \
     rm -rf /var/cache/yum
 
+COPY setup /setup
 COPY entrypoint /entrypoint

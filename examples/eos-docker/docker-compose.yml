@@ -1,14 +1,14 @@
-
 ---
-version: '3'
+version: '3.5'
 
 networks:
   testnet:
+    name: testnet
 
 services:
   mq-master:
     container_name: mq-master
-    image: ocis/eos-mq
+    image: eos/mq
     tty: true
     privileged: true
     stdin_open: true
@@ -19,8 +19,6 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./config/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/master/log:/var/log/eos
     - ./e/master/config:/var/eos/config
     - ./e/master/md:/var/eos/md
     - ./e/master/ns-queue:/var/eos/ns-queue
@@ -29,7 +27,7 @@ services:
 
   mgm-master:
     container_name: mgm-master
-    image: ocis/eos-mgm
+    image: eos/mgm
     tty: true
     privileged: true
     stdin_open: true
@@ -40,7 +38,6 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./config/qdb.keytab:/etc/qdb.keytab:ro
     - ./e/master/log:/var/log/eos
     - ./e/master/config:/var/eos/config
     - ./e/master/md:/var/eos/md
@@ -50,7 +47,7 @@ services:
 
   ocis:
     container_name: ocis
-    image: ocis/eos-ocis
+    image: eos/ocis
     tty: true
     privileged: true
     stdin_open: true
@@ -62,18 +59,18 @@ services:
     networks:
       - testnet
     volumes:
-      - ./config/identifier-registration.yml:/etc/ocis/identifier-registration.yml
+      - ./config:/config
     environment: 
       EOS_MGM_URL: "root://mgm-master.testnet:1094"
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
-      KONNECTD_ISS: https://@IPADDR@:9200
+      KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
-      PHOENIX_OIDC_AUTHORITY: https://@IPADDR@:9200
-      PHOENIX_OIDC_METADATA_URL: https://@IPADDR@:9200/.well-known/openid-configuration
-      PHOENIX_WEB_CONFIG_SERVER: https://@IPADDR@:9200
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}:9200
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}:9200
       PROXY_HTTP_ADDR: 0.0.0.0:9200
-      REVA_OIDC_ISSUER: https://@IPADDR@:9200
+      REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
       OCIS_LOG_LEVEL: debug
       REVA_STORAGE_HOME_DRIVER: eos
       REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
@@ -85,7 +82,7 @@ services:
 
   fst:
     container_name: fst
-    image: ocis/eos-fst
+    image: eos/fst
     tty: true
     privileged: true
     stdin_open: true
@@ -96,14 +93,13 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/fst/var/log/eos:/var/log/eos
-    - ./e/fst/disks:/disks
+    - ./e/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
 
   quark-1:
     container_name: quark-1
-    image: ocis/eos-qdb
+    image: eos/qdb
     tty: true
     privileged: true
     stdin_open: true
@@ -114,8 +110,6 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./config/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark1/var/log/eos:/var/log/eos
     - ./e/quark1/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
@@ -126,7 +120,7 @@ services:
 
   quark-2:
     container_name: quark-2
-    image: ocis/eos-qdb
+    image: eos/qdb
     tty: true
     privileged: true
     stdin_open: true
@@ -137,8 +131,6 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./config/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark2/var/log/eos:/var/log/eos
     - ./e/quark2/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
@@ -149,7 +141,7 @@ services:
 
   quark-3:
     container_name: quark-3
-    image: ocis/eos-qdb
+    image: eos/qdb
     tty: true
     privileged: true
     stdin_open: true
@@ -160,8 +152,6 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./config/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark3/var/log/eos:/var/log/eos
     - ./e/quark3/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"

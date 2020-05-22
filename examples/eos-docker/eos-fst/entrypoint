@@ -2,37 +2,19 @@
 
 export PATH=$PATH:/sbin:/usr/sbin
 
-# check eos keytab exists, otherwise exit
-if [ ! -s /etc/eos.keytab ]; then
-  if [ -d /etc/k8screds ]; then
-    cp /etc/k8screds/eos.keytab /etc/eos.keytab
-    if [ -e /etc/k8screds/eos.client.keytab ]; then
-      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
-    else
-      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
-    fi
-  else
-    exit 1
-  fi
-else
+# check eos keytab exists
+if [ -s /etc/eos.keytab ]; then
   cp /etc/eos.keytab /etc/eos.client.keytab
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.fst
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.fst
+  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 fi
-
-sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.fst
-chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
-chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
-
 
 echo "Setting /tmp to mode 1777"
 chmod 1777 /tmp
 if [ $? -ne 0 ]; then
   echo "Cannot set permissions on /tmp, existing"
-fi
-
-echo "Creating log directory if it doesn't exist"
-if ! [ -d "/var/log/eos/fst" ]; then
-  mkdir -p /var/log/eos/fst
-  chown daemon:daemon /var/log/eos/fst
 fi
 
 cd /disks
@@ -128,7 +110,16 @@ if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
   echo "fstofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.fst
 fi
 
+echo "until nc -z -w 3 ${EOS_MGM_ALIAS} 1094; do sleep 1; done;" > /wait-for-mgm
+chmod +x /wait-for-mgm
+
+(/wait-for-mgm; /setup ) &
+
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -n fst -c /etc/xrd.cf.fst -l /var/log/eos/xrdlog.fst -Rdaemon 
+# exec $XRDPROG -n fst -c /etc/xrd.cf.fst -Rdaemon 
+
+mkdir -p /var/log/eos/fst
+chown daemon:daemon /var/log/eos/fst
+exec $XRDPROG -n fst -c /etc/xrd.cf.fst -l /var/log/eos/fst/xrdlog.fst -Rdaemon 

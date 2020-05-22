@@ -13,12 +13,12 @@ sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts
 # check eos keytab exists
 if [ -s /etc/eos.keytab ]; then
   cp /etc/eos.keytab /etc/eos.client.keytab
-  sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.mq
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
   # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
   chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 fi
 
-chown -R daemon:daemon /var/log/eos/
 chown -R daemon:daemon /var/eos/
 
 # check if this node is a master - if so, create the relevant file
@@ -44,4 +44,7 @@ cd ${XRD_COREDIR}
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -n mq -c /etc/xrd.cf.mq -l /var/log/eos/mq/xrdlog.mq -Rdaemon
+exec $XRDPROG -n mq -c /etc/xrd.cf.mq -Rdaemon
+
+# chown -R daemon:daemon /var/log/eos/
+# exec $XRDPROG -n mq -c /etc/xrd.cf.mq -l /var/log/eos/mq/xrdlog.mq -Rdaemon

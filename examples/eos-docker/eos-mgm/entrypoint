@@ -14,16 +14,17 @@ sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts
 mkdir -p /var/log/eos/tx
 chown -R daemon:daemon /var/log/eos/
 
+
+# chown daemon:daemon /tmp/eos.mgm
+
 # check eos keytab exists
 if [ -s /etc/eos.keytab ]; then
   cp /etc/eos.keytab /etc/eos.client.keytab
-  sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.mq
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
   # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
   chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 fi
-
-# Ensure we set the temp spool to be owned by daemon so the MGM can write spooled files
-chown daemon:daemon /tmp/eos.mgm
 
 # check if this node is a master - if so, create the relevant file
 if [ "${EOS_SET_MASTER}" = "true" ] || [ "${EOS_SET_MASTER}" = 1 ]; then
@@ -55,11 +56,16 @@ else
   echo "mgmofs.cfgtype file" >> /etc/xrd.cf.mgm
 fi
 
+echo "----- Planning setup -----"
+echo "until nc -z -w 3 localhost 1094; do sleep 1; done;" > /wait-for-mgm
+chmod +x /wait-for-mgm
 cat /etc/xrd.cf.mgm
+cat /setup
+(/wait-for-mgm; ./setup ) &
 
-if [ -x "/eos_graphite.py" ]; then
-  (until nc -z -w 3 localhost 1094; do >&2 echo "Waiting for connection to EOS MGM"; sleep 1; done; ./eos_graphite.py ${EOS_INSTANCE_NAME}) &
-fi
+# if [ -x "/eos_graphite.py" ]; then
+#   (/wait-for-mgm; ./eos_graphite.py ${EOS_INSTANCE_NAME}) &
+# fi
 
 # start mgm
 echo "Starting mgm for " $(rpm -q eos-server | sed s/eos-server-//g)
@@ -68,4 +74,5 @@ mkdir -p ${XRD_COREDIR} && chown daemon:daemon ${XRD_COREDIR}
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/mgm/xrdlog.mgm
+exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/xrdlog.mgm
+# has to write into logfile: /var/log/eos/xrdlog.mgm or will die - no idea why

@@ -1,22 +1,13 @@
 #!/bin/sh
 
-# check eos keytab exists, otherwise quit out
-if [ ! -s /etc/eos.keytab ]; then
-  if [ -d /etc/k8screds ]; then
-    if [ -e /etc/k8screds/eos.client.keytab ]; then
-      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
-    else
-      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
-    fi
-  else
-    exit 1
-  fi
-else
+# check eos keytab exists
+if [ -s /etc/eos.keytab ]; then
   cp /etc/eos.keytab /etc/eos.client.keytab
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
+  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 fi
-
-chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
-chown -R daemon:daemon /var/log/eos/
 
 # remove all ipv6
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
@@ -53,4 +44,7 @@ chown -R daemon:daemon ${EOS_QDB_DIR}
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -R daemon -n quarkdb -c /etc/xrd.cf.qdb -l /var/log/eos/xrdlog.qdb
+exec $XRDPROG -R daemon -n quarkdb -c /etc/xrd.cf.qdb
+
+# chown -R daemon:daemon /var/log/eos/
+# exec $XRDPROG -R daemon -n quarkdb -c /etc/xrd.cf.qdb -l /var/log/eos/qdb/xrdlog.qdb
