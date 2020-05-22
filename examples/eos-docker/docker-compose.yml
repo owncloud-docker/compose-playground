@@ -7,7 +7,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: mq-master.testnet
     networks:
     - testnet
@@ -28,7 +28,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: mgm-master.testnet
     networks:
     - testnet
@@ -46,7 +46,7 @@ services:
     ports: 
       - 9200:9200
     env_file:
-      - ./eos-docker.env
+      - ./e/eos-docker.env
     hostname: ocis.testnet
     networks:
       - testnet
@@ -79,7 +79,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: eos-test.testnet
     networks:
     - testnet
@@ -95,7 +95,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: mq-slave.testnet
     networks:
     - testnet
@@ -113,7 +113,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: mgm-slave.testnet
     networks:
     - testnet
@@ -127,7 +127,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: fst.testnet
     networks:
     - testnet
@@ -146,7 +146,7 @@ services:
     stdin_open: true
     pid: "host"
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: eosd.testnet
     networks:
     - testnet
@@ -169,7 +169,7 @@ services:
     stdin_open: true
     pid: "host"
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: eosxd.testnet
     networks:
     - testnet
@@ -192,7 +192,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: sync.testnet
     networks:
     - testnet
@@ -206,7 +206,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     volumes_from:
     - mq-master
     networks:
@@ -225,7 +225,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     networks:
     - testnet
     volumes_from:
@@ -244,7 +244,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     networks:
     - testnet
     volumes_from:
@@ -263,7 +263,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     networks:
     - testnet
     volumes_from:
@@ -280,7 +280,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: quark-1.testnet
     networks:
     - testnet
@@ -303,7 +303,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: quark-2.testnet
     networks:
     - testnet
@@ -326,7 +326,7 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./eos-docker.env
+    - ./e/eos-docker.env
     hostname: quark-3.testnet
     networks:
     - testnet
@@ -344,5 +344,4 @@ services:
 
 networks:
   testnet:
-    external:
-      name: testnet
+    name: testnet
