@@ -18,8 +18,4 @@ RUN mkdir -p /usr/local/bin
 COPY --from=build ocis/bin/ocis* /usr/local/bin/
 RUN chmod +x /usr/local/bin/ocis
 
-# ----- Copy some scripts so we can run them ----- #
-COPY containers/content/scripts/entrypoint.ocis /entrypoint
-
-# ----- Run entrypoint script to start service(s) ----- #
-CMD ["/entrypoint"]
+COPY entrypoint /entrypoint

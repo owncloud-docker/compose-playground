@@ -1,15 +1,11 @@
 #!/bin/bash
 
-qdb_version=0.4.0
-eos_version=4.6.5
-xrd_version=4.11.0
+docker build -t eos/base ./eos-base
+docker build -t eos/mq ./eos-mq
+docker build -t eos/mgm ./eos-mgm
+docker build -t eos/fst ./eos-fst
+docker build -t eos/qdb ./eos-qdb
+docker build -t eos/ocis ./eos-ocis
 
-echo "eos: 4.6.5 xrd: 4.11.0 qdb: 0.4.0"
-# docker build -t ocis/eos-eosd --file containers/Dockerfile.eosd --build-arg EOS_VERSION=4.6.5 --build-arg XRD_VERSION=4.11.0 .
-# docker build -t ocis/eos-eosxd --file containers/Dockerfile.eosxd --build-arg EOS_VERSION=4.6.5 --build-arg XRD_VERSION=4.11.0 .
-docker build -t eos/base --file containers/Dockerfile.base --build-arg EOS_VERSION=4.6.5 --build-arg XRD_VERSION=4.11.0   .
-docker build -t ocis/eos-mq --file containers/Dockerfile.mq  .
-docker build -t ocis/eos-mgm --file containers/Dockerfile.mgm .
-docker build -t ocis/eos-fst --file containers/Dockerfile.fst .
-docker build -t ocis/eos-qdb --file containers/Dockerfile.qdb --build-arg QDB_VERSION=0.4.0 --build-arg EOS_VERSION=4.6.5 .
-docker build -t ocis/eos-ocis --file containers/Dockerfile.ocis .
+# docker build -t eos/eosd ./eos-eosd
+# docker build -t eos/eosxd ./eos-eosxd

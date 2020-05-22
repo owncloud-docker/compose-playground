@@ -82,9 +82,6 @@ XrdSecDEBUG=3
 XRD_LOGLEVEL=Dump
 EOF
   fi
-  ## Dave don't do that. It kills mgm-master (permission nobody, instead of root)
-  # EOS_MGM_URL=root://mgm-master.testnet:1094
-
 }
 
 #==============================================================================
@@ -98,21 +95,9 @@ function setup {
   sleep 5
  
   # single master setup
-  sudo docker-compose up -d mq-master
-
-  # start quarkdb
-  sudo docker-compose up -d quark-1
-  sudo docker-compose up -d quark-2
-  sudo docker-compose up -d quark-3
-
-  sudo docker-compose up -d mgm-master
-  sudo docker-compose up -d fst
-
+  sudo docker-compose up -d mq-master quark-1 quark-2 quark-3 mgm-master fst
   sudo docker-compose up -d ocis	# FIXME: better do that separately at the end. But we have to do authconfig now.
-#   sudo docker-compose up -d eosd
-#   sudo docker-compose up -d eosxd
 
-  echo; echo "===== RUNNING SOME CHECKS =====";
   sleep 5
   echo "Expect to see *sudo and effective uid 0 here:"
   echo; sudo docker exec mgm-master eos whoami
@@ -124,18 +109,13 @@ function setup {
   echo;
   sudo docker exec mgm-master eos -r 0 0 -b vid enable sss
   sudo docker exec mgm-master eos -r 0 0 -b vid enable unix
-  # sudo docker exec mgm-master eos -r 0 0 -b vid enable https
+  sudo docker exec mgm-master eos -r 0 0 -b vid disable krb5
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -uids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon -gids adm
   sudo docker exec mgm-master eos -r 0 0 -b vid set membership daemon +sudo
-  # sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosd.testnet sss
-  # sudo docker exec mgm-master eos -r 0 0 -b vid add gateway eosxd.testnet sss
-  sudo docker exec mgm-master eos -r 0 0 -b debug err
-
-  # from github.com/owncloud/ocis/Makefile
   sudo docker exec mgm-master eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
-  sudo docker exec mgm-master eos -r 0 0 -b vid disable krb5
   sudo docker exec mgm-master eos -r 0 0 -b vid add gateway ocis
+  sudo docker exec mgm-master eos -r 0 0 -b debug err
   for container in ocis mgm-master; do
     sudo docker exec $container yum install -y nss-pam-ldapd nscd authconfig
     sudo docker exec $container sh -c 'authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update'
