@@ -1,4 +1,6 @@
-version: '2'
+
+---
+version: '3.8'
 
 networks:
   testnet:
@@ -12,13 +14,13 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: mq-master.testnet
     networks:
     - testnet
     volumes:
-    - ./e/eos.keytab:/etc/eos.keytab:ro
-    - ./e/qdb.keytab:/etc/qdb.keytab:ro
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./config/qdb.keytab:/etc/qdb.keytab:ro
     - ./e/master/log:/var/log/eos
     - ./e/master/config:/var/eos/config
     - ./e/master/md:/var/eos/md
@@ -33,12 +35,17 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: mgm-master.testnet
     networks:
     - testnet
-    volumes_from:
-    - mq-master
+    volumes:
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./config/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/master/log:/var/log/eos
+    - ./e/master/config:/var/eos/config
+    - ./e/master/md:/var/eos/md
+    - ./e/master/ns-queue:/var/eos/ns-queue
     environment:
       EOS_SET_MASTER: 1
 
@@ -51,12 +58,12 @@ services:
     ports: 
       - 9200:9200
     env_file:
-      - ./e/eos-docker.env
+      - ./config/eos-docker.env
     hostname: ocis.testnet
     networks:
       - testnet
     volumes:
-      - ./config:/etc/ocis:rw
+      - ./config/identifier-registration.yml:/etc/ocis/identifier-registration.yml
     environment: 
       EOS_MGM_URL: "root://mgm-master.testnet:1094"
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
@@ -84,14 +91,14 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: fst.testnet
     networks:
     - testnet
     volumes:
-    - ./e/eos.keytab:/etc/eos.keytab:ro
-    - ./e/log:/var/log/eos
-    - ./e/disks:/disks
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./e/fst/var/log/eos:/var/log/eos
+    - ./e/fst/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
 
@@ -102,15 +109,15 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: quark-1.testnet
     networks:
     - testnet
     volumes:
-    - ./e/eos.keytab:/etc/eos.keytab:ro
-    - ./e/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark1/log:/var/log/eos
-    - ./e/quark1/ns:/var/lib/quarkdb
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./config/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark1/var/log/eos:/var/log/eos
+    - ./e/quark1/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"
@@ -125,15 +132,15 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: quark-2.testnet
     networks:
     - testnet
     volumes:
-    - ./e/eos.keytab:/etc/eos.keytab:ro
-    - ./e/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark2/log:/var/log/eos
-    - ./e/quark2/ns:/var/lib/quarkdb
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./config/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark2/var/log/eos:/var/log/eos
+    - ./e/quark2/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"
@@ -148,15 +155,15 @@ services:
     privileged: true
     stdin_open: true
     env_file:
-    - ./e/eos-docker.env
+    - ./config/eos-docker.env
     hostname: quark-3.testnet
     networks:
     - testnet
     volumes:
-    - ./e/eos.keytab:/etc/eos.keytab:ro
-    - ./e/qdb.keytab:/etc/qdb.keytab:ro
-    - ./e/quark3/log:/var/log/eos
-    - ./e/quark3/ns:/var/lib/quarkdb
+    - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./config/qdb.keytab:/etc/qdb.keytab:ro
+    - ./e/quark3/var/log/eos:/var/log/eos
+    - ./e/quark3/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"

@@ -14,25 +14,13 @@ sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts
 mkdir -p /var/log/eos/tx
 chown -R daemon:daemon /var/log/eos/
 
-# check eos keytab exists, otherwise exit
-if [ ! -s /etc/eos.keytab ]; then
-  if [ -d /etc/k8screds ]; then
-    cp /etc/k8screds/eos.keytab /etc/eos.keytab
-    if [ -e /etc/k8screds/eos.client.keytab ]; then
-      cp /etc/k8screds/eos.client.keytab /etc/eos.client.keytab
-    else
-      cp /etc/k8screds/eos.keytab /etc/eos.client.keytab
-    fi
-  else
-    exit 1
-  fi
-else
+# check eos keytab exists
+if [ -s /etc/eos.keytab ]; then
   cp /etc/eos.keytab /etc/eos.client.keytab
+  sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.mq
+  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 fi
-
-sed -i '0,/eos.keytab/{s/eos.keytab/eos.client.keytab/}' /etc/xrd.cf.mgm
-chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
-chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 
 # Ensure we set the temp spool to be owned by daemon so the MGM can write spooled files
 chown daemon:daemon /tmp/eos.mgm
@@ -80,4 +68,4 @@ mkdir -p ${XRD_COREDIR} && chown daemon:daemon ${XRD_COREDIR}
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/xrdlog.mgm
+exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/mgm/xrdlog.mgm
