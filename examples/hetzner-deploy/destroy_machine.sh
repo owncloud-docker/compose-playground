@@ -5,8 +5,10 @@
 # 2020-05-11, jw, added loop to allow multiple deletions
 # 2020-05-12, jw, added globbing patterns, for I am lazy.
 # 2020-05-19, jw, added support for hcloud_cli, to ease the terraform dependency
+# 2020-05-20, jw, ported to mac
 
 test -z "$HCLOUD_TOKEN" && export HCLOUD_TOKEN=$TF_VAR_hcloud_token
+test -z "$TF_VAR_hcloud_token" && export TF_VAR_hcloud_token=$HCLOUD_TOKEN
 if [ -z "$HCLOUD_TOKEN" ]; then
   echo "Environment variable HCLOUD_TOKEN not set."
   exit 1

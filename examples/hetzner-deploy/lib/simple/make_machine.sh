@@ -1,7 +1,8 @@
 #! /bin/sh
 version=0.5
 
-exec 3>&1 1>&2	# all output goes to stderr.
+exec 3>&1 1>&2	        # all output goes to stderr.
+export LC_ALL=C		# prevent tr and sed to explode on mac.
 set -e
 
 extra_pkg=""
@@ -63,7 +64,8 @@ fi
 
 THERE="ssh -t root@$OC_DEPLOY_ADDR"
 IPADDR=$OC_DEPLOY_ADDR
-if hostname -I | grep -q -w $OC_DEPLOY_ADDR; then
+# hostname -I does not work on mac
+if ifconfig -a | sed -ne 's/inet \([^ ]*\).*/\1/p' | grep -q -w -F $OC_DEPLOY_ADDR; then
   # we were called with an IP-address, that is actually our own address
   echo "$OC_DEPLOY_ADDR found locally. switching to OC_DEPLOY_ADDR=localhost"
   OC_DEPLOY_ADDR=localhost
@@ -75,11 +77,17 @@ if [ "$OC_DEPLOY_ADDR" = localhost -o "$OC_DEPLOY_ADDR" = 127.0.0.1 ]; then
   if [ "$IPADDR" = localhost -o "$IPADDR" = 127.0.0.1 ]; then
     # we were called with OC_DEPLOY_ADDR=localhost, that is fine, but we want to know a real IP-Address too.
     IPADDR=$(ip route show default | head -1 | sed -e 's/.* src //' -e 's/ .*$//')
+    if [ -z "$IPADDR" ]; then
+      IPADDR=127.0.0.1
+      echo "Cannot determine local ip-address via 'ip route show default'. Using 127.0.0.1 ... "
+      echo "Please provide the public IP-address of this machine via OC_DEPLOY_ADDR to avoid this."
+      sleep 5
+    fi
   fi
 fi
 
 if [ -n "$extra_pkg" ]; then
-  . /etc/os-release
+  ID=$($THERE cat /etc/os-release | sed -ne 's/^ID=//p')
   case "$ID" in
     linuxmint|ubuntu|debian)
       $THERE apt-get update -y
@@ -95,7 +103,7 @@ if [ -n "$extra_pkg" ]; then
   esac
 fi
 
-if [ "$do_login" = true ]; then
+if $do_login; then
   $THERE bash	# sudo or ssh ...
 fi
 

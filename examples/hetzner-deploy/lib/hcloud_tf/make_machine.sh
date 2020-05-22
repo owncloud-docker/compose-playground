@@ -13,9 +13,11 @@
 # jw, 2020-05-12	v0.3	poor man's option parser added. getopts is so silly. not used.
 # jw, 2020-05-14	v0.4	%s interpolation on the machine name, support for direct login
 # jw, 2020-05-15	v0.5	major refactoring to support local and predeployed systems too.
-version=0.5
+# jw, 2020-05-22	v0.6	porting to mac
+version=0.6
 
-exec 3>&1 1>&2	# all output goes to stderr.
+exec 3>&1 1>&2		# all output goes to stderr.
+export LC_ALL=C		# prevent tr and sed to explode on mac.
 set -e
 
 test -z "$HCLOUD_TOKEN" && export HCLOUD_TOKEN=$TF_VAR_hcloud_token
@@ -23,18 +25,18 @@ if [ -z "$HCLOUD_TOKEN" ]; then
   echo "Environment variable HCLOUD_TOKEN not set."
   exit 1
 fi
-## FIXME: detect, if we are running on a mac...
 
-if [ "$(uname)" = "Linux" ]; then 
-  tf_url="https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_linux_amd64.zip"
-elif [ "$(uname)" = "Windows" ]; then 
-  echo "Terrafrom on windows is not supported today."
+tf_version=0.12.25
+if [ "$(uname)" = "Linux" ]; then
+  tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
+elif [ "$(uname)" = "Darwin" ]; then
+  tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_darwin_amd64.zip"
 else
-  tf_url="https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_darwin_amd64.zip"
+  echo "Terrafrom on windows is not supported today."
 fi
 
 test -z "$HCLOUD_SSHKEY_NAMES" && export HCLOUD_SSHKEY_NAMES=$TF_SSHKEY_NAMES
-ssh_key_names="$HClOUD_SSHKEY_NAMES"
+ssh_key_names="$HCLOUD_SSHKEY_NAMES"
 ssh_keys="$HCLOUD_SSHKEY"
 extra_pkg=""
 server_image="ubuntu-20.04"
@@ -106,9 +108,9 @@ fi
 extra_pkg=$(echo $extra_pkg | tr , ' ')
 
 # convert to comma-separated to comma-separated quoted strings
-ssh_key_names=$(echo '"'$ssh_key_names'"' | sed -e 's/,/","/')
+ssh_key_names=$(echo '"'$ssh_key_names'"' | sed -e 's/,/","/g')
 test "$ssh_key_names" = '""' && ssh_key_names=''
-ssh_keys=$(echo '"'$ssh_keys'"' | sed -e 's/,/","/')
+ssh_keys=$(echo '"'$ssh_keys'"' | sed -e 's/,/","/g')
 test "$ssh_keys" = '""' && ssh_keys=''
 
 if [ -z "$ssh_key_names$ssh_keys" ]; then
@@ -124,7 +126,7 @@ if [ -z "$NAME" ]; then
 fi
 
 NAME_BASE=$NAME
-test $mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
+$mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
 
 if [ "$NAME" != "$NAME_BASE" ]; then
   echo "MACHINE_NAME '$NAME_BASE' expanded to '$NAME'"
@@ -191,7 +193,7 @@ fi
 
 rm -f $NAME.plan	# keeping $NAME.tftate should be enough...
 
-if [ "$do_login" = true ]; then
+if $do_login; then
   echo "+ ssh root@$IPADDR"
   ssh root@$IPADDR
   cat <<END
