@@ -2,3 +2,4 @@
 /.idea
 e/
 *.swp
+.env

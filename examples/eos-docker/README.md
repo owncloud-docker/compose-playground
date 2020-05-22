@@ -1,3 +1,17 @@
+# EOS for oCIS
+
+Set your domain or IP in 
+- ./config/eos-docker.env
+- .env
+
+```
+docker-compos up -d
+```
+
+Rest of readme file needs rework - outdated
+
+---
+
 # EOS-DOCKER
 
 This repository contains all containers required for setting up EOS.

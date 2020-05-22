@@ -17,4 +17,8 @@
 #   docker-compose exec fst eos -r 0 0 -b fs add eosfs${i} fst.testnet:1095 /disks/eosfs${i} default rw
 # done
 
-echo "not needed anymore"
+echo "Update IP"
+
+IP=$(curl ifconfig.me)
+echo "OCIS_DOMAIN=$IP" > .env
+sed -i "s/OCIS_DOMAIN=ocis.local/OCIS_DOMAIN=$IP/" ./config/eos-docker.env
