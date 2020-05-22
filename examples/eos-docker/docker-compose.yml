@@ -62,6 +62,7 @@ services:
       - ./config:/config
     environment: 
       EOS_MGM_URL: "root://mgm-master.testnet:1094"
+      OCIS_DOMAIN: ${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
       KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
       KONNECTD_LOG_LEVEL: debug

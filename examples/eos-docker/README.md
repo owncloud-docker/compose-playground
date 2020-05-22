@@ -1,11 +1,10 @@
 # EOS for oCIS
 
-Set your domain or IP in 
-- ./config/eos-docker.env
-- .env
+Set your domain or IP in .env and start compose file
 
 ```
-docker-compos up -d
+echo "OCIS_DOMAIN=localhost" > .env
+docker-compose up -d
 ```
 
 Rest of readme file needs rework - outdated
