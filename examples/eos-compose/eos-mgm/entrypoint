@@ -13,8 +13,7 @@ sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts
 # create tx log folder we mounted the logs volume over
 mkdir -p /var/log/eos/tx
 chown -R daemon:daemon /var/log/eos/
-
-# chown daemon:daemon /tmp/eos.mgm
+chown daemon:daemon /tmp/eos.mgm
 
 # check eos keytab exists
 if [ -s /etc/eos.keytab ]; then
