@@ -44,6 +44,7 @@ services:
     - ./e/master/ns-queue:/var/eos/ns-queue
     environment:
       EOS_SET_MASTER: 1
+      EOS_START_SYNC_SEPARATELY: 1 
 
   ocis:
     container_name: ocis
