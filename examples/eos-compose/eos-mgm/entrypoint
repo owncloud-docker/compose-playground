@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 # set variables
 . /etc/sysconfig/eos
 XRD_COREDIR="/var/spool/eos/core"
