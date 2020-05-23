@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# set variables
+. /etc/sysconfig/eos
+XRD_COREDIR="/var/spool/eos/core"
+EOS_MGM_MASTER_FILE="/var/eos/eos.mgm.rw"
+PATH=$PATH:/sbin
+
+# remove all ipv6
+sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
+
+# create tx log folder we mounted the logs volume over
+mkdir -p /var/log/eos/tx
+chown -R daemon:daemon /var/log/eos/
+
+
+# chown daemon:daemon /tmp/eos.mgm
+
+# check eos keytab exists
+if [ -s /etc/eos.keytab ]; then
+  cp /etc/eos.keytab /etc/eos.client.keytab
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
+  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
+  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
+  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
+fi
+
+# check if this node is a master - if so, create the relevant file
+if [ "${EOS_SET_MASTER}" = "true" ] || [ "${EOS_SET_MASTER}" = 1 ]; then
+    touch ${EOS_MGM_MASTER_FILE}
+fi
+
+# make sure variables we're setting aren't already set in xrd.cf.mgm so we don't get duplicate lines
+sed -i '/mgmofs.nslib/d' /etc/xrd.cf.mgm
+sed -i '/mgmofs.qdbcluster/d' /etc/xrd.cf.mgm
+sed -i '/mgmofs.cfgtype/d' /etc/xrd.cf.mgm
+sed -i '/mgmofs.qdbpassword_file/d' /etc/xrd.cf.mgm
+sed -i '/mgmofs.centraldrain/d' /etc/xrd.cf.mgm
+
+# check if we should use quarkdb, otherwise default to in-memory namespace
+if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
+  echo "mgmofs.nslib /usr/lib64/libEosNsQuarkdb.so" >> /etc/xrd.cf.mgm
+  echo "mgmofs.qdbcluster ${EOS_QDB_NODES}" >> /etc/xrd.cf.mgm
+  echo "mgmofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.mgm
+  echo "mgmofs.centraldrain true" >> /etc/xrd.cf.mgm
+  mkdir -p /var/eos/ns-queue
+  chown -R daemon:daemon /var/eos/ns-queue
+else
+  echo "mgmofs.nslib /usr/lib64/libEosNsInMemory.so" >> /etc/xrd.cf.mgm
+fi
+
+if [ "${EOS_USE_QDB_CONFIG}" = "true" ] || [ "${EOS_USE_QDB_CONFIG}" = 1 ]; then
+  echo "mgmofs.cfgtype quarkdb" >> /etc/xrd.cf.mgm
+else
+  echo "mgmofs.cfgtype file" >> /etc/xrd.cf.mgm
+fi
+
+echo "----- Planning setup -----"
+echo "until nc -z -w 3 localhost 1094; do sleep 1; done;" > /wait-for-mgm
+chmod +x /wait-for-mgm
+cat /etc/xrd.cf.mgm
+cat /setup
+(/wait-for-mgm; ./setup ) &
+
+# if [ -x "/eos_graphite.py" ]; then
+#   (/wait-for-mgm; ./eos_graphite.py ${EOS_INSTANCE_NAME}) &
+# fi
+
+# start mgm
+echo "Starting mgm for " $(rpm -q eos-server | sed s/eos-server-//g)
+mkdir -p ${XRD_COREDIR} && chown daemon:daemon ${XRD_COREDIR}
+
+XRDPROG=/usr/bin/xrootd
+test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
+
+exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/xrdlog.mgm
+# has to write into logfile: /var/log/eos/xrdlog.mgm or will die - no idea why

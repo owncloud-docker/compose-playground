@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# mkdir -p e
+# sudo chown -R 2:2 e
+
+# docker-compose up -d
+
+# . ./config/eos-docker.env
+# until nc -z -w 3 $EOS_MGM_ALIAS 1094; do >&2 echo "[SETUP] Waiting for connection to EOS MGM"; sleep 2; done;
+
+# docker-compose exec mgm-master bash -c /wait-for-mgm
+
+# echo; echo "===== CREATING FILESYSTEMS ====="
+# for i in {1..4}; do
+#   docker-compose exec fst mkdir -p /disks/eosfs${i}
+#   docker-compose exec fst chown daemon:daemon /disks/eosfs${i}
+#   docker-compose exec fst eos -r 0 0 -b fs add eosfs${i} fst.testnet:1095 /disks/eosfs${i} default rw
+# done
+
+echo "Update IP"
+
+IP=$(curl ifconfig.me)
+echo "OCIS_DOMAIN=$IP" > .env
+

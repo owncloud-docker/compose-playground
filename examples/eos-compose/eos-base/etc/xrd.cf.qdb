@@ -1,0 +1,11 @@
+##########################################################
+set MODE = $EOS_QDB_MODE
+set HOST = $EOS_QDB_HOST
+set DIR  = $EOS_QDB_DIR
+###########################################################
+
+xrd.port 7777
+xrd.protocol redis:7777 /usr/lib64/libXrdQuarkDB.so
+redis.mode standalone
+redis.database $(DIR)
+redis.myself $(HOST):7777

@@ -1,0 +1,80 @@
+#!/bin/bash
+
+echo "===== [mgm] Expect to see *sudo and effective uid 0 here: ====="
+docker-compose exec mgm-master eos whoami
+docker-compose exec mgm-master eos ns
+docker-compose exec mgm-master eos node ls
+
+echo; echo "===== [mgm] Expect to see vid: ====="
+docker-compose exec mgm-master eos -r 0 0 -b vid ls
+
+echo; echo "===== [ocis] Expect to see *sudo and effective uid 0 here: ====="
+docker-compose exec ocis eos whoami
+docker-compose exec ocis eos -r 0 0 whoami
+
+echo; echo "===== [qdb] Print QDB infos ====="
+for q in "quark-1" "quark-2" "quark-3"; do
+  echo; echo "===== ${q} ====="; echo;
+  docker-compose exec ${q} redis-cli -p 7777 raft-info
+done
+
+echo; echo "===== [mgm] Check auth and id ====="
+docker-compose exec mgm-master authconfig --test | grep ena 	# expect: nss_ldap is enabled
+docker-compose exec mgm-master id marie			# expect: uid=20001(marie) gid=30000(users) ...
+
+echo; echo "===== [ocis] Check auth and id ====="
+docker-compose exec ocis authconfig --test | grep ena 	# expect: nss_ldap is enabled
+docker-compose exec ocis id marie			# expect: uid=20001(marie) gid=30000(users) ...
+
+echo; echo "===== RUNNING SOME MORE CHECKS ====="
+docker-compose exec mgm-master eos group set default.0 on
+docker-compose exec mgm-master eos space set default on
+docker-compose exec mgm-master eos ls -l eos
+docker-compose exec mgm-master eos fs ls
+docker-compose exec mgm-master eos space ls
+docker-compose exec mgm-master eos group ls
+
+# echo; echo "===== TESTING EOSD & EOSXD MOUNTS =====";
+# sudo docker exec mgm-master eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/test
+
+# for dir in "eos" "eosxd"; do
+#   testfile="e/${dir}/test/hello.txt"
+
+#   echo; echo "${dir}: Writing a test file.."
+#   sudo echo "  hello, world!" > ${testfile}
+#   echo; echo "Reading the test file.."
+#   sudo cat ${testfile}
+# done
+
+
+
+# fst           | ls: cannot access /hostdev/mapper/: No such file or directory
+# fst           | ls: cannot access /dev/mapper/luks*: No such file or directory
+# fst           | ls: cannot access /dev/sd*: No such file or directory
+# fst           | ls: cannot access /dev/mapper/*: No such file or directory
+# fst           | ls: cannot access /dev/sd*: No such file or directory
+# fst           | ls: cannot access /dev/mapper/*: No such file or directory
+# # mgm-master    | chown: cannot access '/tmp/eos.mgm': No such file or directory
+# ocis          | 2020-05-22T17:41:14Z WRN policy-selector not configured. Will always use first policy: 'reva' service=proxy
+
+# quark-2       | Plugin No such file or directory loading protocol /usr/lib64/libXrdQuarkDB-4.so
+# quark-2       | Config Falling back to using /usr/lib64/libXrdQuarkDB.so
+# quark-2       | Plugin Unable to find  plugin XrdgetProtocolPort in protocol /usr/lib64/libXrdQuarkDB.so
+# quark-2       | Config Unable to load protocol plugin /usr/lib64/libXrdQuarkDB.so
+# quark-2       | Config warning: only '/tmp' will be exported.
+# quark-2       | Config warning: 'xrootd.seclib' not specified; strong authentication disabled!
+# quark-2       | Config warning: 'xrootd.prepare logdir' not specified; prepare tracking disabled.
+# quark-2       | ------ xrootd protocol initialization completed.
+# quark-2       | Plugin No such file or directory loading protocol /usr/lib64/libXrdQuarkDB-4.so
+# quark-2       | Config Falling back to using /usr/lib64/libXrdQuarkDB.so
+# # mgm-master    | Couldn't send data to graphite host: [Errno 111] Connection refused
+# #   eos_graphite.py has hardcoded ip:port 
+
+# quark-2       | 200522 17:41:07 001 XrdConfig: Unable to create home directory //quarkdb; permission denied
+# quark-2       | ------ xrootd quarkdb@quark-2.testnet:7777 initialization completed.
+# ocis          | 2020-05-22T17:41:15Z WRN No tls certificate provided, using a generated one service=proxy
+# ocis          | 2020-05-22T17:41:15Z ERR error starting the grpc server error="unable to register services: rgrpc: grpc service usershareprovider could not be started,: error loading the file containing the shares: error opening/creating the file: /var/tmp/reva/shares.json: open /var/tmp/reva/shares.json: no such file or directory" service=reva
+# ocis          | 2020-05-22T17:41:16Z WRN missing --encryption-secret parameter, using random encyption secret with 32 bytes service=konnectd
+# ocis          | 2020-05-22T17:41:16Z WRN missing --signing-private-key parameter, using random 2048 bit signing key alg=PS256 service=konnectd
+
+

@@ -1,0 +1,5 @@
+*/1 * * * * root (/usr/bin/nc -z -w10 $(cat /eosmgm) 1094 &> /dev/null && echo "connected" || echo "failed") > /var/log/zabbix/eos.mgmconnect 
+*/1 * * * * root /usr/bin/eos -j root://$(cat /eosmgm):1094 ns &> /var/log/zabbix/eos.ns
+*/1 * * * * root /usr/bin/eos -j root://$(cat /eosmgm):1094 fs ls -m > /var/log/zabbix/eos.fs
+*/1 * * * * root /usr/bin/eos -j root://$(cat /eosmgm):1094 node ls -b -m &> /var/log/zabbix/eos.node
+
