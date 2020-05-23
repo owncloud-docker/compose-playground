@@ -1,16 +1,26 @@
 #!/bin/sh
 
 # todo: log all ocis services to stdout
-# todo: run ldap config only once, sed is failing second time
 
 echo "Waiting for EOS MGM"
-until nc -z -w 3 $EOS_MGM_ALIAS 1094; do >&2 echo "[SETUP] Waiting for connection to EOS MGM"; sleep 2; done;
+echo "until nc -z -w 3 $EOS_MGM_ALIAS 1094; do sleep 2; done;" > /wait-for-mgm
+chmod +x /wait-for-mgm
+
+/wait-for-mgm
 
 echo "----- LDAP setup -----"
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
 sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslcd.conf
 sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
 nslcd
+
+
+eos -r 0 0 -b vid set membership daemon -uids adm
+eos -r 0 0 -b vid set membership daemon -gids adm
+eos -r 0 0 -b vid set membership daemon +sudo
+eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
+# eos -r 0 0 -b vid add gateway ocis.testnet
+eos -r 0 0 -b vid add gateway ocis
 
 echo "----- DOMAIN setup -----"
 echo "Domain / IP: $OCIS_DOMAIN"

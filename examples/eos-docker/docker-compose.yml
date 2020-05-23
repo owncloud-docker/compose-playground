@@ -47,7 +47,7 @@ services:
 
   ocis:
     container_name: ocis
-    image: eos/ocis
+    image: eos/ocis:latest
     tty: true
     privileged: true
     stdin_open: true
@@ -94,6 +94,7 @@ services:
     - testnet
     volumes:
     - ./config/eos.keytab:/etc/eos.keytab:ro
+    - ./e/master/log:/var/log/eos
     - ./e/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"

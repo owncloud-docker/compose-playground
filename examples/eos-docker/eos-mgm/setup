@@ -10,6 +10,7 @@ eos -r 0 0 -b vid set membership daemon -uids adm
 eos -r 0 0 -b vid set membership daemon -gids adm
 eos -r 0 0 -b vid set membership daemon +sudo
 eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
+# eos -r 0 0 -b vid add gateway ocis.testnet
 eos -r 0 0 -b vid add gateway ocis
 eos -r 0 0 -b debug err
 

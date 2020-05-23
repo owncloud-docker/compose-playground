@@ -16,6 +16,10 @@ chmod 1777 /tmp
 if [ $? -ne 0 ]; then
   echo "Cannot set permissions on /tmp, existing"
 fi
+mkdir -p /var/log/eos
+mkdir -p /disks
+chown -R daemon:daemon /var/log/eos/
+chown -R daemon:daemon /disks
 
 cd /disks
 echo "Unmounting any existing mounts for file systems"
@@ -119,7 +123,4 @@ XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
 # exec $XRDPROG -n fst -c /etc/xrd.cf.fst -Rdaemon 
-
-mkdir -p /var/log/eos/fst
-chown daemon:daemon /var/log/eos/fst
-exec $XRDPROG -n fst -c /etc/xrd.cf.fst -l /var/log/eos/fst/xrdlog.fst -Rdaemon 
+exec $XRDPROG -n fst -c /etc/xrd.cf.fst -l /var/log/eos/xrdlog.fst -Rdaemon

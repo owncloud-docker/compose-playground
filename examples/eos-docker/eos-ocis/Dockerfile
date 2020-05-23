@@ -15,11 +15,11 @@ RUN ln -s /usr/local/go/bin/* /usr/local/bin
 RUN git clone https://github.com/owncloud/ocis.git
 RUN cd ocis && git checkout ${BRANCH}
 RUN cd ocis && git log -n 1
-RUN cd ocis && make generate build
+RUN cd ocis && make generate bin/ocis
 
 FROM eos/base
 RUN mkdir -p /usr/local/bin
-COPY --from=build ocis/bin/ocis* /usr/local/bin/
+COPY --from=build ocis/bin/ocis /usr/local/bin/
 RUN chmod +x /usr/local/bin/ocis
 
 COPY entrypoint /entrypoint
