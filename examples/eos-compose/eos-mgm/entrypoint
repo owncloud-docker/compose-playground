@@ -59,8 +59,7 @@ fi
 echo "----- Planning setup -----"
 echo "until nc -z -w 3 localhost 1094; do sleep 1; done;" > /wait-for-mgm
 chmod +x /wait-for-mgm
-cat /etc/xrd.cf.mgm
-cat /setup
+
 (/wait-for-mgm; ./setup ) &
 
 # if [ -x "/eos_graphite.py" ]; then
