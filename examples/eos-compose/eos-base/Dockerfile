@@ -46,7 +46,11 @@ RUN echo "*               soft    nofile          200000" >> /etc/security/limit
 
 # ----- Copy xrd config and sysconfig files ----- #
 COPY etc/xrd.* /etc/
+COPY etc/eos.keytab /etc/eos.keytab
 COPY etc/sysconfig/eos /etc/sysconfig/eos
+
+RUN cp /etc/eos.keytab /etc/eos.client.keytab
+RUN chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 
 # ----- Run entrypoint script to start service(s) ----- #
 CMD ["/entrypoint"]

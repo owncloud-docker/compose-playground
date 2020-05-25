@@ -1,29 +1,31 @@
 #!/bin/sh
 
-# check eos keytab exists
-if [ -s /etc/eos.keytab ]; then
-  cp /etc/eos.keytab /etc/eos.client.keytab
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
-  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
-  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
-fi
-
 # remove all ipv6
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 
-# create xrootd config file
+# dynamicly config based on env variables
 QDB_CONF=/etc/xrd.cf.qdb
-
-echo "xrd.port ${EOS_QDB_PORT}"                                        > ${QDB_CONF}
-echo "xrd.protocol redis:${EOS_QDB_PORT} /usr/lib64/libXrdQuarkDB.so" >> ${QDB_CONF}
-echo "redis.database ${EOS_QDB_DIR}"                                  >> ${QDB_CONF}
-if ! [ "${EOS_QDB_MODE}" = "bulkload" ]; then
-  echo "redis.password_file /etc/eos.client.keytab"                     >> ${QDB_CONF}
+if [ "${EOS_QDB_PORT}" ]; then
+  sed -i '/xrd.port/d' ${QDB_CONF}
+  sed -i '/xrd.protocol/d' ${QDB_CONF}
+  echo "xrd.port ${EOS_QDB_PORT}"                                       >> ${QDB_CONF}
+  echo "xrd.protocol redis:${EOS_QDB_PORT} /usr/lib64/libXrdQuarkDB.so" >> ${QDB_CONF}
 fi
-echo "redis.mode ${EOS_QDB_MODE}"                                     >> ${QDB_CONF}
+if [ "${EOS_QDB_DIR}" ]; then
+  sed -i '/redis.database/d' ${QDB_CONF}
+  echo "redis.database ${EOS_QDB_DIR}"                                  >> ${QDB_CONF}
+fi
+if [ "${EOS_QDB_MODE}" ]; then
+  sed -i '/redis.mode/d' ${QDB_CONF}
+  echo "redis.mode ${EOS_QDB_MODE}"                                     >> ${QDB_CONF}
+fi
+if ! [ "${EOS_QDB_MODE}" = "bulkload" ]; then
+  sed -i '/redis.password_file/d' ${QDB_CONF}
+  echo "redis.password_file /etc/eos.client.keytab"                   >> ${QDB_CONF}
+fi
 if [ "${EOS_QDB_MODE}" = "raft" ]; then
+  sed -i '/redis.myself/d' ${QDB_CONF}
   echo "redis.myself `hostname -f`:${EOS_QDB_PORT}"                   >> ${QDB_CONF}
 fi
 

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "===== [mgm] Expect to see running quarkdb: ====="
+docker-compose exec mgm-master sh -c 'redis-cli -h quark-1.testnet -p 7777 -a "$(cat /etc/eos.client.keytab)" raft-info'
+docker-compose exec mgm-master sh -c 'redis-cli -h quark-2.testnet -p 7777 -a "$(cat /etc/eos.client.keytab)" raft-info'
+docker-compose exec mgm-master sh -c 'redis-cli -h quark-3.testnet -p 7777 -a "$(cat /etc/eos.client.keytab)" raft-info'
+docker-compose exec mgm-master sh -c 'redis-cli -h quark-3.testnet -p 7777 -a "$(cat /etc/eos.client.keytab)" quarkdb-health'
+
 echo "===== [mgm] Expect to see *sudo and effective uid 0 here: ====="
 docker-compose exec mgm-master eos whoami
 docker-compose exec mgm-master eos ns

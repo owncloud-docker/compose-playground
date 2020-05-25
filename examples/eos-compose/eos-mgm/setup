@@ -2,7 +2,9 @@
 
 # todo: run only once
 
-echo; echo "===== EOS CONFIGURATION ====="
+echo; echo "===== [mgm setup] START ====="
+sleep 15
+echo; echo "===== [mgm setup] EOS CONFIGURATION ====="
 eos -r 0 0 -b vid enable sss
 eos -r 0 0 -b vid enable unix
 # eos -r 0 0 -b vid disable krb5
@@ -14,17 +16,19 @@ eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
 eos -r 0 0 -b vid add gateway ocis
 eos -r 0 0 -b debug err
 
-echo; echo "===== LDAP CONFIGURATION ====="
+echo; echo "===== [mgm setup] LDAP CONFIGURATION ====="
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
 sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslcd.conf
 sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
 nslcd
 
-echo; echo "===== RUNNING SOME CHECKS =====";
-# eos group set default.0 on
-# eos space set default on
+echo; echo "===== [mgm setup] RUNNING SOME CHECKS ====="
+eos group set default.0 on
+eos space set default on
 
 ## cern style eos docker root default namespace
 eos mkdir -p /eos/dockertest/reva/users
 eos -r 0 0 -b attr set sys.acl="u:2:rwxc" /eos/dockertest/reva/users
+eos ls -l /eos/dockertest/reva/users
 
+echo; echo "===== [mgm setup] DONE ====="

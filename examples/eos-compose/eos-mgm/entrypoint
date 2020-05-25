@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -x
-
 # set variables
 . /etc/sysconfig/eos
 XRD_COREDIR="/var/spool/eos/core"
@@ -12,47 +10,43 @@ PATH=$PATH:/sbin
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 
-# create tx log folder we mounted the logs volume over
+# mkdir -p /tmp/eos.mgm
+# chown daemon:daemon /tmp/eos.mgm
+# mkdir -p /var/eos/config/eostest/mgm/
+# mkdir -p /var/eos/config/eostest/all
+# mkdir -p /var/eos/config/eostest/fst
+mkdir -p /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
+chown -R daemon:daemon /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
 mkdir -p /var/log/eos/tx
+mkdir -p /var/log/eos/mgm
 chown -R daemon:daemon /var/log/eos/
-chown daemon:daemon /tmp/eos.mgm
-
-# check eos keytab exists
-if [ -s /etc/eos.keytab ]; then
-  cp /etc/eos.keytab /etc/eos.client.keytab
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mgm
-  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
-  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
-fi
 
 # check if this node is a master - if so, create the relevant file
 if [ "${EOS_SET_MASTER}" = "true" ] || [ "${EOS_SET_MASTER}" = 1 ]; then
     touch ${EOS_MGM_MASTER_FILE}
+    chown daemon:daemon ${EOS_MGM_MASTER_FILE}
 fi
-
-# make sure variables we're setting aren't already set in xrd.cf.mgm so we don't get duplicate lines
-sed -i '/mgmofs.nslib/d' /etc/xrd.cf.mgm
-sed -i '/mgmofs.qdbcluster/d' /etc/xrd.cf.mgm
-sed -i '/mgmofs.cfgtype/d' /etc/xrd.cf.mgm
-sed -i '/mgmofs.qdbpassword_file/d' /etc/xrd.cf.mgm
-sed -i '/mgmofs.centraldrain/d' /etc/xrd.cf.mgm
 
 # check if we should use quarkdb, otherwise default to in-memory namespace
 if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
+  sed -i '/mgmofs.nslib/d' /etc/xrd.cf.mgm
+  sed -i '/mgmofs.qdbcluster/d' /etc/xrd.cf.mgm
+  sed -i '/mgmofs.qdbpassword_file/d' /etc/xrd.cf.mgm
+  sed -i '/mgmofs.centraldrain/d' /etc/xrd.cf.mgm
   echo "mgmofs.nslib /usr/lib64/libEosNsQuarkdb.so" >> /etc/xrd.cf.mgm
   echo "mgmofs.qdbcluster ${EOS_QDB_NODES}" >> /etc/xrd.cf.mgm
   echo "mgmofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.mgm
   echo "mgmofs.centraldrain true" >> /etc/xrd.cf.mgm
-  mkdir -p /var/eos/ns-queue
-  chown -R daemon:daemon /var/eos/ns-queue
 else
+  sed -i '/mgmofs.nslib/d' /etc/xrd.cf.mgm
   echo "mgmofs.nslib /usr/lib64/libEosNsInMemory.so" >> /etc/xrd.cf.mgm
 fi
 
 if [ "${EOS_USE_QDB_CONFIG}" = "true" ] || [ "${EOS_USE_QDB_CONFIG}" = 1 ]; then
+  sed -i '/mgmofs.cfgtype/d' /etc/xrd.cf.mgm
   echo "mgmofs.cfgtype quarkdb" >> /etc/xrd.cf.mgm
 else
+  sed -i '/mgmofs.cfgtype/d' /etc/xrd.cf.mgm
   echo "mgmofs.cfgtype file" >> /etc/xrd.cf.mgm
 fi
 
@@ -60,7 +54,7 @@ echo "----- Planning setup -----"
 echo "until nc -z -w 3 localhost 1094; do sleep 1; done;" > /wait-for-mgm
 chmod +x /wait-for-mgm
 
-(/wait-for-mgm; ./setup ) &
+(/wait-for-mgm; ./setup > /var/log/eos/mgm/eos.setup.log; cat /var/log/eos/mgm/eos.setup.log) &
 
 # if [ -x "/eos_graphite.py" ]; then
 #   (/wait-for-mgm; ./eos_graphite.py ${EOS_INSTANCE_NAME}) &
@@ -69,9 +63,15 @@ chmod +x /wait-for-mgm
 # start mgm
 echo "Starting mgm for " $(rpm -q eos-server | sed s/eos-server-//g)
 mkdir -p ${XRD_COREDIR} && chown daemon:daemon ${XRD_COREDIR}
+cd ${XRD_COREDIR}
+
+# export EOS_BROKER_URL="root://mgm-master.testnet:1097//eos/"
+export EOS_START_SYNC_SEPARATELY=1
 
 XRDPROG=/usr/bin/xrootd
 test -e /opt/eos/xrootd/bin/xrootd && XRDPROG=/opt/eos/xrootd/bin/xrootd
 
-exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/xrdlog.mgm
+exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm 
+
+# exec $XRDPROG -R daemon -n mgm -c /etc/xrd.cf.mgm -l /var/log/eos/xrdlog.mgm
 # has to write into logfile: /var/log/eos/xrdlog.mgm or will die - no idea why

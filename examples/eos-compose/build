@@ -1,10 +1,10 @@
 #!/bin/bash
 
 docker build -t eos/base ./eos-base
-docker build -t eos/mq ./eos-mq
-docker build -t eos/mgm ./eos-mgm
-docker build -t eos/fst ./eos-fst
 docker build -t eos/qdb ./eos-qdb
+docker build -t eos/mgm ./eos-mgm
+docker build -t eos/mq ./eos-mq
+docker build -t eos/fst ./eos-fst
 docker build -t eos/ocis:master -t eos/ocis:latest ./eos-ocis
 
 # docker build -t eos/ocis:1.0.0-beta4 --build-arg BRANCH=v1.0.0-beta4 ./eos-ocis

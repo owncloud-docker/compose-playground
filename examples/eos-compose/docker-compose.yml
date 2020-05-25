@@ -6,45 +6,6 @@ networks:
     name: testnet
 
 services:
-  mq-master:
-    container_name: mq-master
-    image: eos/mq
-    tty: true
-    privileged: true
-    stdin_open: true
-    env_file:
-    - ./config/eos-docker.env
-    hostname: mq-master.testnet
-    networks:
-    - testnet
-    volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/master/config:/var/eos/config
-    - ./e/master/md:/var/eos/md
-    - ./e/master/ns-queue:/var/eos/ns-queue
-    environment:
-      EOS_SET_MASTER: 1
-
-  mgm-master:
-    container_name: mgm-master
-    image: eos/mgm
-    tty: true
-    privileged: true
-    stdin_open: true
-    env_file:
-    - ./config/eos-docker.env
-    hostname: mgm-master.testnet
-    networks:
-    - testnet
-    volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/master/log:/var/log/eos
-    - ./e/master/config:/var/eos/config
-    - ./e/master/md:/var/eos/md
-    - ./e/master/ns-queue:/var/eos/ns-queue
-    environment:
-      EOS_SET_MASTER: 1
-
   ocis:
     container_name: ocis
     image: eos/ocis:latest
@@ -55,7 +16,7 @@ services:
       - 9200:9200
     env_file:
       - ./config/eos-docker.env
-    hostname: ocis.testnet
+    hostname: ocis
     networks:
       - testnet
     volumes:
@@ -81,6 +42,44 @@ services:
       REVA_STORAGE_EOS_NAMESPACE: "/eos/dockertest/reva/users"
       DAV_FILES_NAMESPACE: "/eos/"
 
+  mgm-master:
+    container_name: mgm-master
+    image: eos/mgm
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: mgm-master.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/master/var/log/eos:/var/log/eos
+    - ./e/master/var/eos/config:/var/eos/config
+    - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
+    # this volume kills mgm-master during startup
+    # - ./e/master/var/eos/md:/var/eos/md
+    environment:
+      EOS_SET_MASTER: 1
+
+  mq-master:
+    container_name: mq-master
+    image: eos/mq
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: mq-master.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/master/var/log/eos:/var/log/eos
+    - ./e/master/var/eos/config:/var/eos/config
+    - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
+    environment:
+      EOS_SET_MASTER: 1
+    
   fst:
     container_name: fst
     image: eos/fst
@@ -93,8 +92,7 @@ services:
     networks:
     - testnet
     volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/master/log:/var/log/eos
+    - ./e/master/var/log/eos:/var/log/eos
     - ./e/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
@@ -111,8 +109,7 @@ services:
     networks:
     - testnet
     volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/quark1/var/lib/quarkdb:/var/lib/quarkdb
+    - ./e/quark-1/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"
@@ -132,8 +129,7 @@ services:
     networks:
     - testnet
     volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/quark2/var/lib/quarkdb:/var/lib/quarkdb
+    - ./e/quark-2/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"
@@ -153,8 +149,7 @@ services:
     networks:
     - testnet
     volumes:
-    - ./config/eos.keytab:/etc/eos.keytab:ro
-    - ./e/quark3/var/lib/quarkdb:/var/lib/quarkdb
+    - ./e/quark-3/var/lib/quarkdb:/var/lib/quarkdb
     environment:
       EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
       EOS_QDB_PORT: "7777"

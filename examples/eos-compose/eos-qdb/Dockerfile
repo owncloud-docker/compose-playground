@@ -9,5 +9,5 @@ RUN rpm --rebuilddb && yum -y install \
     && yum clean all \
     && rm -rf /var/cache/yum
 
-COPY etc/sysconfig/eos /etc/sysconfig/eos
+COPY etc/xrd.cf.qdb /etc/xrd.cf.qdb
 COPY entrypoint /entrypoint

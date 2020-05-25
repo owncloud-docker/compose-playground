@@ -10,15 +10,6 @@ PATH=$PATH:/sbin
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 
-# check eos keytab exists
-if [ -s /etc/eos.keytab ]; then
-  cp /etc/eos.keytab /etc/eos.client.keytab
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
-  sed -i 's/eos.keytab/eos.client.keytab/' /etc/xrd.cf.mq
-  # chown daemon:daemon /etc/eos.keytab && chmod 400 /etc/eos.keytab
-  chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
-fi
-
 chown -R daemon:daemon /var/eos/
 
 # check if this node is a master - if so, create the relevant file
@@ -26,12 +17,11 @@ if [ "z${EOS_SET_MASTER}" = "ztrue" ] || [ ${EOS_SET_MASTER} -eq 1 ]; then
     touch ${EOS_MQ_MASTER_FILE}
 fi
 
-# remove potential duplicate lines from mq config
-sed -i '/mqofs.qdbcluster/d' /etc/xrd.cf.mq
-sed -i '/mqofs.qdbpassword_file/d' /etc/xrd.cf.mq
-
 # check if we should use quarkdb, if so set correct config
 if [ "${EOS_USE_QDB}" = "true" ] || [ "${EOS_USE_QDB}" = 1 ]; then
+  # remove potential duplicate lines from mq config
+  sed -i '/mqofs.qdbcluster/d' /etc/xrd.cf.mq
+  sed -i '/mqofs.qdbpassword_file/d' /etc/xrd.cf.mq
   echo "mqofs.qdbcluster ${EOS_QDB_NODES}" >> /etc/xrd.cf.mq
   echo "mqofs.qdbpassword_file /etc/eos.client.keytab" >> /etc/xrd.cf.mq
 fi
