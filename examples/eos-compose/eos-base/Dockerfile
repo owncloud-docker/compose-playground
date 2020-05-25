@@ -44,11 +44,9 @@ RUN rpm --rebuilddb && yum -y install \
 RUN echo "*               soft    nofile          200000" >> /etc/security/limits.conf && \
     echo "*               hard    nofile          200000" >> /etc/security/limits.conf 
 
-# ----- Copy xrd config and sysconfig files ----- #
-COPY etc/xrd.* /etc/
-COPY etc/eos.keytab /etc/eos.keytab
+# ----- Copy keytab and sysconfig files ----- #
 COPY etc/sysconfig/eos /etc/sysconfig/eos
-
+COPY etc/eos.keytab /etc/eos.keytab
 RUN cp /etc/eos.keytab /etc/eos.client.keytab
 RUN chown daemon:daemon /etc/eos.client.keytab && chmod 400 /etc/eos.client.keytab
 
