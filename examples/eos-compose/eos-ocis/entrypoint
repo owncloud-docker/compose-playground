@@ -7,6 +7,7 @@ echo "until nc -z -w 3 $EOS_MGM_ALIAS 1094; do sleep 2; done;" > /wait-for-mgm
 chmod +x /wait-for-mgm
 
 /wait-for-mgm
+sleep 5
 
 echo "----- LDAP setup -----"
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
@@ -14,6 +15,7 @@ sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslc
 sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
 nslcd
 
+sleep 5
 
 eos -r 0 0 -b vid set membership daemon -uids adm
 eos -r 0 0 -b vid set membership daemon -gids adm
