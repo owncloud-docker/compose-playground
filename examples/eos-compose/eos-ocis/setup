@@ -1,13 +1,15 @@
 #!/bin/bash
 
-sleep 5 # wait for glauth to start maybe?
+echo "----- [ocis] waiting -----"
+sleep 10 # wait for glauth to start maybe?
 
-echo "----- LDAP setup -----"
+echo "----- [ocis] LDAP setup -----"
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
 sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslcd.conf
 sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
 nslcd
 
+echo "----- [ocis] eos setup -----"
 eos -r 0 0 -b vid set membership daemon -uids adm
 eos -r 0 0 -b vid set membership daemon -gids adm
 eos -r 0 0 -b vid set membership daemon +sudo

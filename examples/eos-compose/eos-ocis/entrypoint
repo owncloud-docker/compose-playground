@@ -6,14 +6,14 @@ echo "Waiting for EOS MGM"
 echo "until nc -z -w 3 $EOS_MGM_ALIAS 1094; do sleep 2; done;" > /wait-for-mgm
 chmod +x /wait-for-mgm
 
-(/wait-for-mgm; /setup ) &
+(/wait-for-mgm; /setup > /var/log/ocis/setup.log; cat /var/log/ocis/setup.log ) &
 
-echo "----- DOMAIN setup -----"
+echo "----- [ocis] DOMAIN setup -----"
 echo "Domain / IP: $OCIS_DOMAIN"
 mkdir -p /etc/ocis
 sed -e "s|@IPADDR@|${OCIS_DOMAIN}|g" /config/identifier-registration.yml.tmpl > /etc/ocis/identifier-registration.yml
 
-echo "----- Starting oCIS -----"
+echo "----- [ocis] Starting oCIS -----"
 ocis reva-storage-home &
 ocis reva-storage-home-data &
 ocis reva-storage-eos &
