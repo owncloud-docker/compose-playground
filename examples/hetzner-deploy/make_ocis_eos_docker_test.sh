@@ -29,10 +29,10 @@ LOAD_SCRIPT <<EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
   cd compose-playground/examples/eos-docker
 
-  ## make sure we build beta4. FIXME that kills the build, error message is
+  ## make sure we build beta4. CAUTION: if the selected tag or branch does not exist, we get this error:
   ##  Pulling ocis (cloudservices/eos/eos-citrine-ocis:test)...
   ##  ERROR: The image for the service you're trying to recreate has been removed
-  # sed -i -e "s/ocis.git/ocis.git -b 1.0.0-beta4/g" containers/Dockertmp.ocis
+  sed -i -e "s/ocis.git/ocis.git -b v1.0.0-beta4/g" containers/Dockertmp.ocis
 
   ./build -a $IPADDR -t test
   ./setup -a
