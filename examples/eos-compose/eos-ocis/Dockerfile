@@ -22,4 +22,5 @@ RUN mkdir -p /usr/local/bin
 COPY --from=build ocis/bin/ocis /usr/local/bin/
 RUN chmod +x /usr/local/bin/ocis
 
+COPY setup /setup
 COPY entrypoint /entrypoint
