@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 echo "----- [ocis] waiting -----"
 sleep 10 # wait for glauth to start maybe?
 
@@ -7,7 +8,8 @@ echo "----- [ocis] LDAP setup -----"
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
 sed -i "s/#binddn cn=.*/binddn cn=reva,ou=sysusers,dc=example,dc=org/" /etc/nslcd.conf
 sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
-nslcd
+# start in debug mode
+nslcd -d &
 
 echo "----- [ocis] eos setup -----"
 eos -r 0 0 -b vid set membership daemon -uids adm

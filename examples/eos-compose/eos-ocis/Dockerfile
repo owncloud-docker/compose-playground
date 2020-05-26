@@ -22,5 +22,8 @@ RUN mkdir -p /usr/local/bin
 COPY --from=build ocis/bin/ocis /usr/local/bin/
 RUN chmod +x /usr/local/bin/ocis
 
+# prevent centos error: Failed to get D-Bus connection: Operation not permitted
+RUN rm /usr/lib/tmpfiles.d/systemd-nologin.conf
+
 COPY setup /setup
 COPY entrypoint /entrypoint

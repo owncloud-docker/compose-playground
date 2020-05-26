@@ -34,4 +34,4 @@ ocis reva-frontend &
 ocis reva-gateway &
 ocis reva-sharing &
 ocis reva-users &
-ocis proxy
+exec ocis proxy
