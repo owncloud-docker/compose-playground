@@ -18,7 +18,12 @@ if [ -z "$IPADDR" ]; then
   exit 1;
 fi
 
-ocis_version=v1.0.0-beta4
+if [ -z "$OCIS_VERSION" ]; then
+  export OCIS_VERSION=v1.0.0-beta4
+  echo "No OCIS_VERSION specified, using $OCIS_VERSION"
+  sleep 3
+fi
+
 eos_home=/eos/dockertest/reva/users/e/einstein
 eos_uid=20000
 eos_gid=30000
@@ -37,7 +42,7 @@ LOAD_SCRIPT <<EOF
   ## make sure we build beta4. CAUTION: if the selected tag or branch does not exist, we get this error:
   ##  Pulling ocis (cloudservices/eos/eos-citrine-ocis:test)...
   ##  ERROR: The image for the service you're trying to recreate has been removed
-  sed -i -e "s/ocis\.git.*$/ocis.git -b $ocis_version/g" containers/Dockertmp.ocis
+  sed -i -e "s/ocis\.git.*$/ocis.git -b $OCIS_VERSION/g" containers/Dockertmp.ocis
 
   ./build -a $IPADDR -t test
   ./setup -a
@@ -48,7 +53,7 @@ LOAD_SCRIPT <<EOF
     docker exec ocis eos -r 0 0 mkdir -p $eos_home/init
     docker exec ocis eos -r 0 0 chown -r $eos_uid:$eos_gid $eos_home
     docker exec ocis eos -r $eos_uid $eos_gid cp make_machine.bashrc $eos_home/init
-    docker exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$ocis_version
+    docker exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
   fi
 
   sleep 5
