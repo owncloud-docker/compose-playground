@@ -142,6 +142,8 @@ if [ ! -e "terraform/bin/terraform" ]; then
   chmod a+x terraform/bin/terraform
 fi
 
+export TF_VAR_hcloud_token=$HCLOUD_TOKEN
+
 cd terraform
 # rm -rf .terraform             # here are hcloud plugins ...
 rm -rf .cache           	# clean state
