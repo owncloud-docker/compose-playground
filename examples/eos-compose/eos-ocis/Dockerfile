@@ -1,7 +1,7 @@
-FROM centos:7 as build
+FROM eos/base as build
 ARG BRANCH=master
 
-ENV CGO_ENABLED=0 
+ENV CGO_ENABLED=1
 ENV GOOS=linux
 RUN rpm --rebuilddb && yum -y install \
     wget \
