@@ -19,16 +19,19 @@ RUN cd ocis && git log -n 1
 RUN cd ocis && go build -v -o bin/ocis -toolexec '/usr/bin/time -v' ./cmd/ocis
 # RUN cd ocis && make generate bin/ocis
 
+# build user lookup test program
+RUN mkdir -p /build
+ADD ./user.go /build/user.go
+RUN go build -o user user.go
+
+
 FROM eos/base
 RUN mkdir -p /usr/local/bin
 COPY --from=build ocis/bin/ocis /usr/local/bin/
 RUN chmod +x /usr/local/bin/ocis
 
-# prevent centos error: Failed to get D-Bus connection: Operation not permitted
-RUN rm /usr/lib/tmpfiles.d/systemd-nologin.conf
+COPY --from=build /build/user /usr/local/bin/user
+RUN chmod +x /usr/local/bin/user
 
 COPY setup /setup
 COPY entrypoint /entrypoint
-
-# USER daemon
-# CMD ["/entrypoint"]

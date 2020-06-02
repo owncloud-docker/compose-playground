@@ -10,18 +10,13 @@ PATH=$PATH:/sbin
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
 
-# mkdir -p /tmp/eos.mgm
-# chown daemon:daemon /tmp/eos.mgm
-# mkdir -p /var/eos/config/eostest/mgm/
-# mkdir -p /var/eos/config/eostest/all
-# mkdir -p /var/eos/config/eostest/fst
+
 mkdir -p /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
-
+# try to fix socket permissions in md folder, when mounted - untested
 # python -c "import socket as s; sock = s.socket(s.AF_UNIX); sock.bind('/var/eos/md/.admin_socket:1094')"
-
 chown -R daemon:daemon /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
-mkdir -p /var/log/eos/tx
-mkdir -p /var/log/eos/mgm
+
+mkdir -p /var/log/eos/tx /var/log/eos/mgm
 chown -R daemon:daemon /var/log/eos/
 
 # check if this node is a master - if so, create the relevant file
@@ -58,10 +53,6 @@ echo "until nc -z -w 3 localhost 1094; do sleep 1; done;" > /wait-for-mgm
 chmod +x /wait-for-mgm
 
 (/wait-for-mgm; ./setup > /var/log/eos/mgm/eos.setup.log; cat /var/log/eos/mgm/eos.setup.log) &
-
-# if [ -x "/eos_graphite.py" ]; then
-#   (/wait-for-mgm; ./eos_graphite.py ${EOS_INSTANCE_NAME}) &
-# fi
 
 # start mgm
 echo "Starting mgm for " $(rpm -q eos-server | sed s/eos-server-//g)

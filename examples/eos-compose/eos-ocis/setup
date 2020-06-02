@@ -1,8 +1,6 @@
 #!/bin/bash
 
 set -x
-echo "----- [ocis] waiting -----"
-sleep 10 # wait for glauth to start maybe?
 
 echo "----- [ocis] LDAP setup -----"
 authconfig --enableldap --enableldapauth --ldapserver=${EOS_LDAP_HOST} --ldapbasedn="dc=example,dc=org" --update
@@ -11,10 +9,15 @@ sed -i "s/#bindpw .*/bindpw reva/" /etc/nslcd.conf
 # start in debug mode
 nslcd -d &
 
-echo "----- [ocis] eos setup -----"
-eos -r 0 0 -b vid set membership daemon -uids adm
-eos -r 0 0 -b vid set membership daemon -gids adm
-eos -r 0 0 -b vid set membership daemon +sudo
-eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
-# eos -r 0 0 -b vid add gateway ocis.testnet
-eos -r 0 0 -b vid add gateway ocis
+# echo "----- [ocis] eos setup -----"
+# eos -r 0 0 -b vid set membership daemon -uids adm
+# eos -r 0 0 -b vid set membership daemon -gids adm
+# eos -r 0 0 -b vid set membership daemon +sudo
+# eos -r 0 0 -b vid set map -unix "<pwd>" vuid:0 vgid:0
+# # eos -r 0 0 -b vid add gateway ocis.testnet
+# eos -r 0 0 -b vid add gateway ocis
+
+# todo start ocis as daemon not as root
+eos -r 0 0 -b vid set membership root -uids adm
+eos -r 0 0 -b vid set membership root -gids adm
+eos -r 0 0 -b vid set membership root +sudo
