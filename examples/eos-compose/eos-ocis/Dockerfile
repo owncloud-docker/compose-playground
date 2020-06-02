@@ -27,3 +27,6 @@ RUN rm /usr/lib/tmpfiles.d/systemd-nologin.conf
 
 COPY setup /setup
 COPY entrypoint /entrypoint
+
+# USER daemon
+# CMD ["/entrypoint"]

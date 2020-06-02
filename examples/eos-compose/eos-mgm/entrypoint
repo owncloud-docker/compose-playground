@@ -16,6 +16,9 @@ sed '/localhost6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts
 # mkdir -p /var/eos/config/eostest/all
 # mkdir -p /var/eos/config/eostest/fst
 mkdir -p /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
+
+# python -c "import socket as s; sock = s.socket(s.AF_UNIX); sock.bind('/var/eos/md/.admin_socket:1094')"
+
 chown -R daemon:daemon /var/eos/tx /var/eos/auth /var/eos/config /var/eos/md /var/eos/archive /var/eos/ns-queue /var/eos/report
 mkdir -p /var/log/eos/tx
 mkdir -p /var/log/eos/mgm
