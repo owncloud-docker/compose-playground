@@ -18,6 +18,6 @@ nslcd -d &
 # eos -r 0 0 -b vid add gateway ocis
 
 # todo start ocis as daemon not as root
-eos -r 0 0 -b vid set membership root -uids adm
-eos -r 0 0 -b vid set membership root -gids adm
-eos -r 0 0 -b vid set membership root +sudo
+# eos -r 0 0 -b vid set membership root -uids adm
+# eos -r 0 0 -b vid set membership root -gids adm
+# eos -r 0 0 -b vid set membership root +sudo
