@@ -1,10 +1,11 @@
-FROM eos/base as build
+FROM centos:7 as build
 ARG BRANCH=master
 
 ENV CGO_ENABLED=1
 ENV GOOS=linux
 RUN rpm --rebuilddb && yum -y install \
     wget \
+    time \
     make \
     gcc \
     git
@@ -15,7 +16,8 @@ RUN ln -s /usr/local/go/bin/* /usr/local/bin
 RUN git clone https://github.com/owncloud/ocis.git
 RUN cd ocis && git checkout ${BRANCH}
 RUN cd ocis && git log -n 1
-RUN cd ocis && make generate bin/ocis
+RUN cd ocis && go build -v -o bin/ocis -toolexec '/usr/bin/time -v' ./cmd/ocis
+# RUN cd ocis && make generate bin/ocis
 
 FROM eos/base
 RUN mkdir -p /usr/local/bin
