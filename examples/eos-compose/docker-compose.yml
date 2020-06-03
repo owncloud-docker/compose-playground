@@ -14,6 +14,7 @@ services:
     stdin_open: true
     ports: 
       - 9200:9200
+      - 9160:9160
     env_file:
       - ./config/eos-docker.env
     hostname: ocis
