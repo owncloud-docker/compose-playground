@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #  https://github.com/owncloud-docker/compose-playground/blob/master/examples/eos-compose/README.md
-#  https://etherpad.owncloud.com/p/fixocis 
+#  https://etherpad.owncloud.com/p/fixocis
 #  https://owncloud.github.io/
 #
 # 2020-05-24, jw@owncloud.com
@@ -17,8 +17,8 @@ if [ -z "$IPADDR" ]; then
 fi
 
 if [ -z "$OCIS_VERSION" ]; then
-  # export OCIS_VERSION=master
-  export OCIS_VERSION=v1.0.0-beta4
+  export OCIS_VERSION=master
+  # export OCIS_VERSION=v1.0.0-beta4
   echo "No OCIS_VERSION specified, using $OCIS_VERSION"
   sleep 3
 fi
@@ -54,15 +54,8 @@ LOAD_SCRIPT <<EOF
     echo OCIS_DOMAIN=$IPADDR >> .env
     sleep 10
   fi
-  docker-compose up -d mgm-master fst quark-2 quark-3 quark-1 mq-master
 
-  sleep 5
-  sleep 5
-  sleep 5
-  sleep 5
-  sleep 5
-
-  docker-compose up -d ocis
+  docker-compose up -d
 
   sleep 5
   if [ -f ~/make_machine.bashrc ]; then
@@ -85,6 +78,10 @@ LOAD_SCRIPT <<EOF
 # Connect your browser or client to
 
    https://$IPADDR:9200
+
+# Start ocis with
+
+   docker-compose up ocis
 
 # View the logs with
 

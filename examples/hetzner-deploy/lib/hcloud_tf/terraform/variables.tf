@@ -43,8 +43,6 @@ variable "server_keys" {
   type = "list"
 
   default = [
-#    "rkaussow@owncloud",
-#    "crodriguez@xps15z",
 #    "jw@owncloud.com",
   ]
 }
