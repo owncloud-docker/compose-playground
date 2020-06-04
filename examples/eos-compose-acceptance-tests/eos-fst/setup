@@ -1,0 +1,10 @@
+#!/bin/sh
+
+sleep 20
+
+echo; echo "===== CREATING FILESYSTEMS ====="
+for i in {1..4}; do
+  mkdir -p /disks/eosfs${i}
+  chown daemon:daemon /disks/eosfs${i}
+  eos -r 0 0 -b fs add eosfs${i} fst.testnet:1095 /disks/eosfs${i} default rw
+done
