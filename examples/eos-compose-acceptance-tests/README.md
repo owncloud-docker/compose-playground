@@ -17,9 +17,9 @@ hcloud server create --type cx21 --image ubuntu-20.04 --ssh-key $ME --name $SERV
 IPADDR=$(hcloud server ip $SERVER_NAME)
 
 ssh -t root@$IPADDR apt-get update -y
-ssh -t root@$IPADDR apt-get install -y git screen docker.io docker-compose
+ssh -t root@$IPADDR apt-get install -y git screen docker.io docker-compose ldap-utils
 ssh -t root@$IPADDR git clone https://github.com/owncloud-docker/compose-playground.git
-ssh -t root@$IPADDR "cd compose-playground/examples/eos-compose && ./build"
+ssh -t root@$IPADDR "cd compose-playground/examples/eos-compose-acceptance-tests && ./build"
 ```
 
 Anytime:
@@ -37,7 +37,23 @@ echo "OCIS_DOMAIN=localhost" > .env
 docker-compose up -d
 ```
 
+# Run tests
+```
+make test-acceptance-api \
+TEST_SERVER_URL=https://localhost:9200 \
+TEST_EXTERNAL_USER_BACKENDS=true \
+TEST_OCIS=true \
+BEHAT_FILTER_TAGS='~@skipOnOcis&&~@skipOnLDAP&&@TestAlsoOnExternalUserBackend&&~@local_storage' \
+SKELETON_DIR=apps/testing/data/apiSkeleton \
+BEHAT_FEATURE='<feature>'
+```
+
 # More commands
+
+add users for manual testing
+```
+ldapadd -x -D "cn=admin,dc=owncloud,dc=com" -w admin -H ldap://localhost -f ./tests/acceptance/config/example-ldap-users-groups.ldif
+```
 
 In the mgm-master or ocis container you can access eos cli
 
@@ -53,3 +69,7 @@ eos -r 0 0 ls -la /eos/dockertest/reva/users
 
 Also see file `check` for more system checks.
 
+# Limitations
+
+- in LDAP the `cn` field has to match the `uid` field
+- the display name for the user is taken from the `sn` field in LDAP
