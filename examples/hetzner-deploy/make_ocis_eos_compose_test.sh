@@ -6,21 +6,21 @@
 #
 # 2020-05-24, jw@owncloud.com
 
-echo "Estimated setup time (when weather is fine): 5 minutes ..."
+echo "Estimated setup time (when weather is fine): 7 minutes ..."
 
-source ./make_machine.sh -u ocis-eos-compose-test -p git,screen,docker.io,docker-compose
+if [ -z "$OCIS_VERSION" ]; then
+  export OCIS_VERSION=master
+  # export OCIS_VERSION=v1.0.0-beta5
+  echo "No OCIS_VERSION specified, using $OCIS_VERSION"
+  sleep 3
+fi
+
+source ./make_machine.sh -u ocis-${OCIS_VERSION}-eos-compose -p git,screen,docker.io,docker-compose
 set -x
 
 if [ -z "$IPADDR" ]; then
   echo "Error: make_machine.sh failed."
   exit 1;
-fi
-
-if [ -z "$OCIS_VERSION" ]; then
-  export OCIS_VERSION=master
-  # export OCIS_VERSION=v1.0.0-beta4
-  echo "No OCIS_VERSION specified, using $OCIS_VERSION"
-  sleep 3
 fi
 
 eos_home=/eos/dockertest/reva/users/e/einstein
