@@ -1,0 +1,11 @@
+---
+    version: '3.4'
+    
+    services:
+      prometheus:
+        restart: always
+        image: prom/prometheus:${PROMETHEUS_DOCKER_TAG:-latest}
+        ports:
+            - ${OCIS_PROMETHEUS_PORT:-9090}:9090
+        volumes:
+            - ../metrics/config/prometheus-ocis-config.yml:/etc/prometheus/prometheus.yml

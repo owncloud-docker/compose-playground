@@ -10,7 +10,7 @@ services:
     volumes:
         # Currently not supported
         #- ${OCIS_OWNCLOUD_DATADIR:-/tmp/}:/var/tmp/reva/data
-        - ${PWD}/config:/etc/ocis/:rw
+        - ../ocis/config:/etc/ocis/:rw
     environment:
         - PROXY_HTTP_ADDR=0.0.0.0:9200
         - KONNECTD_ISS=https://${OCIS_BASE_URL:-localhost}:9200
