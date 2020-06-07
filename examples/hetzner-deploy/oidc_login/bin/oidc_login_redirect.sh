@@ -3,54 +3,34 @@
 # If we exit non-zero, xdg-open continues with a fallback cascade and tries another browser...
 #
 #
-# Initial call for oidc:
-#   curl 'https://95.216.214.88:9200/signin/v1/identifier?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=4PptQfVWFPuFcNZPNbyx0Hvx1FYWG5LwUu1j9_HPbxM&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A42449&response_type=code&scope=openid+offline_access+email+profile&state=d0zNIJwPhpfuaCN1CnOBPkaNU8bFib6RM78RMUsH9ac%3D&user=demo' \
-#  -H 'Connection: keep-alive' \
-#  -H 'Pragma: no-cache' \
-#  -H 'Cache-Control: no-cache' \
-#  -H 'Upgrade-Insecure-Requests: 1' \
-#  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/81.0.4044.122 Chrome/81.0.4044.122 Safari/537.36' \
-#  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
-#  -H 'Sec-Fetch-Site: none' \
-#  -H 'Sec-Fetch-Mode: navigate' \
-#  -H 'Sec-Fetch-User: ?1' \
-#  -H 'Sec-Fetch-Dest: document' \
-#  -H 'Accept-Language: en-US,en;q=0.9' \
-#  --compressed \
-#  --insecure
-##########################
-#
-#   curl 'https://95.216.214.88:9200/signin/v1/identifier/_/logon' \
-#  -H 'Connection: keep-alive' \
-#  -H 'Accept: application/json, text/plain, */*' \
-#  -H 'Kopano-Konnect-XSRF: 1' \
-#  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/81.0.4044.122 Chrome/81.0.4044.122 Safari/537.36' \
-#  -H 'Content-Type: application/json;charset=UTF-8' \
-#  -H 'Origin: https://95.216.214.88:9200' \
-#  -H 'Sec-Fetch-Site: same-origin' \
-#  -H 'Sec-Fetch-Mode: cors' \
-#  -H 'Sec-Fetch-Dest: empty' \
-#  -H 'Referer: https://95.216.214.88:9200/signin/v1/identifier?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=4PptQfVWFPuFcNZPNbyx0Hvx1FYWG5LwUu1j9_HPbxM&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A42449&response_type=code&scope=openid+offline_access+email+profile&state=d0zNIJwPhpfuaCN1CnOBPkaNU8bFib6RM78RMUsH9ac%3D&user=demo' \
-#  -H 'Accept-Language: en-US,en;q=0.9' \
-#  --data-binary '{"params":["einstein","relativity","1"],"hello":{"prompt":"consent","scope":"openid offline_access email profile","client_id":"xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69","redirect_uri":"http://localhost:42449","flow":"oidc"},"state":"5ye9qd"}' \
-#  --compressed \
-#  --insecure
-#
-###  shortened to mimimum:
-# curl 'https://95.216.214.88:9200/signin/v1/identifier/_/logon' -H 'Kopano-Konnect-XSRF: 1' -H 'Content-Type: application/json;charset=UTF-8' -H 'Referer: https://95.216.214.88:9200/signin/v1/identifier?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=4PptQfVWFPuFcNZPNbyx0Hvx1FYWG5LwUu1j9_HPbxM&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A42449&response_type=code&scope=openid+offline_access+email+profile&state=d0zNIJwPhpfuaCN1CnOBPkaNU8bFib6RM78RMUsH9ac%3D&user=demo' --data-binary '{"params":["einstein","relativity","1"],"hello":{"prompt":"consent","scope":"openid offline_access email profile","client_id":"xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69","redirect_uri":"http://localhost:42449","flow":"oidc"},"state":"5ye9qd"}' --insecure --cookie-jar cookie.jar
-#
-#### response
-#  Set-Cookie: __Secure-KKT=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJuemNlRlBWUHhnb0tIeHJmIiwidGFnIjoiZmRoSXlPMDFjTmljaTBNOFNtVlBXUSJ9.EyH5EdtiH6L3XoUTRNiTlptEFTnxJct-2XV_eJtoqz4.dDwoAbivXCPyo998.iWLQDMkb4u5dI8S9O-OqlcggWXkV78b7yQeDos9VEEU8za-lABmwPUZnbonHQwNUDX8RIVBDxWy6XCac3SdAm4LsrNTiUKziWZi8gr5mZNchh4_3ePb3lrVq_CMDsVKAbpYij3mZOmSqeoLaefDyntgvDjNO-ueWqInrTtmi2TzqQfpXzstb3zp5kdFno7CbbxVygeIrZ-a48tlMaubWhfu5jXDmLW7CXL7GfKJ4N1XXRi56wrNx7M9Gk6Gq2mzbb-ZvC5mhoYh2XDnOIWEAXT8SHWUOhGwAfgnORLFFrAO0kBJ_ucXDlPB-QKRj_BwGAxPkTZOO13gFxQuo_ACeRB9XgyKVhxeKIA.mp-FKDxtDQuQjjl4S-PLfg; Path=/signin/v1/identifier/_/; HttpOnly; Secure; SameSite=None
+#### Protocol log # captured at firefox, when user at testpilotcloud first run wizard enters https://95.216.214.88:9200 for the first time:
+# # Kopano login
+# #
+# # -> user enters einstein relativity on the login mask
+# 
+# curl 'https://95.216.214.88:9200/signin/v1/identifier/_/logon' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Content-Type: application/json;charset=utf-8' -H 'Kopano-Konnect-XSRF: 1' -H 'Origin: https://95.216.214.88:9200' -H 'Connection: keep-alive' -H 'Referer: https://95.216.214.88:9200/signin/v1/identifier?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=lQQGX4yWb5xaEq3vUu-vtANW3b0A0e4orT-bKNu0ORk&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A38397&response_type=code&scope=openid+offline_access+email+profile&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D' -H 'DNT: 1' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' --data-raw '{"params":["einstein","relativity","1"],"hello":{"prompt":"consent","scope":"openid offline_access email profile","client_id":"xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69","redirect_uri":"http://localhost:38397","flow":"oidc"},"state":"y9dkw5"}'
+# # POST
+# 
+# HTTP/1.1 200 OK
+# Access-Control-Allow-Origin: *
+# Cache-Control: no-cache, no-store, must-revalidate
+# Content-Length: 1032
+# Content-Type: application/json; encoding=utf-8
+# Date: Sun, 07 Jun 2020 20:15:10 GMT
+# Expires: Thu, 01 Jan 1970 00:00:00 GMT
+# Last-Modified: Sun, 07 Jun 2020 20:15:10 GMT
+# Pragma: no-cache
+# Set-Cookie: __Secure-KKT=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJVYUR4a0doQVo1aWUyMUlSIiwidGFnIjoiMW15Vkc2T0FXRWx0dWlZRUJnaWZFZyJ9.nCUu4hFJG5_JwSsdREv8YQPHiwG5s-aG8TJTOhRUxvs.MIQD2dzI1JlLlqxG.KPaEqcZpm5jIo-uJCfCuX0vKJ6emzKLt7ORFJZmUQnLT3ntHDGmQMOM1bmJPbtfEiqj8S_EetXq-5Q-yD_VBhBsgPbPmJAjE3Y4HVeLp7qabApIrDJe5mfe87oHpNxUddgQ7axM0PtC88ELcpesFo2RHfuSlGgFTurZQQf9fWw2iQ4-gxJGAVKOYMEsuLgFjUf1HyDqPuJYq9DyBgZB7eJ6DN0quVgcT6NsXkPAc_P13dNHyMTSxvldfsOdW5qd-RsuKC4-52ZXLWsmAKcsoIDJ_LIe8-8EWUv86MLe8Qh0l9IMt0_UybG_k3T6hIAm29NVNqyj4LG5NUHl68wtsFTok6Nhg94OSHA.5ovqOaz70PzdnXdSTZuI3w; Path=/signin/v1/identifier/_/; HttpOnly; Secure; SameSite=None
 # Set-Cookie: __Secure-KKBS=; Path=/konnect/v1/session/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=None
 # Set-Cookie: __Secure-KKBS=; Path=/konnect/v1/session/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=None
 # X-Content-Type-Options: nosniff
 # X-Frame-Options: DENY
 # X-Konnectd-Version: 0.0.0
 # X-Xss-Protection: 1; mode=block
-#
+# 
 # {
 #   "success": true,
-#   "state": "5ye9qd",
+#   "state": "y9dkw5",
 #   "hello": {
 #     "state": "",
 #     "flow": "oidc",
@@ -68,28 +48,95 @@
 #     "client": {
 #       "id": "xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69",
 #       "display_name": "ownCloud desktop app",
-#       "redirect_uri": "http://localhost:42449",
+#       "redirect_uri": "http://localhost:38397",
 #       "trusted": false
 #     },
-#
-# The next call is the authorization to the continue_url, that should generate the token:
-# which is identical to the original call from the client but with some more:
-#  curl -i -k -L -b cookie.jar -c cookie.jar 'https://95.216.214.88:9200/signin/v1/identifier/_/authorize?response_type=code&client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&redirect_uri=http://localhost:39363&code_challenge=pe2IbPifE-0yZ2JndmpPijU4aVnfWqnG7uN9ZKTJ_w8&code_challenge_method=S256&scope=openid%20offline_access%20email%20profile&prompt=consent&state=CzNCMja_G6O7MWl6WSwH1B_yPmXFKLuUIB58UC5WVgM%3D&user=einstein'
-#
-# curl 'https://95.216.214.88:9200/signin/v1/identifier/_/authorize?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=pe2IbPifE-0yZ2JndmpPijU4aVnfWqnG7uN9ZKTJ_w8&code_challenge_method=S256&konnect=rk3ppk&prompt=none&redirect_uri=http%3A%2F%2Flocalhost%3A39363&response_type=code&scope=openid%20offline_access%20email%20profile&state=CzNCMja_G6O7MWl6WSwH1B_yPmXFKLuUIB58UC5WVgM%3D&user=einstein' \
-#   -H 'Connection: keep-alive' \
-#   -H 'Upgrade-Insecure-Requests: 1' \
-#   -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/81.0.4044.122 Chrome/81.0.4044.122 Safari/537.36' \
-#   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
-#   -H 'Sec-Fetch-Site: same-origin' \
-#   -H 'Sec-Fetch-Mode: navigate' \
-#   -H 'Sec-Fetch-User: ?1' \
-#   -H 'Sec-Fetch-Dest: document' \
-#   -H 'Referer: https://95.216.214.88:9200/signin/v1/consent?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=pe2IbPifE-0yZ2JndmpPijU4aVnfWqnG7uN9ZKTJ_w8&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A39363&response_type=code&scope=openid+offline_access+email+profile&state=CzNCMja_G6O7MWl6WSwH1B_yPmXFKLuUIB58UC5WVgM%3D&user=einstein' \
-#   -H 'Accept-Language: en-US,en;q=0.9' \
-#   -H 'Cookie: __Secure-KKT=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJTdXNrTUp6RTk1bV81MWNpIiwidGFnIjoiaDhRR21CcTd6eUdYUDVkMG1QMlAtZyJ9.XANrKfF-2o28uXYO5xUjYFPNPeTphEQUk-Ys2tZ2xgc.PDSp3KvOGkDaxR-o.09F8YZ4o2ktcRpvvwoImwvTEmb0c1ULOefUv-tH5Z2esNoaxa43vhkMPUAPOwdxBf32WsZNrQq7sY0x-rdD8PWCdvbrMKaoEu4q1E_L76G9dexc9BtAjb9CmjBzSak1NztH4E24L6z-mGHt4B48udInG_ARXoR_nm5D0d79E9Cf2XcllWUgVObN3-dkHxzY2nAKU94TjFenAayZ4julReDzJhWway0feiphkOVC6xkth34-5qTVc50fgBP163GQwTgjASxwmrklLIo-DzPAXwWMTYSqe1dcmy_mfquTWxIlNNXtGz-5GTZnqG71-vfpMBDDNAiq3IgNdlfKb_IXdSZyK0ZsJu3lpfQ.GLacS4ovZ7GsVx68traHuQ; VyXiYoesS0viWH7J8l_ABON7G0XVlE9cehNDHpcVXxU=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJ1NzhSbnVnLXo2dFZYSzh4IiwidGFnIjoiRHJMdnJfZW0wNDltRmJYSEpyLWpqUSJ9.zCXc8MvELz0Uy5ODj7m8jKh7c6WNu4G1ZNwVVRZD8bU.esf2oOCGe58tmVXd.yOvSnWbxhX4rOqnZ1DmQjpwDUD8TR4k-6Z-Y6SwJRangGN38Ey4B0lgtWSSjoZO-S9QaZKrcMBhKPia_.dEPWbekoUyMPC1kp470GDA' \
-#   --compressed \
-#   --insecure
+#     "meta": {
+#       "scopes": {
+#         "mapping": {
+#           "email": "basic",
+#           "openid": "basic",
+#           "profile": "basic"
+#         },
+#         "definitions": {
+#           "basic": {
+#             "priority": 20,
+#             "id": "scope_alias_basic"
+#           },
+#           "offline_access": {
+#             "priority": 10,
+#             "id": "scope_offline_access"
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
+# 
+# 
+# # ownCloud desktop app wants to 
+# # [x] Access your basic account information
+# # [x] Keep the allowed acess persistently and forever
+# #
+# # -> User allows ownCloud desktop app to do this -> ALLOW
+# 
+# curl 'https://95.216.214.88:9200/signin/v1/identifier/_/consent' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0' -H 'Accept: application/json, text/plain, */*' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Content-Type: application/json;charset=utf-8' -H 'Kopano-Konnect-XSRF: 1' -H 'Origin: https://95.216.214.88:9200' -H 'Connection: keep-alive' -H 'Referer: https://95.216.214.88:9200/signin/v1/consent?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=lQQGX4yWb5xaEq3vUu-vtANW3b0A0e4orT-bKNu0ORk&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A38397&response_type=code&scope=openid+offline_access+email+profile&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D' -H 'Cookie: __Secure-KKT=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJVYUR4a0doQVo1aWUyMUlSIiwidGFnIjoiMW15Vkc2T0FXRWx0dWlZRUJnaWZFZyJ9.nCUu4hFJG5_JwSsdREv8YQPHiwG5s-aG8TJTOhRUxvs.MIQD2dzI1JlLlqxG.KPaEqcZpm5jIo-uJCfCuX0vKJ6emzKLt7ORFJZmUQnLT3ntHDGmQMOM1bmJPbtfEiqj8S_EetXq-5Q-yD_VBhBsgPbPmJAjE3Y4HVeLp7qabApIrDJe5mfe87oHpNxUddgQ7axM0PtC88ELcpesFo2RHfuSlGgFTurZQQf9fWw2iQ4-gxJGAVKOYMEsuLgFjUf1HyDqPuJYq9DyBgZB7eJ6DN0quVgcT6NsXkPAc_P13dNHyMTSxvldfsOdW5qd-RsuKC4-52ZXLWsmAKcsoIDJ_LIe8-8EWUv86MLe8Qh0l9IMt0_UybG_k3T6hIAm29NVNqyj4LG5NUHl68wtsFTok6Nhg94OSHA.5ovqOaz70PzdnXdSTZuI3w' -H 'DNT: 1' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' --data-raw '{"allow":true,"scope":"email offline_access openid profile","client_id":"xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69","redirect_uri":"http://localhost:38397","ref":"gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0=","flow_nonce":"","state":"qzhbr"}'
+# # POST
+# 
+# HTTP/1.1 200 OK
+# Access-Control-Allow-Origin: *
+# Cache-Control: no-cache, no-store, must-revalidate
+# Content-Length: 42
+# Content-Type: application/json; encoding=utf-8
+# Date: Sun, 07 Jun 2020 20:20:08 GMT
+# Expires: Thu, 01 Jan 1970 00:00:00 GMT
+# Last-Modified: Sun, 07 Jun 2020 20:20:08 GMT
+# Pragma: no-cache
+# Set-Cookie: SHowz0MfPHfr_hFIszqQNyP4CqJwzfHh2t8iiIJRkX4=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJMQi1BSDFiNng5dTRWeEoyIiwidGFnIjoib3Rub1paeGNaVGZ3TDlTNkczbVdvUSJ9.3hzpj2MLQu23zt54xrF-KGde4yjnYEaXnT0BEy_Ic0Y.A8U78xetI9FzOXM5.-DR_6nnCzYvqXaGB7LhcEAImkx65Sh9J170x14WajoOWfqbYj_mDMvr4zhjQYTFfJ162t39IJbUhR6qd.Wv9RsewNK5Q8EQ8mKYOpZw; Path=/signin/v1/identifier/_/; Max-Age=60; HttpOnly; Secure; SameSite=None
+# X-Content-Type-Options: nosniff
+# X-Frame-Options: DENY
+# X-Konnectd-Version: 0.0.0
+# X-Xss-Protection: 1; mode=block
+# 
+# {
+#   "success": true,
+#   "state": "qzhbr"
+# }
+# 
+# # then without user interaction
+# 
+# curl 'https://95.216.214.88:9200/signin/v1/identifier/_/authorize?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=lQQGX4yWb5xaEq3vUu-vtANW3b0A0e4orT-bKNu0ORk&code_challenge_method=S256&konnect=qzhbr&prompt=none&redirect_uri=http%3A%2F%2Flocalhost%3A38397&response_type=code&scope=openid%20offline_access%20email%20profile&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Connection: keep-alive' -H 'Referer: https://95.216.214.88:9200/signin/v1/consent?client_id=xdXOt13JKxym1B1QcEncf2XDkLAexMBFwiT9j6EfhhHFJhs2KM9jbjTmf8JBXE69&code_challenge=lQQGX4yWb5xaEq3vUu-vtANW3b0A0e4orT-bKNu0ORk&code_challenge_method=S256&flow=oidc&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A38397&response_type=code&scope=openid+offline_access+email+profile&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D' -H 'Cookie: __Secure-KKT=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJVYUR4a0doQVo1aWUyMUlSIiwidGFnIjoiMW15Vkc2T0FXRWx0dWlZRUJnaWZFZyJ9.nCUu4hFJG5_JwSsdREv8YQPHiwG5s-aG8TJTOhRUxvs.MIQD2dzI1JlLlqxG.KPaEqcZpm5jIo-uJCfCuX0vKJ6emzKLt7ORFJZmUQnLT3ntHDGmQMOM1bmJPbtfEiqj8S_EetXq-5Q-yD_VBhBsgPbPmJAjE3Y4HVeLp7qabApIrDJe5mfe87oHpNxUddgQ7axM0PtC88ELcpesFo2RHfuSlGgFTurZQQf9fWw2iQ4-gxJGAVKOYMEsuLgFjUf1HyDqPuJYq9DyBgZB7eJ6DN0quVgcT6NsXkPAc_P13dNHyMTSxvldfsOdW5qd-RsuKC4-52ZXLWsmAKcsoIDJ_LIe8-8EWUv86MLe8Qh0l9IMt0_UybG_k3T6hIAm29NVNqyj4LG5NUHl68wtsFTok6Nhg94OSHA.5ovqOaz70PzdnXdSTZuI3w; SHowz0MfPHfr_hFIszqQNyP4CqJwzfHh2t8iiIJRkX4=eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJMQi1BSDFiNng5dTRWeEoyIiwidGFnIjoib3Rub1paeGNaVGZ3TDlTNkczbVdvUSJ9.3hzpj2MLQu23zt54xrF-KGde4yjnYEaXnT0BEy_Ic0Y.A8U78xetI9FzOXM5.-DR_6nnCzYvqXaGB7LhcEAImkx65Sh9J170x14WajoOWfqbYj_mDMvr4zhjQYTFfJ162t39IJbUhR6qd.Wv9RsewNK5Q8EQ8mKYOpZw' -H 'Upgrade-Insecure-Requests: 1' -H 'DNT: 1' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache'
+# 
+# HTTP/1.1 302 Found
+# Access-Control-Allow-Origin: *
+# Cache-Control: no-store
+# Content-Length: 0
+# Date: Sun, 07 Jun 2020 20:20:08 GMT
+# Expires: Thu, 01 Jan 1970 00:00:00 GMT
+# Last-Modified: Sun, 07 Jun 2020 20:20:08 GMT
+# Location: http://localhost:38397?code=X-Rp9zCN1blRh2QjCEaCjD5YI9RpTSVe&scope=openid%20offline_access%20email%20profile&session_state=414f0c294ee36f7548168b59a8d7f0fc92df377ccaf4af26630d871669800392.q7eSH35l2FE-4sxostSacZaykmxBQqFZPw06OAo47Ag%3D&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D
+# Pragma: no-cache
+# Referrer-Policy: origin
+# Set-Cookie: SHowz0MfPHfr_hFIszqQNyP4CqJwzfHh2t8iiIJRkX4=; Path=/signin/v1/identifier/_/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=None
+# __Secure-KKCS=VrLOmBuALBDq+AxDFAji/aC4+3k+aQ8FL8R80D24RkjyOc1NLcxMPmnZq5I0kCMrk7NK0mrpvGli8V/T7JCtw+ckwQqoEpR+o5vd3mqbs6sRB207EKx/INeuox1jVBZG3osT6P3pGiIA49LlHWxilC8ERN94eLuM3vdtDq0exurJ429VKQl6DFeXS/pKgAwkqmfUZYqSXLFHvQ5IkNMIAEEw+FQksOgxKB2g20F02xuAlgNTvtvIkVBsGJaklLLLe3JPr4oMqKYtJWT5WyWVM5VUTN11lynfMUbmyrdythExvFnVfMkocSX8Bkt5vgTwDTkbliXJfi+DsaYsLAezAEpYBSS+rvZ8911zmw==; Path=/signin/v1/identifier/_; HttpOnly; Secure; SameSite=None
+# __Secure-KKBS=58Ma86w00fbsuHkt-s1MlX2mKsHVrnY-c_LS3aVvn64; Path=/konnect/v1/session/; Secure; SameSite=None
+# X-Content-Type-Options: nosniff
+# X-Frame-Options: DENY
+# X-Konnectd-Version: 0.0.0
+# X-Xss-Protection: 1; mode=block
+# 
+# 
+# # this redirect triggers 
+# 
+# curl 'http://localhost:38397/?code=X-Rp9zCN1blRh2QjCEaCjD5YI9RpTSVe&scope=openid%20offline_access%20email%20profile&session_state=414f0c294ee36f7548168b59a8d7f0fc92df377ccaf4af26630d871669800392.q7eSH35l2FE-4sxostSacZaykmxBQqFZPw06OAo47Ag%3D&state=gbDU4vjNlo7f4ilhQc4hZ_9rBXOXqjQmfQyZBOVnZW0%3D' -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:76.0) Gecko/20100101 Firefox/76.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Accept-Language: en-US,en;q=0.5' --compressed -H 'Referer: https://95.216.214.88:9200/' -H 'Connection: keep-alive' -H 'Cookie: oc5h7h0t7qyl=cfsser4po8hflllbkrhusr67a1; oc_sessionPassphrase=FFobqne3uGPuSjyHf4iqG6kOA4vD6EHE48Rs0JdSaVHcaWsHNr7xGLH5ULHtgCPPTqyxCCoB7GwN2KEEtiEXXDpHzxJDdGcfXmaKroB7Pl0wFxWh4Irpi%2BAZzPkMKxjN; ocvg8vh9fy5m=7l7hi4ijvbknlu64io33vjdk2i' -H 'Upgrade-Insecure-Requests: 1' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache'
+# 
+# HTTP/1.1 200 OK
+# Content-Type: text/html; charset=utf-8
+# Connection: close
+# Content-Length: 58
+# 
+# <h1>Login Successful</h1><p>You can close this window.</p>
+###########################
 
 self=$(basename $0)
 
