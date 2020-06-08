@@ -1,5 +1,17 @@
 #! /bin/bash
 #
+# start_client.sh starts an owncloud client
+# - in a local sync folder,
+# - with a crafted config file,
+# - connected to a given server with given credentials,
+# - using bin/oidc_login_redirect.sh to intercept calls to the default browser.
+#
+# bin/oidc_login_redirect.sh implements
+# - browserless openid-connect with a kopano idp.
+# - can call a custom $BROWSER in other cases.
+#
+# 2020-06-08, jw@owncloud.com
+#
 # owncloud client uses xdg-open to call a browser.
 # this gets into uncontrollable special cases per desktop flavour per default.
 # We can force it into the generic case, by specifying XDG_CURRENT_DESKTOP=X-Generic
@@ -70,4 +82,4 @@ cert=$(echo | openssl s_client -connect $server 2>&1 | sed -ne '/-BEGIN CERTIFIC
 test -n "$cert" && echo "0\General\CaCertificates=\"@ByteArray($cert\n)\"" >> $mydir/conf/$client_name.cfg
 
 set -x
-$client_name --showsettings --confdir $mydir/conf "$@"
+$client_name --showsettings --confdir $mydir/conf "$@" &
