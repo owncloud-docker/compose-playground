@@ -142,8 +142,8 @@ self=$(basename $0)
 
 if echo "$1" | grep -q "signin/v1/identifier"; then
   query_01="$1"
-  tmpdir=/tmp/oidc-login-123
-  trap "rm -rf $tmpdir" EXIT
+  tmpdir=/tmp/oidc-login-123	# $$
+  # trap "rm -rf $tmpdir" EXIT
 
   if [ -z "$OC_OIDC_LOGIN_USERNAME" ]; then
     echo "$self: Environment variable OC_OIDC_LOGIN_USERNAME not set. Exiting."
@@ -172,6 +172,7 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
   origin=$(   echo $referer | sed -ne 's@^\(https\?://[^/][^/]*\).*@\1@p')
   client_id=$(echo $referer | sed -ne 's@.*\bclient_id=\([^&]*\).*@\1@p')
   redirect=$( echo $referer | sed -ne 's@.*\bredirect_uri=\([^&]*\).*@\1@p' | sed -e 's@%3A@:@g' -e 's@%2F@/@g')	# undo url-escaping, if any
+  ref=$(      echo $referer | sed -ne 's@.*\bstate=\([^&]*\).*@\1@p' | sed -e 's@%3D@=@g')				# undo url-escaping, if any
   state="42"
 
   # now we blindly log in like we learned it from a browser's web-console and hope for the best.
@@ -195,14 +196,22 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
   #   "success": true,
   #   "displayName": "Einstein",
   #   "display_name": "ownCloud desktop app",
-  grep '"success' $tmpdir/02.response
+  grep '"success":' $tmpdir/02.response
   grep '"display' $tmpdir/02.response
 
-  # after logging in, we have a cookie. Now we repeat the initial query, but with konnect=rk3pp and prompt=none instead of prompt=consent
+  # After logging in, we have a cookie. With that, we give our consent to authorize the app.
+
+  declare -a query_03
+  query_03=(https://95.216.214.88:9200/signin/v1/identifier/_/consent -H 'Kopano-Konnect-XSRF: 1' -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: '$origin --data-raw '{"allow":true,"scope":"email offline_access openid profile","client_id":"'$client_id'","redirect_uri":"'$redirect'","ref":"'$ref'","flow_nonce":"","state":"'$state'"}')
+  echo "${query_03[*]}" > $tmpdir/03.query
+  curl -s -i -k -L -b $cookiejar -c $cookiejar "${query_03[@]}" | tee $tmpdir/03.response
+
+  #
+  # Now we repeat the initial query, but with konnect=rk3pp and prompt=none instead of prompt=consent
   # FIXME: That is one step too early, we have to get the consent first!
-  query_03=$(echo $query_01 | sed -e 's/\bprompt=consent\b/konnect=rk3ppk\&prompt=none/')
-  echo $query_03 > $tmpdir/03.query
-  curl -s -i -k -L -b $cookiejar -c $cookiejar $query_03 | tee $tmpdir/03.response
+  query_04=$(echo $query_01 | sed -e 's/\bprompt=consent\b/konnect=rk3ppk\&prompt=none/')
+  echo $query_04 > $tmpdir/04.query
+  curl -s -i -k -L -b $cookiejar -c $cookiejar $query_04 | tee $tmpdir/03.response
 
   rm -f $cookiejar
   exit 0
