@@ -52,7 +52,7 @@ BEHAT_FEATURE='<feature>'
 
 add users for manual testing
 ```
-ldapadd -x -D "cn=admin,dc=owncloud,dc=com" -w admin -H ldap://localhost -f ./tests/acceptance/config/example-ldap-users-groups.ldif
+ldapadd -x -D "cn=admin,dc=owncloud,dc=com" -w admin -H ldap://localhost -f ./config/example-ldap-users-groups.ldif
 ```
 
 In the mgm-master or ocis container you can access eos cli
