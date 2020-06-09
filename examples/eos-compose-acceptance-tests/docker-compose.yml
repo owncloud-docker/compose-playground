@@ -23,6 +23,12 @@ services:
       LDAP_DOMAIN: "owncloud.com"
       LDAP_ORGANISATION: "ownCloud"
       LDAP_ADMIN_PASSWORD: "admin"
+    healthcheck:
+      test: ldapsearch -x -b 'dc=owncloud,dc=com' -D 'cn=admin,dc=owncloud,dc=com' -w admin -H ldap://localhost || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
 
   ocis:
     container_name: ocis
