@@ -105,6 +105,7 @@ services:
     # - ./e/master/var/eos/md:/var/eos/md
     environment:
       EOS_SET_MASTER: 1
+    restart: on-failure
 
   mq-master:
     container_name: mq-master
