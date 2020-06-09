@@ -33,6 +33,7 @@ services:
     ports:
       - 9200:9200
       - 9140:9140
+      - 9160:9160
     env_file:
       - ./config/eos-docker.env
     hostname: ocis
