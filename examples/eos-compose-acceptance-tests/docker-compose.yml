@@ -33,6 +33,9 @@ services:
   ocis:
     container_name: ocis
     image: eos/ocis:latest
+    depends_on:
+      - ldap
+      - mgm-master
     tty: true
     privileged: true
     stdin_open: true
@@ -84,6 +87,8 @@ services:
   mgm-master:
     container_name: mgm-master
     image: eos/mgm
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
@@ -104,6 +109,8 @@ services:
   mq-master:
     container_name: mq-master
     image: eos/mq
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
@@ -122,6 +129,8 @@ services:
   fst:
     container_name: fst
     image: eos/fst
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
@@ -139,6 +148,8 @@ services:
   quark-1:
     container_name: quark-1
     image: eos/qdb
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
@@ -159,6 +170,8 @@ services:
   quark-2:
     container_name: quark-2
     image: eos/qdb
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
@@ -179,6 +192,8 @@ services:
   quark-3:
     container_name: quark-3
     image: eos/qdb
+    depends_on:
+      - ldap
     tty: true
     privileged: true
     stdin_open: true
