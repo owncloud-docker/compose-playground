@@ -145,6 +145,7 @@ services:
     - ./e/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
+      LUKSPASSPHRASE: "just-some-rubbish-to-make-sure-fst-entrypoint-does-not-crash"
 
   quark-1:
     container_name: quark-1
