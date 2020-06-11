@@ -82,4 +82,4 @@ cert=$(echo | openssl s_client -connect $server 2>&1 | sed -ne '/-BEGIN CERTIFIC
 test -n "$cert" && echo "0\General\CaCertificates=\"@ByteArray($cert\n)\"" >> $mydir/conf/$client_name.cfg
 
 set -x
-$client_name --showsettings --confdir $mydir/conf "$@" &
+$client_name --showsettings --confdir $mydir/conf "$@"

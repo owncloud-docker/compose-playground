@@ -7,7 +7,7 @@ test -z "$OC_DEPLOY" -a -n "$OC_DEPLOY_ADDR" && OC_DEPLOY=simple
 if [ -z "$OC_DEPLOY" -a -n "$HCLOUD_TOKEN" ]; then
   test -z "$(python3 -c 'import hcloud' 2>&1)" && OC_DEPLOY=hcloud_py || OC_DEPLOY=hcloud_tf
 fi
-test -z "$OC_DEPLOY" -o ! -d $libdir/$OC_DEPLOY && { echo 1>&2 "OC_DEPLOY is undefined or unknown, try one of: $(ls -m $libdir)"; exit 1; }
+test -z "$OC_DEPLOY" -o ! -d $libdir/$OC_DEPLOY && { echo 1>&2 "define HCLOUD_TOKEN or set OC_DEPLOY to one of $(ls -m $libdir)"; exit 1; }
 
 test "$OC_DEPLOY" = hcloud_py && suf=py || suf=sh
 echo 1>&2 "Using OC_DEPLOY=$OC_DEPLOY ..."

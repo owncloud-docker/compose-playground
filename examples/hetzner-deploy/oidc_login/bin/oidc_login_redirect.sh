@@ -204,6 +204,11 @@
 
 self=$(basename $0)
 
+tee="cp /dev/stdin"	# silent
+
+#tee="tee"		# verbose
+#set -x			# verbose
+
 if echo "$1" | grep -q "signin/v1/identifier"; then
   query_01="$1"
   tmpdir=/tmp/oidc-login-123	# $$
@@ -225,7 +230,7 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
 
   echo $query_01 > $tmpdir/01.query
   # follow the first redirect, and see what we get. Exact response is unimportant, it just should look nice.
-  curl -s -i -k -L -c $cookiejar $query_01 > $tmpdir/01.response
+  curl -s -i -k -L -c $cookiejar $query_01 | $tee $tmpdir/01.response
   if ! grep -q 'HTTP/1.1 200 OK' $tmpdir/01.response; then
     grep 'HTTP/1.1 ' $tmpdir/01.response
     echo "$self: Expected 200 OK response not seen. Exiting."
@@ -236,7 +241,7 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
   origin=$(   echo $referer | sed -ne 's@^\(https\?://[^/][^/]*\).*@\1@p')
   client_id=$(echo $referer | sed -ne 's@.*\bclient_id=\([^&]*\).*@\1@p')
   redirect=$( echo $referer | sed -ne 's@.*\bredirect_uri=\([^&]*\).*@\1@p' | sed -e 's@%3A@:@g' -e 's@%2F@/@g')	# undo url-escaping, if any
-  refstate=$(      echo $referer | sed -ne 's@.*\bstate=\([^&]*\).*@\1@p' | sed -e 's@%3D@=@g')				# undo url-escaping, if any
+  refstate=$( echo $referer | sed -ne 's@.*\bstate=\([^&]*\).*@\1@p' | sed -e 's@%3D@=@g')				# undo url-escaping, if any
   state="42"
 
   # now we blindly log in like we learned it from a browser's web-console and hope for the best.
@@ -245,7 +250,7 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
   query_02=($origin/signin/v1/identifier/_/logon -H 'Kopano-Konnect-XSRF: 1' -H 'Content-Type: application/json;charset=UTF-8' -H "Referer: $referer")
   query_02+=(--data-binary '{"params":["'$OC_OIDC_LOGIN_USERNAME'","'$OC_OIDC_LOGIN_PASSWORD'","1"],"hello":{"prompt":"consent","scope":"openid offline_access email profile","client_id":"'$client_id'","redirect_uri":"'$redirect'","flow":"oidc"},"state":"'$state'"}')
   echo "${query_02[*]}" > $tmpdir/02.query
-  curl -s -i -k -L -b $cookiejar -c $cookiejar "${query_02[@]}" > $tmpdir/02.response
+  curl -s -i -k -L -b $cookiejar -c $cookiejar "${query_02[@]}" | $tee $tmpdir/02.response
   if grep -q 'HTTP/1.1 204 No Content' $tmpdir/02.response; then
     echo "$self: 204 No Content: Wrong password?"
     exit 1
@@ -267,15 +272,16 @@ if echo "$1" | grep -q "signin/v1/identifier"; then
   conreferer=$(echo $referer | sed -e 's@signin/v1/identifier@signin/v1/consent@')
 
   declare -a query_03
-  query_03=(https://95.216.214.88:9200/signin/v1/identifier/_/consent -H 'Kopano-Konnect-XSRF: 1' -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: '$origin -H 'Referer: '$conreferer --data-raw '{"allow":true,"scope":"email offline_access openid profile","client_id":"'$client_id'","redirect_uri":"'$redirect'","ref":"'$ref'","flow_nonce":"","state":"'$state'"}')
+  query_03=(https://95.216.214.88:9200/signin/v1/identifier/_/consent -H 'Kopano-Konnect-XSRF: 1' -H 'Content-Type: application/json;charset=utf-8' -H 'Origin: '$origin -H 'Referer: '$conreferer --data-raw '{"allow":true,"scope":"email offline_access openid profile","client_id":"'$client_id'","redirect_uri":"'$redirect'","ref":"'$refstate'","flow_nonce":"","state":"'$state'"}')
   echo "${query_03[*]}" > $tmpdir/03.query
-  curl -s -i -k -L -b $cookiejar -c $cookiejar "${query_03[@]}" > $tmpdir/03.response
+  curl -s -i -k -L -b $cookiejar -c $cookiejar "${query_03[@]}" | $tee $tmpdir/03.response
 
   #
   # Now we repeat the initial query, but with konnect=42 and prompt=none and a state, instead of just prompt=consent
-  query_04=$(echo $query_01 | sed -e 's/\bprompt=consent\b/konnect='$state'\&prompt=none\&state='$ref'/')
+  #query_04=$(echo $query_01 | sed -e 's/\bprompt=consent\b/konnect='$state'\&prompt=none\&state='$refstate'/')
+  query_04=$(echo $query_01 | sed -e 's/\bprompt=consent\b/konnect='$state'\&prompt=none/')
   echo $query_04 > $tmpdir/04.query
-  curl -s -i -k -L -b $cookiejar -c $cookiejar $query_04 > $tmpdir/04.response
+  curl -s -i -k -L -b $cookiejar -c $cookiejar $query_04 | $tee $tmpdir/04.response
 
   ## The final redirect should bring us back to the client with e.g.
   # http://localhost:41043/?code=B8mLss0cCnNOwaj7KvFM1TZzDaREKOLF&scope=profile%20openid%20offline_access%20email&session_state=78978fe0ad9549b23a0ea58eddf42cab0dfb7ac5537528893e65f32ac16d2778.3N1_W6PNuRcYool8V6Pj_aYaKzH3_T0h0W7SlZCwSzw%3D&state=w1PN6UIPr8G9i-AyuyLXUHfAiME8Wf4kq4gFz4Dvgzw%3D
