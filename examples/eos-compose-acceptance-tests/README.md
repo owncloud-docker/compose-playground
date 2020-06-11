@@ -73,3 +73,4 @@ Also see file `check` for more system checks.
 
 - in LDAP the `cn` field has to match the `uid` field
 - the display name for the user is taken from the `sn` field in LDAP
+- when trying to share in phoenix, a list of avatars is shown, but no names of the users/groups
