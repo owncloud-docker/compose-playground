@@ -48,6 +48,7 @@ parser.add_argument('MACHINE_NAME', nargs='?', help="optional machine name")
 args = parser.parse_args()
 NAME = args.MACHINE_NAME
 if not NAME: NAME = args.image
+NAME = NAME.translate( { ord('.'):ord('-'), ord('_'):ord('-') } )       # avoid _ and . in name. Always
 
 client = Client(token=hcloud_api_token)
 

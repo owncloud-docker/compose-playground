@@ -59,8 +59,10 @@ fi
 extra_pkg=$(echo $extra_pkg | tr , ' ')
 
 if [ -z "$NAME" ]; then
-  NAME="$(echo "$OC_DEPLOY_ADDR" | tr ._ -)"
+  NAME="$OC_DEPLOY_ADDR"
 fi
+
+NAME="$(echo $NAME | tr ._ -)"	# avoid _ and . in name. Always
 
 THERE="ssh -t root@$OC_DEPLOY_ADDR"
 IPADDR=$OC_DEPLOY_ADDR

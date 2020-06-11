@@ -54,11 +54,14 @@ LOAD_SCRIPT <<EOF
   if [ -f ~/make_machine.bashrc ]; then
     # make some files appear within the owncloud
     docker cp ~/make_machine.bashrc ocis:/
-    docker exec ocis eos -r $eos_uid $eos_gid mkdir -p $eos_home/init
-    docker exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc $eos_home/init
-    docker exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
+    ## FIXME: pre-creating the home folder here causes errno=28 : No space left on device
+    # docker exec ocis eos -r 0 0 mkdir -p $eos_home
+    # docker exec ocis eos -r 0 0 chown $eos_uid:$eos_gid $eos_home
+    # docker exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
+    # docker exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc $eos_home/init
+    # docker exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
     docker exec ocis curl $user_portrait_url -so Portrait.jpg
-    docker exec ocis eos -r $eos_uid $eos_gid cp Portrait.jpg $eos_home/
+    # docker exec ocis eos -r $eos_uid $eos_gid cp Portrait.jpg $eos_home/
   fi
 
   uptime

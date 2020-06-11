@@ -120,11 +120,12 @@ if [ -z "$ssh_key_names$ssh_keys" ]; then
 fi
 
 if [ -z "$NAME" ]; then
-  NAME="$(echo $server_image | tr ._ -)"
+  NAME=$server_image
   mk_unique=true
   echo "No MACHINE_NAME specified, generating one: '$NAME'"
 fi
 
+NAME="$(echo $NAME | tr ._ -)"	# avoid _ and . in name. Always
 NAME_BASE=$NAME
 $mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
 
