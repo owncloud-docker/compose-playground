@@ -29,7 +29,6 @@ services:
       timeout: 10s
       retries: 10
 
-
   ocis:
     container_name: ocis
     image: eos/ocis:latest

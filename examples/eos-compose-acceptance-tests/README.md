@@ -38,8 +38,19 @@ docker-compose up -d
 ```
 
 # Run tests
+## zero-config
+```
+docker run \
+--env-file=config/eos-docker.env \
+--net=testnet \
+-e BEHAT_FEATURE="<feature>" \
+--rm eos/testrunner:latest
+```
+
+## with local test-runner
 ```
 make test-acceptance-api \
+DELETE_USER_DATA_CMD='docker exec -it mgm-master eos rm -r /eos/dockertest/reva/users/%s' \
 TEST_SERVER_URL=https://localhost:9200 \
 TEST_EXTERNAL_USER_BACKENDS=true \
 TEST_OCIS=true \
