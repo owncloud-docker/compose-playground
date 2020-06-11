@@ -12,7 +12,7 @@ services:
     tty: true
     privileged: true
     stdin_open: true
-    ports: 
+    ports:
       - 9200:9200
       - 9160:9160
     env_file:
@@ -22,7 +22,7 @@ services:
       - testnet
     volumes:
       - ./config:/config
-    environment: 
+    environment:
       EOS_MGM_URL: "root://mgm-master.testnet:1094"
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
@@ -80,7 +80,7 @@ services:
     - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
     environment:
       EOS_SET_MASTER: 1
-    
+
   fst:
     container_name: fst
     image: eos/fst
@@ -97,6 +97,7 @@ services:
     - ./e/disks:/disks
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
+      LUKSPASSPHRASE: "just-some-rubbish-to-make-sure-fst-entrypoint-does-not-crash"
 
   quark-1:
     container_name: quark-1
