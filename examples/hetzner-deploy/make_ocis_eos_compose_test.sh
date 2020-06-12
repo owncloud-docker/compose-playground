@@ -19,7 +19,7 @@ if [ -z "$OCIS_VERSION" ]; then
   sleep 3
 fi
 
-source ./make_machine.sh -u ocis-${OCIS_VERSION}-eos-compose -p git,screen,docker.io,docker-compose
+source ./make_machine.sh -u ocis-${OCIS_VERSION}-eos-compose-lo -p git,screen,docker.io,docker-compose
 set -x
 
 if [ -z "$IPADDR" ]; then
@@ -38,6 +38,9 @@ eos_gid=30000
 #  grep -C2 MountFlags \$svcfile
 #  systemctl daemon-reload
 #  service docker restart
+
+  ## use from remote with: ssh -f -L 9200:localhost:9200 root@$IPADDR sleep 300
+  #echo OCIS_DOMAIN=localhost > .env
 
 LOAD_SCRIPT <<EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
@@ -72,6 +75,10 @@ LOAD_SCRIPT <<EOF
 # Connect your browser or client to
 
    https://$IPADDR:9200
+
+# if the client fails to upload with internal error 500, try
+
+   docker-compose down; docker-compose up -d
 
 ---------------------------------------------
 EOM

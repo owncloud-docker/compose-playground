@@ -58,15 +58,11 @@ export OC_DEPLOY_ADDR=localhost
 All these scripts are independant entry points. Each of them deploys a specific setup
 and gives some instruction for what to do next.
 
- * `./make_ocis_eos_docker_test.sh` -- run ocis with eos.
+ * `env OCIS_VERSION=v1.0.0-beta5 ./make_ocis_eos_compose_test.sh` -- run ocis (with specified git branch) on eos.
 
  * `./make_ocis_test.sh` -- run ocis as docker compose, with latest phoenix.
 
  * `./make_ocis_build_test.sh` -- build ocis from source, and run the binary (without docker)
-
- * `./make_ocis_eos_test.sh` -- (unmaintained) run ocis with old style CERN eos
-
- * `./make_aarnet_eos.sh` -- (unmaintained) run an eos setup, but no ocis there yet.
 
  * `./make_machine.sh` -- creates a machine and returns its IP address.
    This is a general purpose script, check out the command line options.
