@@ -1,0 +1,129 @@
+# This LDIF file contains examples of groups and users that could be created
+# in LDAP when testing. It is not used by the automated tests. The automated
+# tests create LDAP groups and users on-the-fly.
+#
+# Examples here might be useful if you are manually setting up some LDAP entries
+# for local development and testing.
+dn: ou=TestGroups,dc=owncloud,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: TestGroups
+
+dn: cn=generalgroup,ou=TestGroups,dc=owncloud,dc=com
+cn: generalgroup
+gidnumber: 5000
+objectclass: top
+objectclass: posixGroup
+
+dn: cn=grp1,ou=TestGroups,dc=owncloud,dc=com
+cn: grp1
+gidnumber: 5001
+memberuid: user1
+memberuid: user2
+objectclass: top
+objectclass: posixGroup
+
+dn: cn=grp2,ou=TestGroups,dc=owncloud,dc=com
+cn: grp2
+gidnumber: 5002
+memberuid: user3
+objectclass: top
+objectclass: posixGroup
+
+dn: cn=grp3,ou=TestGroups,dc=owncloud,dc=com
+cn: grp3
+gidnumber: 5003
+objectclass: top
+objectclass: posixGroup
+
+dn: cn=grp4,ou=TestGroups,dc=owncloud,dc=com
+cn: grp4
+memberuid: user1
+gidnumber: 5004
+objectclass: top
+objectclass: posixGroup
+
+dn: ou=TestUsers,dc=owncloud,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: TestUsers
+
+dn: uid=user0,ou=TestUsers,dc=owncloud,dc=com
+cn: user0
+sn: Zero
+displayname: User Zero
+gecos: User0
+gidnumber: 5000
+givenname: User0
+homedirectory: /home/openldap/user0
+loginshell: /bin/bash
+mail: user0@example.org
+objectclass: posixAccount
+objectclass: inetOrgPerson
+uid: user0
+uidnumber: 30000
+userpassword: 123456
+
+dn: uid=user1,ou=TestUsers,dc=owncloud,dc=com
+cn: user1
+sn: One
+displayname: User One
+gecos: User1
+gidnumber: 5000
+givenname: User1
+homedirectory: /home/openldap/user1
+loginshell: /bin/bash
+mail: user1@example.org
+objectclass: posixAccount
+objectclass: inetOrgPerson
+uid: user1
+uidnumber: 30001
+userpassword: 1234
+
+dn: uid=user2,ou=TestUsers,dc=owncloud,dc=com
+cn: user2
+sn: Two
+displayname: User Two
+gecos: User2
+gidnumber: 5000
+givenname: User2
+homedirectory: /home/openldap/user2
+loginshell: /bin/bash
+mail: user2@example.org
+objectclass: posixAccount
+objectclass: inetOrgPerson
+uid: user2
+uidnumber: 30002
+userpassword: AaBb2Cc3Dd4
+
+dn: uid=user3,ou=TestUsers,dc=owncloud,dc=com
+cn: user3
+sn: Three
+displayname: User Three
+gecos: User3
+gidnumber: 5000
+givenname: User3
+homedirectory: /home/openldap/user3
+loginshell: /bin/bash
+mail: user3@example.org
+objectclass: posixAccount
+objectclass: inetOrgPerson
+uid: user3
+uidnumber: 30003
+userpassword: aVeryLongPassword42TheMeaningOfLife
+
+dn: uid=user4,ou=TestUsers,dc=owncloud,dc=com
+cn: user4
+sn: Four
+displayname: User Four
+gecos: User4
+gidnumber: 5000
+givenname: User4
+homedirectory: /home/openldap/user4
+loginshell: /bin/bash
+mail: user4@example.org
+objectclass: posixAccount
+objectclass: inetOrgPerson
+uid: user4
+uidnumber: 30004
+userpassword: ThisIsThe4thAlternatePwd
