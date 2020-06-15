@@ -35,6 +35,7 @@ Anytime:
 ```
 echo "OCIS_DOMAIN=localhost" > .env
 docker-compose up -d
+docker ps -a #wait till all services that have a healthcheck become healty
 ```
 
 # Run tests

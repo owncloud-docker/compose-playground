@@ -105,6 +105,11 @@ services:
     environment:
       EOS_SET_MASTER: 1
     restart: on-failure
+    healthcheck:
+      test: (eos health -a | grep fst.testnet:1095 | grep online && eos health -a | grep default.0 | grep ok && eos health -a | grep default.0 | grep fine && eos health -a | grep default.0 | grep "0 %    0 %    0 %") || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   mq-master:
     container_name: mq-master
@@ -145,6 +150,11 @@ services:
     environment:
       EOS_MGM_URL: "root://mgm-master.testnet"
       LUKSPASSPHRASE: "just-some-rubbish-to-make-sure-fst-entrypoint-does-not-crash"
+    healthcheck:
+      test: (eos health -a | grep fst.testnet:1095 | grep online && eos health -a | grep default.0 | grep ok && eos health -a | grep default.0 | grep fine && eos health -a | grep default.0 | grep "0 %    0 %    0 %") || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   quark-1:
     container_name: quark-1
