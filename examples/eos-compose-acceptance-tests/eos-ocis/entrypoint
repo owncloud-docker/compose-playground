@@ -1,4 +1,7 @@
 #!/bin/sh
+echo "Waiting for LDAP ..."
+until nc -z -w 3 ldap.testnet 389; do sleep 1; done;
+echo "LDAP server is online"
 
 # todo: log all ocis services to stdout
 

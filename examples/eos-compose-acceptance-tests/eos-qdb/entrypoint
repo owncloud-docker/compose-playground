@@ -1,4 +1,7 @@
 #!/bin/sh
+echo "Waiting for LDAP ..."
+until nc -z -w 3 ldap.testnet 389; do sleep 1; done;
+echo "LDAP server is online"
 
 # remove all ipv6
 sed '/ip6/d' /etc/hosts > /etc/tmphosts && cat /etc/tmphosts > /etc/hosts && rm -f /etc/tmphosts && cat /etc/hosts
