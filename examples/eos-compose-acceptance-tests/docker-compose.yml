@@ -82,6 +82,12 @@ services:
       LDAP_BINDDN: 'cn=admin,dc=owncloud,dc=com'
       LDAP_BINDPW: 'admin'
       LDAP_BASEDN: 'dc=owncloud,dc=com'
+    restart: on-failure
+    healthcheck:
+      test: nc -z -w 3 localhost 9140 && nc -z -w 3 localhost 9150 && nc -z -w 3 localhost 9160 && nc -z -w 3 localhost 9200 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   mgm-master:
     container_name: mgm-master
