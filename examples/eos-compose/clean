@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Needed because ./build leaves images in a broken state (no login possible)
+docker-compose down -v --rmi all
+echo "Deleting eos-mount ./e"
+sudo rm -rf ./e

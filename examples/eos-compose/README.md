@@ -51,5 +51,6 @@ eos -r 20000 30000 whoami
 eos -r 0 0 ls -la /eos/dockertest/reva/users
 ```
 
-Also see file `check` for more system checks.
+Also see file `check` for more system checks. Try running `./clean && ./build && docker-compose up` in case
+you have login-problems.
 
