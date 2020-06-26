@@ -46,6 +46,10 @@ services:
   mgm-master:
     container_name: mgm-master
     image: eos/mgm
+    expose:
+     - 1094
+    ports:
+      - 1094:1094
     tty: true
     privileged: true
     stdin_open: true
@@ -87,6 +91,8 @@ services:
     tty: true
     privileged: true
     stdin_open: true
+    expose:
+      - 1095
     env_file:
     - ./config/eos-docker.env
     hostname: fst.testnet
