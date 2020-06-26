@@ -14,6 +14,9 @@ echo "Domain / IP: $OCIS_DOMAIN"
 mkdir -p /etc/ocis
 sed -e "s|@IPADDR@|${OCIS_DOMAIN}|g" /config/identifier-registration.yml.tmpl > /etc/ocis/identifier-registration.yml
 
+echo "----- [ocis] SHARING setup -----"
+cp /config/shares.json /var/tmp/reva/
+
 echo "----- [ocis] Starting oCIS -----"
 # todo start ocis as daemon not as root
 ocis reva-storage-home &
