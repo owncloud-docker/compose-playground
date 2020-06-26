@@ -31,19 +31,6 @@ ls /hostdev/mapper/ | sort | while read DEVICE; do
 done
 
 # next - check for encrypted volumes to close
-ls /dev/mapper/luks* | sort | while read DEVICE; do
-  FSTYPE=`blkid -o value -s TYPE ${DEVICE}`
-  LABEL=`blkid -o value -s LABEL ${DEVICE}`
-
-  if [ ! -z "${LABEL}" ] && [[ "${LABEL}" =~ ${FSLABEL_ENCRYPTED}* ]]; then
-    TYPE=`lsblk -rno TYPE ${DEVICE}`
-    if [ -z "${TYPE}" ]; then echo "lsblk failed, we have a mapper problem" && exit 1; fi
-    if [ "${FSTYPE}" = "xfs" ] && [ "${TYPE}" = "crypt" ]; then
-      cryptsetup luksClose ${DEVICE}
-      echo "Disconnected ${DEVICE} from crypto loopback" 
-    fi
-  fi
-done
 
 # next - go over and re-open any encrypted volumes 
 VOLUMES="`ls /dev/sd*` `ls /dev/mapper/*`"
@@ -51,19 +38,6 @@ for DEVICE in ${VOLUMES}; do
   FSTYPE=`blkid -o value -s TYPE ${DEVICE}`
   LABEL=`blkid -o value -s LABEL ${DEVICE}`
 
-  if [ -z "${LABEL}" ] && [ "${FSTYPE}" = "crypto_LUKS" ]; then
-    if [ -z "${LUKSPASSPHRASE}" ]; then echo "trying to unlock luks encrypted disk with no passphrase, what are you doing" && exit 1; fi
-    TYPE=`lsblk -rno TYPE ${DEVICE} | head -n1`
-    if [ "${TYPE}" = "disk" ]; then
-      MAPPERNAME=luks`lsblk -rno HCTL ${DEVICE} | head -n1 | awk -F  ":" '{printf "c%02dt%02d",$1,$3;}'`
-      echo "Unlocking ${DEVICE} as ${MAPPERNAME}" 
-      echo ${LUKSPASSPHRASE} | cryptsetup luksOpen ${DEVICE} ${MAPPERNAME}
-    elif [ "${TYPE}" = "lvm" ]; then
-      MAPPERNAME=luks`basename ${DEVICE} | sed 's/-//' | cut -c 2-`
-      echo "Unlocking ${DEVICE} as ${MAPPERNAME}" 
-      echo ${LUKSPASSPHRASE} | cryptsetup luksOpen ${DEVICE} ${MAPPERNAME}
-    fi
-  fi
 done
 
 # lastly - mount all our volumes, encrypted and unencrypted
