@@ -55,9 +55,9 @@ DELETE_USER_DATA_CMD='docker exec -it mgm-master eos rm -r /eos/dockertest/reva/
 TEST_SERVER_URL=https://localhost:9200 \
 TEST_EXTERNAL_USER_BACKENDS=true \
 TEST_OCIS=true \
-BEHAT_FILTER_TAGS='~@skipOnOcis&&~@skipOnLDAP&&@TestAlsoOnExternalUserBackend&&~@local_storage' \
+BEHAT_FILTER_TAGS='~@skipOnOcis&&@~skipOnOcis-EOS-Storage&&~@skipOnLDAP&&@TestAlsoOnExternalUserBackend&&~@local_storage' \
 SKELETON_DIR=apps/testing/data/apiSkeleton \
-DELETE_USER_DATA_CMD='docker exec -it mgm-master eos -r 0 0 rm -r /eos/dockertest/reva/users/%s'
+DELETE_USER_DATA_CMD='docker exec -it mgm-master eos -r 0 0 rm -r /eos/dockertest/reva/users/%s' \
 BEHAT_FEATURE='<feature>'
 ```
 
