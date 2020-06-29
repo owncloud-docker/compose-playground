@@ -12,7 +12,7 @@ services:
     tty: true
     privileged: true
     stdin_open: true
-    ports: 
+    ports:
       - 9200:9200
       - 9160:9160
     env_file:
@@ -22,8 +22,8 @@ services:
       - testnet
     volumes:
       - ./config:/config
-    environment: 
-      EOS_MGM_URL: ${EOS_MGM_URL:-"root://mgm-master.testnet:1094"}
+    environment:
+      EOS_MGM_URL: ${EOS_MGM_URL:-root://mgm-master.testnet:1094}
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
       KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
@@ -38,8 +38,8 @@ services:
       REVA_STORAGE_HOME_DRIVER: eos
       REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
       REVA_STORAGE_HOME_DATA_DRIVER: eos
-      REVA_STORAGE_EOS_MASTER_URL: ${EOS_MGM_URL:-"root://mgm-master.testnet:1094"}
-      REVA_STORAGE_EOS_SLAVE_URL: ${EOS_MGM_URL:-"root://mgm-master.testnet:1094"}
+      REVA_STORAGE_EOS_MASTER_URL: ${EOS_MGM_URL:-root://mgm-master.testnet:1094}
+      REVA_STORAGE_EOS_SLAVE_URL: ${EOS_MGM_URL:-root://mgm-master.testnet:1094}
       REVA_STORAGE_EOS_NAMESPACE: "/eos/dockertest/reva/users"
       DAV_FILES_NAMESPACE: "/eos/"
 
@@ -80,7 +80,7 @@ services:
     - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
     environment:
       EOS_SET_MASTER: 1
-    
+
   fst:
     container_name: fst
     image: owncloud/eos-fst
