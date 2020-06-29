@@ -8,7 +8,7 @@ networks:
 services:
   ocis:
     container_name: ocis
-    image: eos/ocis:latest
+    image: owncloud/eos-ocis:latest
     tty: true
     privileged: true
     stdin_open: true
@@ -45,7 +45,7 @@ services:
 
   mgm-master:
     container_name: mgm-master
-    image: eos/mgm
+    image: owncloud/eos-mgm
     tty: true
     privileged: true
     stdin_open: true
@@ -65,7 +65,7 @@ services:
 
   mq-master:
     container_name: mq-master
-    image: eos/mq
+    image: owncloud/eos-mq
     tty: true
     privileged: true
     stdin_open: true
@@ -83,7 +83,7 @@ services:
     
   fst:
     container_name: fst
-    image: eos/fst
+    image: owncloud/eos-fst
     tty: true
     privileged: true
     stdin_open: true
@@ -100,7 +100,7 @@ services:
 
   quark-1:
     container_name: quark-1
-    image: eos/qdb
+    image: owncloud/eos-qdb
     tty: true
     privileged: true
     stdin_open: true
@@ -120,7 +120,7 @@ services:
 
   quark-2:
     container_name: quark-2
-    image: eos/qdb
+    image: owncloud/eos-qdb
     tty: true
     privileged: true
     stdin_open: true
@@ -140,7 +140,7 @@ services:
 
   quark-3:
     container_name: quark-3
-    image: eos/qdb
+    image: owncloud/eos-qdb
     tty: true
     privileged: true
     stdin_open: true
