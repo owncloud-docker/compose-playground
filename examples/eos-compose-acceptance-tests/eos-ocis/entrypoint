@@ -17,11 +17,15 @@ echo "Domain / IP: $OCIS_DOMAIN"
 mkdir -p /etc/ocis
 sed -e "s|@IPADDR@|${OCIS_DOMAIN}|g" /config/identifier-registration.yml.tmpl > /etc/ocis/identifier-registration.yml
 
+# fix crash if shares.json not exists
+mkdir -p /var/tmp/reva
+touch /var/tmp/reva/shares.json
+
 echo "----- [ocis] Starting oCIS -----"
 # todo start ocis as daemon not as root
 ocis reva-storage-home &
 ocis reva-storage-home-data &
-ocis reva-storage-eos & 
+ocis reva-storage-eos &
 ocis reva-storage-eos-data &
 ocis micro &
 ocis glauth &
