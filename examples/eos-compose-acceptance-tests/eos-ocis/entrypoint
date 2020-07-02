@@ -35,6 +35,7 @@ echo "----- [ocis] Starting oCIS -----"
 # todo start ocis as daemon not as root
 ocis reva-storage-home &
 ocis reva-storage-home-data &
+unset REVA_STORAGE_EOS_LAYOUT
 ocis reva-storage-eos &
 ocis reva-storage-eos-data &
 ocis reva-storage-public-link &

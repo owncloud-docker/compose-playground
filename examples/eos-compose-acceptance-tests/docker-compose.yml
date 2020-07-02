@@ -62,9 +62,18 @@ services:
       PROXY_HTTP_ADDR: 0.0.0.0:9200
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
       OCIS_LOG_LEVEL: debug
-      REVA_STORAGE_HOME_DRIVER: eos
+      REVA_TRANSFER_EXPIRES: 86400
+      #for reva-storage-eos use eos as storage driver the reason is that we cannot set REVA_STORAGE_EOS_LAYOUT to empty
+      #but also we don't want to have it set to anything to remove one layer in the eos folder structure
+      #default is `REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"` for reva-storage-home
+      #and `REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}"` for reva-storage-eos
+      #but that gives us an extra layer in the eos file-system: /eos/dockertest/reva/users/e/einstein/file.txt
+      #and that again is annoying when the tests try to delete user data
+      REVA_STORAGE_EOS_DRIVER: eos
+      REVA_STORAGE_EOS_DATA_DRIVER: eos
+      REVA_STORAGE_HOME_DRIVER: eoshome
       REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
-      REVA_STORAGE_HOME_DATA_DRIVER: eos
+      REVA_STORAGE_HOME_DATA_DRIVER: eoshome
       REVA_STORAGE_EOS_MASTER_URL: "root://mgm-master.testnet:1094"
       REVA_STORAGE_EOS_SLAVE_URL: "root://mgm-master.testnet:1094"
       REVA_STORAGE_EOS_NAMESPACE: "/eos/dockertest/reva/users"
