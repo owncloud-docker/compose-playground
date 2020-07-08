@@ -51,7 +51,6 @@ docker run \
 ## with local test-runner
 ```
 make test-acceptance-api \
-DELETE_USER_DATA_CMD='docker exec -it mgm-master eos rm -r /eos/dockertest/reva/users/%s' \
 TEST_SERVER_URL=https://localhost:9200 \
 TEST_EXTERNAL_USER_BACKENDS=true \
 TEST_OCIS=true \
