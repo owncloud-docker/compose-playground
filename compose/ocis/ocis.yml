@@ -24,3 +24,4 @@ services:
         - OCIS_LOG_LEVEL=debug
         - KONNECTD_LOG_LEVEL=debug
         - KONNECTD_IDENTIFIER_REGISTRATION_CONF=/etc/ocis/identifier-registration.yml
+        
