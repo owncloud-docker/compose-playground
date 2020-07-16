@@ -58,8 +58,11 @@ git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis					# there is a new docker-compse file...
 ## patch the network.
 
-echo OCIS_DOMAIN=$IPADDR >> config/eos-docker.env
-echo OCIS_DOMAIN=$IPADDR > .env
+echo >  .env OCIS_DOMAIN=$IPADDR
+echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
+echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
+
+cat .env >> config/eos-docker.env
 
 ## Part two with the bigger hammer: patch the identifier-registration.yaml -- this file is autocreated when ocis starts for the first time.
 reg_yml=config/identifier-registration.yaml
