@@ -51,7 +51,7 @@ wait_for_ldap () {
 mkdir -p src/github/owncloud
 cd       src/github/owncloud
 rm -rf ./*
-docker images -q | docker rmi --force
+docker images -q | xargs -r docker rmi --force
 docker system prune --all --force
 
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
@@ -126,7 +126,7 @@ docker-compose exec ocis ./bin/ocis kill reva-users
 docker-compose exec ocis ./bin/ocis run reva-users
 
 for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
-  docker-compose exec $d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
+  docker-compose exec \$d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
 done
 
 echo "Now log in with user einstein at https://${IPADDR}:9200"
