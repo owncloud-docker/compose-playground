@@ -125,6 +125,10 @@ du -sh e/*
 docker-compose exec ocis ./bin/ocis kill reva-users
 docker-compose exec ocis ./bin/ocis run reva-users
 
+for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
+  docker-compose exec $d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
+done
+
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
 cat e/master/var/log/eos/mgm/eos.setup.log
