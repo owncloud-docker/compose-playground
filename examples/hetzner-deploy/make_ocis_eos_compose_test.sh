@@ -51,7 +51,7 @@ wait_for_ldap () {
 mkdir -p src/github/owncloud
 cd       src/github/owncloud
 rm -rf ./*
-docker images -q | docker rmi --force
+docker images -q | xargs -r docker rmi --force
 docker system prune --all --force
 
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
