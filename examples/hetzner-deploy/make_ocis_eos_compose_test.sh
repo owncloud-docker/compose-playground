@@ -129,6 +129,11 @@ for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
   docker-compose exec \$d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
 done
 
+# Workaround for: https://github.com/owncloud/ocis/issues/396
+# - Uploads fail with "mismatched offset"
+# - eos cp fails with "No space left on device"
+eos fs ls | grep offline && eos -r 0 0 space set default on && sleep 5 && eos fs ls
+
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
 cat e/master/var/log/eos/mgm/eos.setup.log
