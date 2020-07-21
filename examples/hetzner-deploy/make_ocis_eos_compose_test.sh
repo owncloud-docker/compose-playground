@@ -134,6 +134,9 @@ done
 # - eos cp fails with "No space left on device"
 eos fs ls | grep offline && eos -r 0 0 space set default on && sleep 5 && eos fs ls
 
+echo "Expect to see 'online', 'ok', 'fine', 'default.0' here:"
+eos health -a
+
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
 cat e/master/var/log/eos/mgm/eos.setup.log
