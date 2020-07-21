@@ -24,7 +24,11 @@ if [ -z "$IPADDR" ]; then
   exit 1;
 fi
 
-#echo OCIS_DOMAIN=localhost > .env
+user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
+user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
+eos_home=/eos/dockertest/reva/users/e/einstein
+eos_uid=20000
+eos_gid=30000
 
 LOAD_SCRIPT <<EOF
 
@@ -81,6 +85,7 @@ git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis					# there is a new docker-compse file...
 ## patch the network.
 
+## FIXME: workaround for https://github.com/owncloud/ocis/issues/396
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
 echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
@@ -137,23 +142,19 @@ docker-compose exec -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.User
 docker-compose exec ocis ./bin/ocis kill reva-frontend
 docker-compose exec -e DAV_FILES_NAMESPACE="/eos/" ocis ./bin/ocis run reva-frontend
 
-du -sh e/*
-# 17M     e/disks
-# 71M     e/master
-# 146M    e/quark-1
-# 146M    e/quark-2
-# 146M    e/quark-3
-
 #### TRY reva user restart very late.
 docker-compose exec ocis ./bin/ocis kill reva-users
 docker-compose exec ocis ./bin/ocis run reva-users
 
+# FIXME: Workaround for https://github.com/owncloud/ocis/issues/308
 for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
-  docker-compose exec \$d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
+  docker-compose exec \$d sh -c "echo >> /etc/passwd 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin'";
+  docker-compose exec \$d sh -c "echo >> /etc/passwd 'marie:x:20001:30000:Marie Curie:/:/sbin/nologin'";
+  docker-compose exec \$d sh -c "echo >> /etc/passwd 'feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin'";
 done
 
 
-# Workaround for: https://github.com/owncloud/ocis/issues/396
+# FIXME: Workaround for https://github.com/owncloud/ocis/issues/396
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
 wait_for_eos_fst
@@ -167,19 +168,20 @@ done
 wait_for_eos_health
 
 
-  if [ -f ~/make_machine.bashrc ]; then
-    # make some files appear within the owncloud
-    echo '```' > ~/make_machine.bashrc.md
-    cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
-    docker cp ~/make_machine.bashrc.md ocis:/
-    docker-compose exec ocis eos -r 0 0 mkdir -p $eos_home
-    docker-compose exec ocis eos -r 0 0 chown $eos_uid:$eos_gid $eos_home
-    docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
-    docker-compose exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc.md $eos_home/init/
-    docker-compose exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
-    docker-compose exec ocis curl $user_portrait_url -so Portrait.jpg
-    docker-compose exec ocis eos -r $eos_uid $eos_gid cp Portrait.jpg $eos_home/
-  fi
+if [ -f ~/make_machine.bashrc ]; then
+  # make some files appear within the owncloud
+  echo '\`\`\`' > ~/make_machine.bashrc.md
+  cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
+  docker cp ~/make_machine.bashrc.md ocis:/
+  docker-compose exec ocis eos -r 0 0 mkdir -p $eos_home
+  docker-compose exec ocis eos -r 0 0 chown $eos_uid:$eos_gid $eos_home
+  docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
+  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc.md $eos_home/init/
+  docker-compose exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
+  docker-compose exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
+  docker-compose exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
+  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home/
+fi
 
 
 echo "Now log in with user einstein at https://${IPADDR}:9200"
