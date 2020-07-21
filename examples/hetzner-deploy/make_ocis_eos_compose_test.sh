@@ -31,6 +31,7 @@ LOAD_SCRIPT <<EOF
 wait_for_ocis () {
   ## it compiles code upon first start. this can take ca 6 minutes.
   while true; do
+    # expect to see "Starting server ... 0.0.0.0:9200" in the logs.
     docker-compose logs ocis | tail -10
     if [ -n "\$(docker-compose logs ocis | grep 'Starting server' | grep 0.0.0.0:9200)" ]; then
       break
@@ -41,9 +42,30 @@ wait_for_ocis () {
 }
 
 wait_for_ldap () {
+  # expect nslcd is running.
   while test -z "\$(docker-compose exec ocis ps -ef | grep nslcd | grep -v grep)"; do
     echo "waiting for nslcd ...";
     sleep 3;
+  done
+}
+
+wait_for_eos_fst () {
+  # expect (at least) four fst entries.
+  while [ "\$(docker-compose exec ocis eos fs ls -m | grep host=fst | wc -l)" -lt 4 ]; do
+    echo "waiting for four fst to appear in 'eos fs ls' ..."
+    sleep 3;
+    docker-compose exec ocis eos fs ls
+  done
+}
+
+wait_for_eos_health () {
+  echo "Expect to see 'online', 'ok', 'fine', 'default.0' here:"
+  for i in 1 2 3 4 5 6 7 8 9 0; do
+    # immediately after start, default.0 is shown as 0B free and 'full'
+    if [ -z "\$(docker-compose exec ocis eos health -m | grep status=full)" ]; then
+      break
+    fi
+    sleep 2; docker-compose exec ocis eos health -a
   done
 }
 
@@ -129,13 +151,19 @@ for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
   docker-compose exec \$d sh -c "echo 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin' >> /etc/passwd";
 done
 
+
 # Workaround for: https://github.com/owncloud/ocis/issues/396
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
-docker-compose exec ocis sh -c 'eos fs ls | grep offline && eos -r 0 0 space set default on && sleep 5 && eos fs ls'
-
-echo "Expect to see 'online', 'ok', 'fine', 'default.0' here:"
-docker-compose exec ocis eos health -a
+wait_for_eos_fst
+# expect to see stat.active=online four times!
+while [ "\$(docker-compose exec ocis eos fs ls -m | grep stat.active=online | wc -l)" -lt 4 ]; do
+  sleep 5
+  docker-compose exec ocis eos -r 0 0 space set default on
+  sleep 5
+  docker-compose exec ocis eos fs ls
+done
+wait_for_eos_health
 
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
