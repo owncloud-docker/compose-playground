@@ -132,10 +132,10 @@ done
 # Workaround for: https://github.com/owncloud/ocis/issues/396
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
-eos fs ls | grep offline && eos -r 0 0 space set default on && sleep 5 && eos fs ls
+docker-compose exec ocis sh -c 'eos fs ls | grep offline && eos -r 0 0 space set default on && sleep 5 && eos fs ls'
 
 echo "Expect to see 'online', 'ok', 'fine', 'default.0' here:"
-eos health -a
+docker-compose exec ocis eos health -a
 
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
