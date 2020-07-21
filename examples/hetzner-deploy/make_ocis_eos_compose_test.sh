@@ -165,6 +165,22 @@ while [ "\$(docker-compose exec ocis eos fs ls -m | grep stat.active=online | wc
 done
 wait_for_eos_health
 
+
+  if [ -f ~/make_machine.bashrc ]; then
+    # make some files appear within the owncloud
+    echo '```' > ~/make_machine.bashrc.md
+    cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
+    docker cp ~/make_machine.bashrc.md ocis:/
+    docker-compose exec ocis eos -r 0 0 mkdir -p $eos_home
+    docker-compose exec ocis eos -r 0 0 chown $eos_uid:$eos_gid $eos_home
+    docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
+    docker-compose exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc.md $eos_home/init/
+    docker-compose exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
+    docker-compose exec ocis curl $user_portrait_url -so Portrait.jpg
+    docker-compose exec ocis eos -r $eos_uid $eos_gid cp Portrait.jpg $eos_home/
+  fi
+
+
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
 cat e/master/var/log/eos/mgm/eos.setup.log
