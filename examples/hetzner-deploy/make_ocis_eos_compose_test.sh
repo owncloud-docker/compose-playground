@@ -62,10 +62,11 @@ wait_for_eos_health () {
   echo "Expect to see 'online', 'ok', 'fine', 'default.0' here:"
   for i in 1 2 3 4 5 6 7 8 9 0; do
     # immediately after start, default.0 is shown as 0B free and 'full'
+    docker-compose exec ocis eos health -a
     if [ -z "\$(docker-compose exec ocis eos health -m | grep status=full)" ]; then
-      break
+      break	# nothing is full, carry on.
     fi
-    sleep 2; docker-compose exec ocis eos health -a
+    sleep 2
   done
 }
 
