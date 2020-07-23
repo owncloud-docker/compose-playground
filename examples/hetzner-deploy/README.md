@@ -19,10 +19,10 @@ cd compose-playground/examples/hetzner-deploy
 
 export HCLOUD_SSHKEY_NAMES=jw@owncloud.com
 export HCLOUD_TOKEN=mZdZX......................................................L8bml
-./make_ocis_test.sh
+./make_ocis_eos_compose_test.sh
 ```
 
-## Example with manually created machine
+## Simple example with manually created machine
 
 * Create a machine, e.g. at https://console.hetzner.cloud/projects, record its IP-address. Used below.
 * Make sure that you can login as root with ssh. If needed accept hostkeys and fingerprints.
@@ -60,9 +60,9 @@ and gives some instruction for what to do next.
 
  * `env OCIS_VERSION=v1.0.0-beta5 ./make_ocis_eos_compose_test.sh` -- run ocis (with specified git branch) on eos.
 
- * `./make_ocis_test.sh` -- run ocis as docker compose, with latest phoenix.
+ * `./make_ocis_eos_compose_test.sh` -- run ocis with eos as docker compose. Jürgen's favorite entry point.
 
- * `./make_ocis_build_test.sh` -- build ocis from source, and run the binary (without docker)
+ * `./make_ocis_make_generate_build_test.sh` -- build ocis from source, and run the binary (without docker)
 
  * `./make_machine.sh` -- creates a machine and returns its IP address.
    This is a general purpose script, check out the command line options.

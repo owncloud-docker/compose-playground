@@ -16,7 +16,7 @@ if [ -z "$OCIS_VERSION" ]; then
   sleep 3
 fi
 
-source ./make_machine.sh -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose
+source ./make_machine.sh -t cx21 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose
 set -x
 
 if [ -z "$IPADDR" ]; then
@@ -24,6 +24,7 @@ if [ -z "$IPADDR" ]; then
   exit 1;
 fi
 
+version_file=this-is-ocis-$OCIS_VERSION.txt
 user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
 user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
 eos_home=/eos/dockertest/reva/users/e/einstein
@@ -169,15 +170,25 @@ wait_for_eos_health
 
 
 if [ -f ~/make_machine.bashrc ]; then
+  echo >  $version_file "OCIS_VERSION:         $OCIS_VERSION"
+  echo >> $version_file "ocis --version:       $(docker-compose exec ocis bin/ocis --version)"
+  echo >> $version_file "git log:              $(git log --decorate=full | head -1)"
+  echo >> $version_file "eos --version:        $(docker-compose exec ocis eos --version | head -1)"
+  echo >> $version_file "xrootd -v:            $(docker-compose exec ocis /opt/eos/xrootd/bin/xrootd -v)"
+  echo >> $version_file "rpm -q quarkdb:       $(docker-compose exec quark-3 rpm -q quarkdb)"
+  echo >> $version_file "rpm -q zeromq:        $(docker-compose exec quark-3 rpm -q zeromq)"
+  echo >> $version_file "rpm -q eos-protobuf3: $(docker-compose exec quark-3 rpm -q eos-protobuf3)"
+
   # make some files appear within the owncloud
   echo '\`\`\`' > ~/make_machine.bashrc.md
   cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
   docker cp ~/make_machine.bashrc.md ocis:/
-  docker-compose exec ocis eos -r 0 0 mkdir -p $eos_home
-  docker-compose exec ocis eos -r 0 0 chown $eos_uid:$eos_gid $eos_home
+  docker cp $version_file            ocis:/
+  docker-compose exec ocis eos -r 0 0               mkdir -p $eos_home
+  docker-compose exec ocis eos -r 0 0               chown $eos_uid:$eos_gid $eos_home
   docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
-  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /make_machine.bashrc.md $eos_home/init/
-  docker-compose exec ocis eos -r $eos_uid $eos_gid touch $eos_home/init/this-is-ocis-$OCIS_VERSION
+  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home/init/
+
   docker-compose exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
   docker-compose exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
   docker-compose exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home/
