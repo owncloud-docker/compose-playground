@@ -32,3 +32,7 @@ docker exec -ti ucs ldapsearch -x -b "dc=ocis,dc=local" -H ldap://127.0.0.1 -D "
 
 ldapsearch -x -b "dc=ocis,dc=local" -H ldap://localhost -D "uid=Administrator,cn=users,dc=ocis,dc=local" -W "objectclass=*"
 ```
+
+## Known Limitations
+
+Kopano IDP or owncloud apps can't be installed due to "docker in docker not supported".
