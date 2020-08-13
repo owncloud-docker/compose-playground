@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  ocis:
+    depends_on:
+    - redis
+    environment:
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
+      KONNECTD_ISS: https://localhost:9200
+      KONNECTD_LOG_LEVEL: debug
+      KONNECTD_TLS: '0'
+      OCIS_LOG_LEVEL: debug
+      PHOENIX_OIDC_AUTHORITY: https://localhost:9200
+      PHOENIX_OIDC_METADATA_URL: https://localhost:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://localhost:9200
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      REVA_OIDC_ISSUER: https://localhost:9200
+      REVA_STORAGE_OWNCLOUD_REDIS_ADDR: redis:6379
+    image: owncloud/ocis:latest
+    ports:
+    - published: 9200
+      target: 9200
+    restart: always
+    volumes:
+    - ${PWD}/config:/etc/ocis:rw
+  redis:
+    environment:
+      REDIS_MAXCONN: '10000'
+    image: redis
+    restart: always
