@@ -14,6 +14,7 @@ services:
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}:9200/.well-known/openid-configuration
       PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}:9200
       PROXY_HTTP_ADDR: 0.0.0.0:9200
+      PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
       REVA_STORAGE_OWNCLOUD_REDIS_ADDR: redis:6379
     image: owncloud/ocis:latest
