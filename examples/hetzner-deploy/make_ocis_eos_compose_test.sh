@@ -11,7 +11,7 @@ echo "Estimated setup time (when weather is fine): 7 minutes ..."
 
 if [ -z "$OCIS_VERSION" ]; then
   # export OCIS_VERSION=master
-  export OCIS_VERSION=v1.0.0-beta8
+  export OCIS_VERSION=v1.0.0-beta9
   echo "No OCIS_VERSION specified, using $OCIS_VERSION"
   sleep 3
 fi
