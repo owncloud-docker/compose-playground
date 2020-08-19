@@ -16,7 +16,7 @@ if [ -z "$OCIS_VERSION" ]; then
   sleep 3
 fi
 
-source ./make_machine.sh -t cx21 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose
+source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose
 set -x
 
 if [ -z "$IPADDR" ]; then
