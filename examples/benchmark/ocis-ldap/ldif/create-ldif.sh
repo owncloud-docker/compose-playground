@@ -22,7 +22,7 @@ ou: TestUsers
 
 "
 
-while [ $NUM -lt $1 ]
+while [ $NUM -le $1 ]
 do
   USERNAME="locust"$NUM
   echo "dn: uid=$USERNAME,ou=TestUsers,dc=owncloud,dc=com
