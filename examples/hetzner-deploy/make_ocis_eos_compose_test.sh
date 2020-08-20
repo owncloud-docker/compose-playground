@@ -16,7 +16,7 @@ if [ -z "$OCIS_VERSION" ]; then
   sleep 3
 fi
 
-source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose
+source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose,binutils
 set -x
 
 if [ -z "$IPADDR" ]; then
@@ -104,6 +104,10 @@ if [ ! -f \$reg_yml ]; then
   sed -i -e "s@origins:@origins:\\n      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100@" \$reg_yml
 fi
 
+## patch in fixes seen in https://github.com/owncloud-docker/compose-playground/pull/44
+# sed -i -e "s@KONNECTD_TLS: .*@KONNECTD_TLS: 1@" docker-compose.yml	# not really needed.
+sed -i -e "s@REVA_OIDC_ISSUER:@PROXY_OIDC_ISSUER: https://\\\${OCIS_DOMAIN:-localhost}:9200\\n      REVA_OIDC_ISSUER:@" docker-compose.yml
+
 
 ## follow https://owncloud.github.io/ocis/eos/
 docker-compose up -d	# felix did instead only "docker-compose up -d ocis"
@@ -170,14 +174,17 @@ wait_for_eos_health
 
 
 if [ -f ~/make_machine.bashrc ]; then
-  echo >  $version_file "OCIS_VERSION:         $OCIS_VERSION"
-  echo >> $version_file "ocis --version:       $(docker-compose exec ocis bin/ocis --version)"
-  echo >> $version_file "git log:              $(git log --decorate=full | head -1)"
-  echo >> $version_file "eos --version:        $(docker-compose exec ocis eos --version | head -1)"
-  echo >> $version_file "xrootd -v:            $(docker-compose exec ocis /opt/eos/xrootd/bin/xrootd -v)"
-  echo >> $version_file "rpm -q quarkdb:       $(docker-compose exec quark-3 rpm -q quarkdb)"
-  echo >> $version_file "rpm -q zeromq:        $(docker-compose exec quark-3 rpm -q zeromq)"
-  echo >> $version_file "rpm -q eos-protobuf3: $(docker-compose exec quark-3 rpm -q eos-protobuf3)"
+  echo >  $version_file '\`\`\`'
+  echo >> $version_file "OCIS_VERSION:         $OCIS_VERSION"
+  echo >> $version_file "ocis --version:       \$(docker-compose exec ocis bin/ocis --version)"
+  echo >> $version_file "git log:              \$(git log --decorate=full | head -1)"
+  echo >> $version_file "eos --version:        \$(docker-compose exec ocis eos --version | head -1)"
+  echo >> $version_file "xrootd -v:            \$(docker-compose exec ocis /opt/eos/xrootd/bin/xrootd -v)"
+  # echo >> $version_file "rpm -q quarkdb:       \$(docker-compose exec quark-3 rpm -q quarkdb)"
+  # echo >> $version_file "rpm -q zeromq:        \$(docker-compose exec quark-3 rpm -q zeromq)"
+  # echo >> $version_file "rpm -q eos-protobuf3: \$(docker-compose exec quark-3 rpm -q eos-protobuf3)"
+  echo >> $version_file "bin/ocis contains:"
+  strings bin/ocis | grep 'owncloud/ocis-.*@v' | sed -e 's@.*/owncloud/@\towncloud/@' -e 's%\(@v[^/]*\).*%\1%' | sort -u >> $version_file
 
   # make some files appear within the owncloud
   echo '\`\`\`' > ~/make_machine.bashrc.md
@@ -212,7 +219,7 @@ cat <<EOM
 
 # if the client fails to upload with internal error 500, try
 
-   docker-compose down; docker-compose up -d
+   docker-compose down; docker-compose up -d 	# CAUTION: this also switches to /var/tmp/reva/data storage.
 
 ---------------------------------------------
 EOM
