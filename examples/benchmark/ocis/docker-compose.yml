@@ -8,7 +8,7 @@ services:
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
       KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
       KONNECTD_LOG_LEVEL: debug
-      KONNECTD_TLS: 1
+      KONNECTD_TLS: '0'
       OCIS_LOG_LEVEL: debug
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}:9200
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}:9200/.well-known/openid-configuration
