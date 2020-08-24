@@ -1,4 +1,5 @@
----
+#!/bin/bash
+echo "---
 
 # OpenID Connect client registry.
 clients:
@@ -13,4 +14,4 @@ clients:
     origins:
       -  https://${OCIS_DOMAIN}:9200
 
-authorities:
+authorities:" > $PWD/config/identifier-registration.yml
