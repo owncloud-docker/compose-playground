@@ -2,10 +2,17 @@
 #
 # References:
 # - https://owncloud.github.io/ocis/eos/
+# - https://github.com/owncloud/ocis/blob/master/docker-compose.yml
 # - https://owncloud.github.io/ocis/basic-remote-setup/
 # - ~/ownCloud/release/ocis/test-2020-07-13.txt
 #
-# 2020-07-15, jw@owncloud.com
+# This setup should be greatly simplified by
+# - https://jira.owncloud.com/browse/OCIS-392
+#
+# 2020-08-26, jw@owncloud.com
+
+echo "this script is outdated. Please sync with new instructions in https://owncloud.github.io/ocis/eos/"
+exit 1;
 
 echo "Estimated setup time (when weather is fine): 7 minutes ..."
 
@@ -171,6 +178,10 @@ while [ "\$(docker-compose exec ocis eos fs ls -m | grep stat.active=online | wc
   docker-compose exec ocis eos fs ls
 done
 wait_for_eos_health
+
+# show some nice stats
+docker-compose exec ocis eos fs ls --io | sed -e 's/  / /g'
+docker-compose exec ocis eos space ls --io
 
 
 if [ -f ~/make_machine.bashrc ]; then
