@@ -10,8 +10,9 @@ start an ownCloud instance with a Kopano IDP:
 
 
 ```console
-KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
-OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+export KOPANO_KONNECT_DOMAIN konnect.docker-playground.local
+export OWNCLOUD_DOMAIN owncloud.docker-playground.local
+
 docker-compose \
     -f owncloud-base.yml \
     -f owncloud-official.yml \
