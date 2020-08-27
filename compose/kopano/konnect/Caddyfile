@@ -2,6 +2,7 @@
 	errors stderr
 	log stdout
 
+	# https://caddyserver.com/docs/caddyfile/directives/tls
 	tls internal
 
 	# konnect oidc
