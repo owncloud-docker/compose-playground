@@ -13,6 +13,9 @@ start an ownCloud instance with a Kopano IDP:
 export KOPANO_KONNECT_DOMAIN konnect.docker-playground.local
 export OWNCLOUD_DOMAIN owncloud.docker-playground.local
 
+docker system prune -f
+docker volume prune -f
+
 docker-compose \
     -f owncloud-base.yml \
     -f owncloud-official.yml \

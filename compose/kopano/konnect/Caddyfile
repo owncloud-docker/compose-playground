@@ -3,7 +3,10 @@
 	log stdout
 
 	# https://caddyserver.com/docs/caddyfile/directives/tls
-	tls internal
+	# abiosoft/caddy:latest caddy_version 1.0.3 interprets 'tls internal' as an email-address and fails.
+	# v1: 'tsl self_signed' generate and use an untrusted, self-signed certificate in memory that lasts 7 days
+	# caddy/latest CADDY_VERSION: 2.1.1 understands tls internal.
+	tls self_signed
 
 	# konnect oidc
 	proxy /.well-known/openid-configuration kopano_konnect:8777
@@ -30,7 +33,7 @@
 	errors stderr
 	log stdout
 
-	tls internal
+	tls self_signed
 
 	# owncloud 10
 	proxy / owncloud:8080 {

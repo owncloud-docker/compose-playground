@@ -1,0 +1,76 @@
+{$KOPANO_KONNECT_DOMAIN}:80 {
+	# errors stderr
+	log
+
+	# konnect oidc
+	reverse_proxy /.well-known/openid-configuration kopano_konnect:8777
+	reverse_proxy /konnect/v1/jwks.json kopano_konnect:8777
+	reverse_proxy /konnect/v1/token kopano_konnect:8777
+	reverse_proxy /konnect/v1/userinfo kopano_konnect:8777
+	reverse_proxy /konnect/v1/static kopano_konnect:8777
+	reverse_proxy /konnect/v1/session kopano_konnect:8777
+	reverse_proxy /konnect/v1/register kopano_konnect:8777
+
+	# konnect identifier login area
+	reverse_proxy /signin/ kopano_konnect:8777 {
+#		transparent
+	}
+
+	# owncloud 10
+	reverse_proxy /oc10 owncloud:8080 {
+#		without /oc10
+#		transparent
+	}
+}
+
+{$KOPANO_KONNECT_DOMAIN}:443 {
+	# errors stderr
+	log
+
+	# https://caddyserver.com/docs/caddyfile/directives/tls
+	# abiosoft/caddy:latest caddy_version 1.0.3 interprets 'tls internal' as an email-address and fails.
+	# caddy/latest CADDY_VERSION: 2.1.1 understands tls internal.
+	tls internal
+
+	# konnect oidc
+	reverse_proxy /.well-known/openid-configuration kopano_konnect:8777
+	reverse_proxy /konnect/v1/jwks.json kopano_konnect:8777
+	reverse_proxy /konnect/v1/token kopano_konnect:8777
+	reverse_proxy /konnect/v1/userinfo kopano_konnect:8777
+	reverse_proxy /konnect/v1/static kopano_konnect:8777
+	reverse_proxy /konnect/v1/session kopano_konnect:8777
+	reverse_proxy /konnect/v1/register kopano_konnect:8777
+
+	# konnect identifier login area
+	reverse_proxy /signin/ kopano_konnect:8777 {
+#		transparent
+	}
+
+	# owncloud 10
+	reverse_proxy /oc10 owncloud:8080 {
+#		without /oc10
+#		transparent
+	}
+}
+
+{$OWNCLOUD_DOMAIN}:80 {
+	# errors stderr
+	log
+
+	# owncloud 10
+	reverse_proxy / owncloud:8080 {
+#		transparent
+	}
+}
+
+{$OWNCLOUD_DOMAIN}:443 {
+	# errors stderr
+	log
+
+	tls internal
+
+	# owncloud 10
+	reverse_proxy / owncloud:8080 {
+#		transparent
+	}
+}
