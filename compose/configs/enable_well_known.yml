@@ -1,0 +1,7 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ./configs/well-known:/var/www/owncloud/.well-known
+      - ./configs/enable_well_known.sh:/etc/owncloud.d/90-enable_well_known.sh

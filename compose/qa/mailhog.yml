@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  owncloud:
+    volumes:
+      - ./qa/mailhog.sh:/etc/pre_server.d/20-mailhog.sh
+
+  mailhog:
+    image: mailhog/mailhog
+

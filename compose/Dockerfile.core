@@ -1,0 +1,5 @@
+FROM owncloud/base:latest
+
+COPY core /var/www/owncloud
+
+RUN find /var/www/owncloud \( \! -user www-data -o \! -group www-data \) -print0 | xargs -r -0 chown www-data:www-data

@@ -1,0 +1,6 @@
+version: '3.4'
+
+services:
+  mailhog:
+    ports:
+      - ${MAILHOG_SMTP_PORT:-9620}:1025

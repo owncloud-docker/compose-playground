@@ -1,0 +1,29 @@
+[eos]
+name=EOS 4 Version
+baseurl=http://storage-ci.web.cern.ch/storage-ci/eos/citrine/tag/el-7/x86_64/
+gpgcheck=0
+enabled=1
+
+[eos-testing]
+name=EOS 4 Version Testing
+baseurl=http://storage-ci.web.cern.ch/storage-ci/eos/citrine/tag/testing/el-7/x86_64/
+gpgcheck=0
+enabled=1
+
+[eos-commits]
+name=EOS 4 Version Commits
+baseurl=http://storage-ci.web.cern.ch/storage-ci/eos/citrine/commit/el-7/x86_64/
+gpgcheck=0
+enabled=0
+
+[eos-depend]
+name=EOS 4 Dependencies
+baseurl=http://storage-ci.web.cern.ch/storage-ci/eos/citrine-depend/el-7/x86_64/
+gpgcheck=0
+enabled=1
+
+[quarkdb]
+name=QuarkDB
+baseurl=https://storage-ci.web.cern.ch/storage-ci/quarkdb/tag/el7/x86_64/
+gpgcheck=0
+enabled=1

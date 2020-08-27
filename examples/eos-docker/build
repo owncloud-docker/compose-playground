@@ -1,0 +1,161 @@
+#!/bin/bash
+PROGNAME=`basename "$0"`
+
+function usage {
+    echo "./${PROGNAME} [-a <ipaddr>] [-x <xrootd-version>] [-e <eos-version>] [-q <qdb-version>] [-i <list,of,images>] [-t <tag>] [-c] [-g] [-p] [-f] [-h]"
+    echo "  -a specify IPADDR for docker-compose.yml and config/identifier-registration.yml patching..."
+    echo "  -x specify xrootd version, defaults to latest known stable"
+    echo "  -e specify eos version, defaults to latest known stable"
+    echo "  -q specify quarkdb version, defaults to latest known stable"
+    echo "  -i specify target images to build"
+    echo "  -t specify tag for built images"
+    echo "  -c compile from dss/eos repo instead of installing eos from rpm - modify Dockertmp.compile to change source repo"
+    echo "  -p push images to repo after building"
+    echo "  -f force a fresh build instead of using cache"
+    echo "  -h prints this thing i guess"
+    exit 0
+}
+
+set_base () {
+  if [ -z "$1" ] || ! [ -f "containers/Dockertmp.$1" ] ; then
+    echo "Tried to set base image for invalid Dockerfile"
+    return 1
+  fi
+  sed "s|BASE_IMAGE|${base_image}|g" containers/Dockertmp.$1 > containers/Dockerfile.$1
+}
+
+ipaddr=127.0.0.1	# harmless default
+# check which options are set
+while getopts "a:x:e:q:i:t:gcpfh" opt; do
+  case "$opt" in
+    a) ipaddr=${OPTARG} ;;
+    x) xrd_version=${OPTARG} ;;
+    e) eos_version=${OPTARG} ;;
+    q) qdb_version=${OPTARG} ;;
+    i) targets=${OPTARG} ;;
+    t) tag=${OPTARG} ;;
+    c) compile=true ;;
+    p) push=true ;;
+    f) force="--no-cache" ;;
+    h) usage ;;
+    \?) usage ;;
+  esac
+done
+
+# set our build variables
+export base_image='centos:7'
+export registry=''
+export project='cloudservices/eos/'
+export qdb_version=${qdb_version:-0.4.0}
+export eos_version=${eos_version:-4.6.5}
+if [[ $eos_version = 4.4.* ]]; then
+  export xrd_version=4.8.6
+else
+  export xrd_version=${xrd_version:-4.11.0}
+fi
+
+if ! [ "$tag" ]; then
+  export tag=${eos_version:-test}
+fi
+
+# check which containers to build
+export min="mq mgm fst eosd eosxd qdb"
+export all="${min} monitor sync eossync qdbackup"
+if ! [ "$targets" ]; then
+  export targets=${min}
+else
+  if [[ ${targets} = *all* ]]; then
+    export targets=${all}
+  else
+    export targets=$(echo ${targets} | sed 's/,/ /g')
+  fi
+fi
+
+export standalone=""
+export dependencies=""
+
+for image in ${targets}; do
+  case "${image}" in
+    mq|mgm|fst|qdb|qdbackup|sync|eossync|monitor)
+      if [ -z "$dependencies" ]; then
+        dependencies="${image}"
+      else
+        dependencies="${dependencies} ${image}"
+      fi
+      ;;
+    eosd|eosxd)
+      if [ -z "$standalone" ]; then
+        standalone="${image}"
+      else
+        standalone="${standalone} ${image}"
+      fi
+      ;;
+    *)
+      echo "invalid image option ${image} - must be one of ${all}"
+  esac
+done
+
+# build standalone containers, if any
+if ! [ -z "$standalone" ]; then
+  for target in ${standalone}; do
+    set_base ${target}
+    echo "docker build ${force} --build-arg EOS_VERSION=${eos_version} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag} ."
+    sudo docker build ${force} --build-arg EOS_VERSION=${eos_version} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag} .
+    if [ "$push" ]; then
+      sudo docker login ${registry}
+      sudo docker push ${registry}${project}eos-citrine-${target}:${tag}
+    fi
+  done
+fi
+
+# build containers that require eos/base, if any
+if ! [ -z "$dependencies" ]; then
+  # build eos-base
+  if [ "$compile" ]; then
+    echo "Building from repository"
+    set_base compile
+    echo "docker build ${force} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.compile -t eos/base:${tag} ."
+    sudo docker build ${force} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.compile -t eos/base:${tag} .
+    if [ $? -ne 0 ]; then
+      exit
+    fi
+  else
+    set_base base
+    echo "docker build ${force} --build-arg EOS_VERSION=${eos_version} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.base -t eos/base:${tag} ."
+    sudo docker build ${force} --build-arg EOS_VERSION=${eos_version} --build-arg XRD_VERSION=${xrd_version} --file containers/Dockerfile.base -t eos/base:${tag} .
+    if [ $? -ne 0 ]; then
+      exit
+    fi
+  fi
+
+  for target in ${dependencies}; do
+    set_base ${dependencies}
+    sed "s|VERSION_PLACEHOLDER|${tag}|g" containers/Dockertmp.${target} > containers/Dockerfile.${target}
+    if [[ ${target} = "qdb" ]] || [[ ${target} = "qdbackup" ]]; then
+      echo "docker build ${force} --build-arg QDB_VERSION=${qdb_version} --build-arg EOS_VERSION=${eos_version} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag:-$qdb_version} ."
+      sudo docker build ${force} --build-arg QDB_VERSION=${qdb_version} --build-arg EOS_VERSION=${eos_version} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag:-$qdb_version} .
+      if [ "$push" ]; then
+        sudo docker login ${registry}
+        sudo docker push ${registry}${project}eos-citrine-${target}:${tag:-$qdb_version}
+      fi
+    else
+      echo "docker build ${force} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag} ."
+      sudo docker build ${force} --file containers/Dockerfile.${target} -t ${registry}${project}eos-citrine-${target}:${tag} .
+      if [ "$push" ] && ! [ "$target" = "test" ]; then
+        sudo docker login ${registry}
+        sudo docker push ${registry}${project}eos-citrine-${target}:${tag}
+      fi
+    fi
+  done
+fi
+
+sed "s|BASE_IMAGE|eos/base:test|g" containers/Dockertmp.ocis > containers/Dockerfile.ocis
+echo "sudo docker build ${force} --file containers/Dockerfile.ocis -t ${registry}${project}eos-citrine-ocis:${tag:-$qdb_version} ."
+sudo docker build ${force} --file containers/Dockerfile.ocis -t ${registry}${project}eos-citrine-ocis:${tag:-$qdb_version} .
+
+for patchypatchy in docker-compose.yml config/identifier-registration.yml; do
+  sed -e "s|@IPADDR@|$ipaddr|g" $patchypatchy.tmpl > $patchypatchy
+done
+
+## delete all generated dockerfiles
+# rm containers/Dockerfile.*

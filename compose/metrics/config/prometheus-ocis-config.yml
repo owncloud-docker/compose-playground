@@ -1,0 +1,50 @@
+# my global config
+global:
+  scrape_interval:     15s
+  evaluation_interval: 30s
+  # scrape_timeout is set to the global default (10s).
+  
+  external_labels:
+    monitor: codelab
+    
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'ocis-proxy'
+    static_configs:
+    - targets: ['ocis:9205']
+
+  - job_name: 'ocis-phoenix'
+    static_configs:
+    - targets: ['ocis:9104']
+
+  - job_name: 'ocis-thumbnails'
+    static_configs:
+    - targets: ['ocis:9189']
+
+  - job_name: 'ocis-webdav'
+    static_configs:
+    - targets: ['ocis:9119']
+
+  - job_name: 'ocis-ocs'
+    static_configs:
+    - targets: ['ocis:9114']
+
+  - job_name: 'ocis-graph'
+    static_configs:
+    - targets: ['ocis:9124']
+
+  - job_name: 'ocis-graph-explorer'
+    static_configs:
+    - targets: ['ocis:9136']
+
+  - job_name: 'ocis-glauth'
+    static_configs:
+    - targets: ['ocis:9129']
+
+  - job_name: 'ocis-konnectd'
+    static_configs:
+    - targets: ['ocis:9134']
+
+  - job_name: 'ocis-settings'
+    static_configs:
+    - targets: ['ocis:9194']

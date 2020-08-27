@@ -1,0 +1,84 @@
+---
+version: '3.5'
+
+networks:
+  testnet:
+    name: testnet
+
+services:
+  ldap:
+    container_name: ldap
+    image: osixia/openldap:latest
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports:
+      - 389:389
+      - 636:636
+    hostname: ldap
+    networks:
+      - testnet
+    command: ["--copy-service" ]
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "never"
+      LDAP_DOMAIN: "owncloud.com"
+      LDAP_ORGANISATION: "ownCloud"
+      LDAP_ADMIN_PASSWORD: "admin"
+    healthcheck:
+      test: ldapsearch -x -b 'dc=owncloud,dc=com' -D 'cn=admin,dc=owncloud,dc=com' -w admin -H ldap://localhost || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - ./ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
+
+  ocis:
+    depends_on:
+    - redis
+    - ldap
+    environment:
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
+      KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
+      KONNECTD_LOG_LEVEL: debug
+      KONNECTD_TLS: 1
+      OCIS_LOG_LEVEL: debug
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}:9200
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}:9200
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
+      REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
+      REVA_STORAGE_OWNCLOUD_REDIS_ADDR: redis:6379
+      REVA_USERS_DRIVER: ldap
+      REVA_LDAP_HOSTNAME: ldap
+      REVA_LDAP_PORT: 636
+      REVA_LDAP_BASE_DN: 'dc=owncloud,dc=com'
+      REVA_LDAP_USERFILTER: '(&(objectclass=posixAccount)(cn=%s))'
+      REVA_LDAP_GROUPFILTER: '(&(objectclass=posixGroup)(cn=%s))'
+      REVA_LDAP_BIND_DN: 'cn=admin,dc=owncloud,dc=com'
+      REVA_LDAP_BIND_PASSWORD: admin
+      REVA_LDAP_SCHEMA_UID: uid
+      REVA_LDAP_SCHEMA_MAIL: mail
+      REVA_LDAP_SCHEMA_DISPLAYNAME: displayName
+      REVA_LDAP_SCHEMA_CN: cn
+      LDAP_URI: ldap://ldap
+      LDAP_BINDDN: 'cn=admin,dc=owncloud,dc=com'
+      LDAP_BINDPW: admin
+      LDAP_BASEDN: 'dc=owncloud,dc=com'
+    image: owncloud/ocis:1.0.0-beta8
+    networks:
+      - testnet
+    ports:
+    - published: 9200
+      target: 9200
+    restart: always
+    volumes:
+    - ${PWD}/config:/etc/ocis:rw
+
+  redis:
+    environment:
+      REDIS_MAXCONN: '10000'
+    image: redis
+    networks:
+      - testnet
+    restart: always

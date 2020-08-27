@@ -1,7 +1,0 @@
-version: '3.4'
-
-services:
-  owncloud:
-    image: owncloudci/base:${PHP_VERSION:-7.1}
-    volumes:
-      - ${OWNCLOUD_FOLDER:-./owncloud}:/var/www/owncloud

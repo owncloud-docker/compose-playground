@@ -1,0 +1,87 @@
+version: '3.4'
+
+services:
+  kopano_ssl:
+    image: ${docker_repo:-zokradonh}/kopano_ssl:${SSL_VERSION:-latest}
+    read_only: true
+    environment:
+      - FQDN=${KOPANO_KONNECT_DOMAIN}
+      - PKI_COUNTRY=NL
+    volumes:
+      - kopanossl/:/kopano/ssl
+    tmpfs:
+      - /kopano/easypki/
+
+  kopano_konnect:
+    image: kopano/kopano_konnect:${KONNECT_VERSION:-latest}
+    ports:
+      - 8777:8777
+    read_only: true
+    restart: unless-stopped
+    depends_on:
+      - openldap
+      - kopano_ssl
+    volumes:
+      - /etc/machine-id:/etc/machine-id
+      - /etc/machine-id:/var/lib/dbus/machine-id
+      - ./kopano/konnect/konnectd-identifier-registration.yaml:/etc/kopano/konnectd-identifier-registration.yaml
+      - kopanosocket/:/run/kopano
+      - kopanossl/:/kopano/ssl
+    environment:
+      - allow_client_guests=yes
+      - allow_dynamic_client_registration=yes
+      - eckey=/kopano/ssl/meet-kwmserver.pem
+      - ecparam=/kopano/ssl/ecparam.pem
+      - encryption_secret_key=/kopano/ssl/konnectd-encryption.key
+      - FQDN=${KOPANO_KONNECT_DOMAIN}
+      - identifier_registration_conf=/kopano/ssl/konnectd-identifier-registration.yaml
+      - identifier_scopes_conf=/etc/kopano/konnectd-identifier-scopes.yaml
+      - signing_private_key=/kopano/ssl/konnectd-tokens-signing-key.pem
+      - validation_keys_path=/kopano/ssl/konnectkeys
+      - KONNECT_BACKEND=ldap
+      - LDAP_BASEDN=dc=owncloudqa,dc=com
+      - LDAP_BINDDN=cn=admin,dc=owncloudqa,dc=com
+      - LDAP_BINDPW=owncloud123
+      - LDAP_EMAIL_ATTRIBUTE=mail
+      - LDAP_FILTER=(objectClass=organizationalPerson)
+      - LDAP_LOGIN_ATTRIBUTE=uid
+      - LDAP_NAME_ATTRIBUTE=cn
+      - LDAP_SCOPE=sub
+      - LDAP_URI=ldap://openldap:389
+      - LDAP_UUID_ATTRIBUTE_TYPE=text
+      - LDAP_UUID_ATTRIBUTE=uidNumber
+    tmpfs:
+      - /tmp
+
+  caddy:
+    image: "abiosoft/caddy:latest"
+    volumes:
+      - ./.caddy:/root/.caddy # to sync mkcert certificates to Caddy
+      - ./kopano/konnect/Caddyfile:/etc/Caddyfile  # to mount custom Caddyfile
+    ports:
+      - 80:80
+      - 443:443
+      - 2015:2015
+    environment:
+      - ACME_AGREE=true
+      - KOPANO_KONNECT_DOMAIN=${KOPANO_KONNECT_DOMAIN}
+    networks: 
+      default:
+        aliases: 
+          - ${KOPANO_KONNECT_DOMAIN}  
+          - ${OWNCLOUD_DOMAIN}  
+  
+  owncloud:
+    volumes: 
+      - ./kopano/konnect/openid.sh:/etc/pre_server.d/10-openid.sh
+    environment:
+      - KOPANO_KONNECT_DOMAIN=${KOPANO_KONNECT_DOMAIN}
+      - OWNCLOUD_DOMAIN=${OWNCLOUD_DOMAIN}
+      - OWNCLOUD_APPS_INSTALL=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
+      - OWNCLOUD_APPS_ENABLE="openidconnect"
+      - OWNCLOUD_LOGLEVEL=0
+      
+volumes:
+    kopanosocket:
+    kopanossl:
+      

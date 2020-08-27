@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+
+  traefik:
+    image: traefik:v1.7-alpine
+    restart: always
+    ports:
+      - ${TRAEFIK_STATUS_PORT:-8000}:8000

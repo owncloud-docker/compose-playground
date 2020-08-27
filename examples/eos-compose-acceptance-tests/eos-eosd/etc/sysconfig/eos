@@ -1,0 +1,32 @@
+# Load jemalloc if it's present
+test -e /usr/lib64/libjemalloc.so.1 && export LD_PRELOAD=/usr/lib64/libjemalloc.so.1
+
+# Should we run with another limit on the core file size other than the default?
+DAEMON_COREFILE_LIMIT=${DAEMON_COREFILE_LIMIT-0}
+
+# Disable the KRB5 replay cache
+export KRB5RCACHETYPE=none
+
+# ------------------------------------------------------------------
+# EOSD Configuration
+# ------------------------------------------------------------------
+
+# The EOS instance name
+export EOS_INSTANCE_NAME=${EOS_INSTANCE_NAME-testinstance}
+
+# The EOS MGM URL
+export EOS_BROKER_URL=${EOS_BROKER_URL-"root://localhost:1097//eos/"}
+
+# The EOS host geo location tag used to sort hosts into geographical (rack) locations 
+export EOS_GEOTAG=${EOS_GEOTAG-""}
+
+# The MGM host from where to do the inital mount
+export EOS_FUSE_MGM_ALIAS=${EOS_MGM_ALIAS-localhost}
+
+# The alias which selects master 1 or 2
+export EOS_MGM_ALIAS=${EOS_MGM_ALIAS-"localhost"}
+
+# The localation to mount the EOS namespace to
+export EOS_FUSE_MOUNTDIR=/eos/
+
+

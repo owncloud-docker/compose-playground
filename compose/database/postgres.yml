@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  owncloud:
+    depends_on:
+      - db
+    environment:
+      - OWNCLOUD_DB_TYPE=pgsql
+      - OWNCLOUD_DB_NAME=owncloud
+      - OWNCLOUD_DB_USERNAME=owncloud
+      - OWNCLOUD_DB_PASSWORD=owncloud
+      - OWNCLOUD_DB_HOST=db
+
+  db:
+    image: postgres:${DOCKER_POSTGRES_TAG:-9.6}
+    restart: always
+    environment:
+      - POSTGRES_USER=owncloud
+      - POSTGRES_PASSWORD=owncloud
+      - POSTGRES_DB=owncloud

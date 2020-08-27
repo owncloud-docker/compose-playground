@@ -1,0 +1,47 @@
+#!/bin/bash
+
+if [ -z ${EOS_MGM_URL+x} ]
+then
+  export EOS_MGM_URL="root://$EOS_MGM_ALIAS:1094"
+fi
+
+echo "setting up testrunner"
+echo "----------------------"
+echo "get testing app"
+cd /testing
+git pull
+echo "update testrunner source"
+cd /testrunner
+
+if [ -z ${BRANCH+x} ]
+then
+  BRANCH=master
+fi
+if [ "$BRANCH" = "master" ]
+then
+  git fetch --depth=1
+  git reset origin/master --hard
+else
+  git remote set-branches origin '*'
+  git fetch
+  git checkout $BRANCH
+fi
+
+echo "Waiting for EOS MGM"
+echo "-------------------"
+echo "until nc -z -w 3 $EOS_MGM_ALIAS 1094; do sleep 2; done;" > /wait-for-mgm
+chmod +x /wait-for-mgm
+mkdir -p /var/log/testrunner
+
+/wait-for-mgm
+
+echo "running tests"
+cd /testrunner
+make test-acceptance-api \
+TEST_EXTERNAL_USER_BACKENDS=true \
+TEST_OCIS=true \
+DELETE_USER_DATA_CMD="eos -r 0 0 rm -r /eos/dockertest/reva/users/%s" \
+TEST_SERVER_URL="https://ocis.testnet:9200" \
+REVA_LDAP_HOSTNAME="ldap.testnet" \
+BEHAT_FILTER_TAGS='~@skipOnOcis&&~@skipOnLDAP&&@TestAlsoOnExternalUserBackend&&~@local_storage' \
+SKELETON_DIR=/testing/data/apiSkeleton

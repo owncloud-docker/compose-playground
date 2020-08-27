@@ -1,0 +1,238 @@
+---
+version: '3.5'
+
+networks:
+  testnet:
+    name: testnet
+
+services:
+  ldap:
+    container_name: ldap
+    image: osixia/openldap:latest
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports:
+      - 389:389
+      - 636:636
+    hostname: ldap
+    networks:
+      - testnet
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "never"
+      LDAP_DOMAIN: "owncloud.com"
+      LDAP_ORGANISATION: "ownCloud"
+      LDAP_ADMIN_PASSWORD: "admin"
+    healthcheck:
+      test: ldapsearch -x -b 'dc=owncloud,dc=com' -D 'cn=admin,dc=owncloud,dc=com' -w admin -H ldap://localhost || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  ocis:
+    container_name: ocis
+    image: eos/ocis:latest
+    depends_on:
+      - ldap
+      - mgm-master
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports:
+      - 9200:9200
+      - 9140:9140
+      - 9160:9160
+    env_file:
+      - ./config/eos-docker.env
+    hostname: ocis
+    networks:
+      - testnet
+    volumes:
+      - ./config:/config
+    environment:
+      EOS_MGM_URL: "root://mgm-master.testnet:1094"
+      OCIS_DOMAIN: ${OCIS_DOMAIN}
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: /etc/ocis/identifier-registration.yml
+      KONNECTD_ISS: https://${OCIS_DOMAIN}:9200
+      KONNECTD_LOG_LEVEL: debug
+      KONNECTD_TLS: '0'
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}:9200
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}:9200/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}:9200
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}:9200
+      OCIS_LOG_LEVEL: debug
+      REVA_TRANSFER_EXPIRES: 86400
+      #for reva-storage-eos use eos as storage driver the reason is that we cannot set REVA_STORAGE_EOS_LAYOUT to empty
+      #but also we don't want to have it set to anything to remove one layer in the eos folder structure
+      #default is `REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"` for reva-storage-home
+      #and `REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}"` for reva-storage-eos
+      #but that gives us an extra layer in the eos file-system: /eos/dockertest/reva/users/e/einstein/file.txt
+      #and that again is annoying when the tests try to delete user data
+      REVA_STORAGE_EOS_DRIVER: eos
+      REVA_STORAGE_EOS_DATA_DRIVER: eos
+      REVA_STORAGE_HOME_DRIVER: eoshome
+      REVA_STORAGE_HOME_MOUNT_ID: 1284d238-aa92-42ce-bdc4-0b0000009158
+      REVA_STORAGE_HOME_DATA_DRIVER: eoshome
+      REVA_STORAGE_EOS_MASTER_URL: "root://mgm-master.testnet:1094"
+      REVA_STORAGE_EOS_SLAVE_URL: "root://mgm-master.testnet:1094"
+      REVA_STORAGE_EOS_NAMESPACE: "/eos/dockertest/reva/users"
+      REVA_STORAGE_EOS_LAYOUT: "{{.Username}}"
+      DAV_FILES_NAMESPACE: "/eos/"
+      REVA_LDAP_HOSTNAME: 'ldap'
+      REVA_LDAP_PORT: 636
+      REVA_LDAP_BIND_PASSWORD: 'admin'
+      REVA_LDAP_BIND_DN: 'cn=admin,dc=owncloud,dc=com'
+      REVA_LDAP_BASE_DN: 'dc=owncloud,dc=com'
+      REVA_LDAP_SCHEMA_UID: 'uid'
+      REVA_LDAP_SCHEMA_MAIL: 'mail'
+      REVA_LDAP_SCHEMA_DISPLAYNAME: 'displayname'
+      LDAP_URI: 'ldap://ldap'
+      LDAP_BINDDN: 'cn=admin,dc=owncloud,dc=com'
+      LDAP_BINDPW: 'admin'
+      LDAP_BASEDN: 'dc=owncloud,dc=com'
+    restart: on-failure
+    healthcheck:
+      test: nc -z -w 3 localhost 9140 && nc -z -w 3 localhost 9150 && nc -z -w 3 localhost 9160 && nc -z -w 3 localhost 9200 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  mgm-master:
+    container_name: mgm-master
+    image: eos/mgm
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: mgm-master.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/master/var/log/eos:/var/log/eos
+    - ./e/master/var/eos/config:/var/eos/config
+    - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
+    # this volume kills mgm-master during startup
+    # - ./e/master/var/eos/md:/var/eos/md
+    environment:
+      EOS_SET_MASTER: 1
+    restart: on-failure
+    healthcheck:
+      test: (eos health -a | grep fst.testnet:1095 | grep online && eos health -a | grep default.0 | grep ok && eos health -a | grep default.0 | grep fine && eos health -a | grep default.0 | grep "0 %    0 %    0 %") || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  mq-master:
+    container_name: mq-master
+    image: eos/mq
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: mq-master.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/master/var/log/eos:/var/log/eos
+    - ./e/master/var/eos/config:/var/eos/config
+    - ./e/master/var/eos/ns-queue:/var/eos/ns-queue
+    environment:
+      EOS_SET_MASTER: 1
+
+  fst:
+    container_name: fst
+    image: eos/fst
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: fst.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/master/var/log/eos:/var/log/eos
+    - ./e/disks:/disks
+    environment:
+      EOS_MGM_URL: "root://mgm-master.testnet"
+      LUKSPASSPHRASE: "just-some-rubbish-to-make-sure-fst-entrypoint-does-not-crash"
+    healthcheck:
+      test: (eos health -a | grep fst.testnet:1095 | grep online && eos health -a | grep default.0 | grep ok && eos health -a | grep default.0 | grep fine && eos health -a | grep default.0 | grep "0 %    0 %    0 %") || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  quark-1:
+    container_name: quark-1
+    image: eos/qdb
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: quark-1.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/quark-1/var/lib/quarkdb:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"
+
+  quark-2:
+    container_name: quark-2
+    image: eos/qdb
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: quark-2.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/quark-2/var/lib/quarkdb:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"
+
+  quark-3:
+    container_name: quark-3
+    image: eos/qdb
+    depends_on:
+      - ldap
+    tty: true
+    privileged: true
+    stdin_open: true
+    env_file:
+    - ./config/eos-docker.env
+    hostname: quark-3.testnet
+    networks:
+    - testnet
+    volumes:
+    - ./e/quark-3/var/lib/quarkdb:/var/lib/quarkdb
+    environment:
+      EOS_QDB_DIR: "/var/lib/quarkdb/eosns"
+      EOS_QDB_PORT: "7777"
+      EOS_QDB_MODE: "raft"
+      EOS_QDB_CLUSTER_ID: "3d659c1a-e70f-43f0-bed4-941a2ca0765b"
+      EOS_QDB_NODES: "quark-1.testnet:7777,quark-2.testnet:7777,quark-3.testnet:7777"

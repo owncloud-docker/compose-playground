@@ -1,0 +1,7 @@
+version: '3.4'
+
+services:
+  openldap:
+    command: "--copy-service"
+    volumes:
+      - ${LDIF_FILE:-./ldap/openldap-ldif/base.ldif}:/container/service/slapd/assets/config/bootstrap/ldif/custom/10-base.ldif
