@@ -2,7 +2,7 @@
 	errors stderr
 	log stdout
 
-	tls self_signed
+	tls internal
 
 	# konnect oidc
 	proxy /.well-known/openid-configuration kopano_konnect:8777
@@ -29,7 +29,7 @@
 	errors stderr
 	log stdout
 
-	tls self_signed
+	tls internal
 
 	# owncloud 10
 	proxy / owncloud:8080 {

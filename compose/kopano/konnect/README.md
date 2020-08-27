@@ -1,7 +1,13 @@
-Setup the domain name in /etc/hosts - assuming you are on linux
+Setup the domain name in /etc/hosts - assuming you are on linux:
 
+```
 127.0.0.1 konnect.docker-playground.local
 127.0.0.1 owncloud.docker-playground.local
+```
+
+Then use the following command to
+start an ownCloud instance with a Kopano IDP:
+
 
 ```console
 KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
@@ -16,6 +22,18 @@ docker-compose \
     -f ldap/openldap-autoconfig-base.yml \
     -f kopano/konnect/docker-compose.yml \
     up
+```
+
+Then manually sync LDAP users
+
+```
+occ user:sync "OCA\User_LDAP\User_Proxy"
+```
+
+And enable te openidconnect app
+
+```
+occ a:e openidconnect
 ```
 
 Go to owncloud: https://owncloud.docker-playground.local
