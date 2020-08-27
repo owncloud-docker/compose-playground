@@ -20,6 +20,7 @@ docker-compose \
     -f database/mariadb.yml \
     -f ldap/openldap.yml \
     -f ldap/openldap-mount-ldif.yml \
+    -f owncloud-exported-ports.yml \
     -f ldap/openldap-autoconfig-base.yml \
     -f kopano/konnect/docker-compose.yml \
     up
