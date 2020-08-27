@@ -12,6 +12,35 @@
 # 2020-08-26, jw@owncloud.com
 
 echo "this script is outdated. Please sync with new instructions in https://owncloud.github.io/ocis/eos/"
+
+cat <<EOF
+Trahbin fixes:
+
+jfd Owner 12:41 PM
+try docker-compose exec mgm-master eos -r 0 0 recycle ls -g
+to list the globally trashed files (all users)
+also the recycle help seems to indicate that trash has to be enabled
+jfd Owner 12:55 PM
+pvince81 try this
+
+docker-compose exec mgm-master eos space config default space.policy.recycle=on
+docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
+docker-compose exec mgm-master recycle config --size 1G
+ then delete and list again
+
+maybe docker-compose exec mgm-master eos space config default space.policy.recycle=on
+is not necessary
+but it alone did not enable a trash
+i had to configure a size before it worked
+otherwise i would get
+
+ocis          | 2020-08-27T10:50:11Z ERR reva/internal/grpc/services/storageprovider/storageprovider.go:410 > error deleting file: path:"/home/ownCloud-osx10.11-2.6.3.13765.pkg.sig"  error="eosclient: error while executing command: exit status 19" pkg=rgrpc service=reva traceid=dd9445674487c90417365538b853d766
+
+
+in the logs
+EOF
+
+
 exit 1;
 
 echo "Estimated setup time (when weather is fine): 7 minutes ..."
