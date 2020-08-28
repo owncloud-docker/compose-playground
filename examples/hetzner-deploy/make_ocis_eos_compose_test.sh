@@ -11,37 +11,6 @@
 #
 # 2020-08-26, jw@owncloud.com
 
-echo "this script is outdated. Please sync with new instructions in https://owncloud.github.io/ocis/eos/"
-
-cat <<EOF
-Trahbin fixes:
-
-jfd Owner 12:41 PM
-try docker-compose exec mgm-master eos -r 0 0 recycle ls -g
-to list the globally trashed files (all users)
-also the recycle help seems to indicate that trash has to be enabled
-jfd Owner 12:55 PM
-pvince81 try this
-
-docker-compose exec mgm-master eos space config default space.policy.recycle=on
-docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
-docker-compose exec mgm-master recycle config --size 1G
- then delete and list again
-
-maybe docker-compose exec mgm-master eos space config default space.policy.recycle=on
-is not necessary
-but it alone did not enable a trash
-i had to configure a size before it worked
-otherwise i would get
-
-ocis          | 2020-08-27T10:50:11Z ERR reva/internal/grpc/services/storageprovider/storageprovider.go:410 > error deleting file: path:"/home/ownCloud-osx10.11-2.6.3.13765.pkg.sig"  error="eosclient: error while executing command: exit status 19" pkg=rgrpc service=reva traceid=dd9445674487c90417365538b853d766
-
-
-in the logs
-EOF
-
-
-exit 1;
 
 echo "Estimated setup time (when weather is fine): 7 minutes ..."
 
@@ -63,7 +32,8 @@ fi
 version_file=this-is-ocis-$OCIS_VERSION.txt
 user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
 user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
-eos_home=/eos/dockertest/reva/users/e/einstein
+# eos_home_einstein=/eos/dockertest/reva/users/e/einstein
+eos_home_einstein=/eos/dockertest/reva/users/4/4c510ada-c86b-4815-8820-42cdf82c3d51/
 eos_uid=20000
 eos_gid=30000
 
@@ -73,7 +43,7 @@ wait_for_ocis () {
   ## it compiles code upon first start. this can take ca 6 minutes.
   while true; do
     # expect to see "Starting server ... 0.0.0.0:9200" in the logs.
-    docker-compose logs ocis | tail -10
+    docker-compose logs --tail=10 ocis
     if [ -n "\$(docker-compose logs ocis | grep 'Starting server' | grep 0.0.0.0:9200)" ]; then
       break
     fi
@@ -142,59 +112,105 @@ fi
 
 ## patch in fixes seen in https://github.com/owncloud-docker/compose-playground/pull/44
 # sed -i -e "s@KONNECTD_TLS: .*@KONNECTD_TLS: 1@" docker-compose.yml	# not really needed.
-sed -i -e "s@REVA_OIDC_ISSUER:@PROXY_OIDC_ISSUER: https://\\\${OCIS_DOMAIN:-localhost}:9200\\n      REVA_OIDC_ISSUER:@" docker-compose.yml
 
 
-## follow https://owncloud.github.io/ocis/eos/
-docker-compose up -d	# felix did instead only "docker-compose up -d ocis"
+##################################################
+# Keep the code below in sync with https://github.com/owncloud/ocis/blob/master/docs/eos.md
+
+## EOS | 2020-02-27 20:35:00 +0100
+## OCIS can be configured to run on top of eos. While the eos documentation does cover a lot of topics it leaves out
+## some details that you may have to either pull from various docker containers, the forums or even the source itself.
+##
+## This document is a work in progress of the current setup.
+## Docker dev environment for eos storage
+##
+## We begin with the docker-compose.yml found in https://github.com/owncloud/ocis/ and switch it to eos-storage.
+## 1. Start eos & ocis containers
+##
+## Start the eos cluster and ocis via the compose stack.
+##
+docker-compose up -d
+
+## {{< hint info >}} The first time the ocis container starts up, it will compile ocis from scratch which can take
+## a while. To follow progress, run docker-compose logs -f --tail=10 ocis {{< /hint >}}
+##
 wait_for_ocis
 
-# mgm-master sometimes explodes during startup...
-if docker-compose ps | grep Exit; then
-  echo "Something exited already, re-trying ..."
-  docker-compose stop
-  docker-compose up -d
-  sleep 10
-  docker-compose ps
-  echo "Please inspect docker-compose logs"
-fi
+# # mgm-master sometimes explodes during startup...
+# if docker-compose ps | grep Exit; then
+#   echo "Something exited already, re-trying ..."
+#   docker-compose stop
+#   docker-compose up -d
+#   sleep 10
+#   docker-compose ps
+#   echo "Please inspect docker-compose logs"
+# fi
 
 cat e/master/var/log/eos/mgm/eos.setup.log
 
-## enable our mini-builtin-ldap IDP
-docker-compose exec ocis id einstein
-#  id: einstein: no such user
+## 2. LDAP Support
+## Configure the OS to resolve users and groups using ldap
+##
 docker-compose exec -d ocis /start-ldap
+
+## {{< hint info >}} If the user is not found at first you might need to wait a few more minutes
+##  in case the ocis container is still compiling. {{< /hint >}}
+##
 wait_for_ldap
 
+## Check that the OS in the ocis container can now resolve einstein or the other demo users
+##
 docker-compose exec ocis id einstein
 # uid=20000(einstein) gid=30000(users) groups=30000(users),30001(sailing-lovers),30002(violin-haters),30007(physics-lovers)
+
+## We also need to restart the reva-users service so it picks up the changed environment.
+## Without a restart it is not able to resolve users from LDAP.
+##
 docker-compose exec ocis ./bin/ocis kill reva-users
 docker-compose exec ocis ./bin/ocis run reva-users
 
-
-## migrate from local 'owncloud' storage to 'eoshome' storage
+## 3. Home storage
+## Kill the home storage. By default it uses the owncloud storage driver. We need to switch it
+##  to the eoshome driver and make it use the storage id of the eos storage provider:
+##
 docker-compose exec ocis ./bin/ocis kill reva-storage-home
-docker-compose exec -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}" -e REVA_STORAGE_HOME_DRIVER=eoshome ocis ./bin/ocis run reva-storage-home
+docker-compose exec -e REVA_STORAGE_HOME_DRIVER=eoshome -e REVA_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158 ocis ./bin/ocis run reva-storage-home
+# CONFIRM: what about
+#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"
+#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Id.OpaqueId}}/{{.Id.OpaqueId}}"
+# CONFIRM: Is this HOME_MOUNT_ID a global thing, or only for einstein?
 
+## 4. Home data provider
+## Kill the home data provider. By default it uses the owncloud storage driver. We need to switch it
+## to the eoshome driver and make it use the storage id of the eos storage provider:
+##
 docker-compose exec ocis ./bin/ocis kill reva-storage-home-data
-docker-compose exec -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}" -e REVA_STORAGE_HOME_DATA_DRIVER=eoshome ocis ./bin/ocis run reva-storage-home-data
+docker-compose exec -e REVA_STORAGE_HOME_DATA_DRIVER=eoshome ocis ./bin/ocis run reva-storage-home-data
+# CONFIRM: what about
+#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"
 
-docker-compose exec ocis ./bin/ocis kill reva-frontend
-docker-compose exec -e DAV_FILES_NAMESPACE="/eos/" ocis ./bin/ocis run reva-frontend
+## {{< hint info >}} The difference between the home storage and the home data provider are that the
+## former is responsible for metadata changes while the latter is responsible for actual data transfer.
+## The home storage uses the cs3 api to manage a folder hierarchy, while the home data provider is
+## responsible for moving bytes to and from the storage. {{< /hint >}}
+##
 
-#### TRY reva user restart very late.
-docker-compose exec ocis ./bin/ocis kill reva-users
-docker-compose exec ocis ./bin/ocis run reva-users
-
-# FIXME: Workaround for https://github.com/owncloud/ocis/issues/308
-for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
-  docker-compose exec \$d sh -c "echo >> /etc/passwd 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin'";
-  docker-compose exec \$d sh -c "echo >> /etc/passwd 'marie:x:20001:30000:Marie Curie:/:/sbin/nologin'";
-  docker-compose exec \$d sh -c "echo >> /etc/passwd 'feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin'";
-done
-
-
+# CONFIRM: no longer needed:
+# docker-compose exec ocis ./bin/ocis kill reva-frontend
+# docker-compose exec -e DAV_FILES_NAMESPACE="/eos/" ocis ./bin/ocis run reva-frontend
+#
+# #### TRY reva user restart very late.
+# docker-compose exec ocis ./bin/ocis kill reva-users
+# docker-compose exec ocis ./bin/ocis run reva-users
+#
+# # FIXME: Workaround for https://github.com/owncloud/ocis/issues/308
+# for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
+#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin'";
+#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'marie:x:20001:30000:Marie Curie:/:/sbin/nologin'";
+#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin'";
+# done
+#
+#
 # FIXME: Workaround for https://github.com/owncloud/ocis/issues/396
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
@@ -202,7 +218,8 @@ wait_for_eos_fst
 # expect to see stat.active=online four times!
 while [ "\$(docker-compose exec ocis eos fs ls -m | grep stat.active=online | wc -l)" -lt 4 ]; do
   sleep 5
-  docker-compose exec ocis eos -r 0 0 space set default on
+  # docker-compose exec ocis eos -r 0 0 space set default on	# same as below?
+  docker-compose exec mgm-master eos space set default on
   sleep 5
   docker-compose exec ocis eos fs ls
 done
@@ -231,14 +248,14 @@ if [ -f ~/make_machine.bashrc ]; then
   cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
   docker cp ~/make_machine.bashrc.md ocis:/
   docker cp $version_file            ocis:/
-  docker-compose exec ocis eos -r 0 0               mkdir -p $eos_home
-  docker-compose exec ocis eos -r 0 0               chown $eos_uid:$eos_gid $eos_home
-  docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home/init
-  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home/init/
+  docker-compose exec ocis eos -r 0 0               mkdir -p $eos_home_einstein
+  docker-compose exec ocis eos -r 0 0               chown $eos_uid:$eos_gid $eos_home_einstein
+  docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home_einstein/init
+  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home_einstein/init/
 
   docker-compose exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
   docker-compose exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
-  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home/
+  docker-compose exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home_einstein/
 fi
 
 
@@ -249,6 +266,26 @@ cat e/master/var/log/eos/mgm/eos.setup.log
 uptime
 sleep 5
 cat <<EOM
+
+## To list the globally trashed files (all users):
+# docker-compose exec mgm-master eos -r 0 0 recycle ls -g
+#
+# docker-compose exec mgm-master eos space config default space.policy.recycle=on
+# docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
+# docker-compose exec mgm-master recycle config --size 1G
+# then delete and list again
+#
+# maybe docker-compose exec mgm-master eos space config default space.policy.recycle=on
+# is not necessary
+# but it alone did not enable a trash
+# i had to configure a size before it worked
+# otherwise i would get
+#
+# ocis          | 2020-08-27T10:50:11Z ERR reva/internal/grpc/services/storageprovider/storageprovider.go:410 > error deleting file: path:"/home/ownCloud-osx10.11-2.6.3.13765.pkg.sig"  error="eosclient: error while executing command: exit status 19" pkg=rgrpc service=reva traceid=dd9445674487c90417365538b853d766
+# in the logs
+#
+# CHECK the CONFIRM: flags in the code!
+
 ---------------------------------------------
 # This shell is now connected to root@$IPADDR
 # Connect your browser or client to
@@ -257,9 +294,12 @@ cat <<EOM
 
    also check eos fs status again...
 
-# if the client fails to upload with internal error 500, try
+# To restart completely from scratch
 
-   docker-compose down; docker-compose up -d 	# CAUTION: this also switches to /var/tmp/reva/data storage.
+   cd /root/src/github/owncloud/ocis
+   docker-compose down -v
+   make clean
+   docker-compose up -d 	# CAUTION: this also switches to /var/tmp/reva/data storage.
 
 ---------------------------------------------
 EOM
