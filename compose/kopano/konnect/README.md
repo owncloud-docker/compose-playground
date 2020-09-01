@@ -10,9 +10,11 @@ start an ownCloud instance with a Kopano IDP:
 
 
 ```console
-export KOPANO_KONNECT_DOMAIN konnect.docker-playground.local
-export OWNCLOUD_DOMAIN owncloud.docker-playground.local
-
+export KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
+export OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+echo >> /etc/hosts 127.0.0.1 $KOPANO_KONNECT_DOMAIN
+echo >> /etc/hosts 127.0.0.1 $OWNCLOUD_DOMAIN
+    
 docker system prune -f
 docker volume prune -f
 
