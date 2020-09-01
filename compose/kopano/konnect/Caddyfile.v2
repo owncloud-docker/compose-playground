@@ -8,7 +8,7 @@
 	#	tls internal
 
 	# konnect oidc
-	everse_proxy /.well-known/* kopano_konnect:8777
+	reverse_proxy /.well-known/* kopano_konnect:8777
 	reverse_proxy /konnect/* kopano_konnect:8777
 	
 	# konnect identifier login area
