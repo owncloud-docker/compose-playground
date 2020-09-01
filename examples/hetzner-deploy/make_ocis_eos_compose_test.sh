@@ -7,6 +7,8 @@
 # - ~/ownCloud/release/ocis/test-2020-07-13.txt
 #
 # This setup should be greatly simplified by
+# - https://github.com/owncloud/product/issues/165
+# - https://jira.owncloud.com/browse/OCIS-376
 # - https://jira.owncloud.com/browse/OCIS-392
 #
 # 2020-08-26, jw@owncloud.com
