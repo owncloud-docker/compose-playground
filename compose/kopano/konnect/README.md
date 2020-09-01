@@ -34,7 +34,7 @@ docker-compose \
 Then manually sync LDAP users
 
 ```
-occ user:sync "OCA\User_LDAP\User_Proxy"
+occ user:sync 'OCA\User_LDAP\User_Proxy'
 ```
 
 And enable te openidconnect app
