@@ -71,11 +71,12 @@ LOAD_SCRIPT << EOF
 	docker exec compose_owncloud_1 occ app:list openidconnect
 	docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
 
-# then connect from remote:
-	curl -k https://$KOPANO_KONNECT_DOMAIN/.well-known/openid-configuration
-	curl -k http://$IPADDR:9680/status.php
-	firefox http://$IPADDR:9680
-	firefox https://$OWNCLOUD_DOMAIN:443
+# then connect from remote (certs must be good!):
+	curl https://$KOPANO_KONNECT_DOMAIN/.well-known/openid-configuration
+	curl http://$IPADDR:9680/status.php
+	firefox https://$OWNCLOUD_DOMAIN
+
+# login via 'Kopano' with user: aaliyah_abernathy pass: secret
 
 # you may first need to add the DNS entries to cloudflare or to your local hosts file
 	echo $IPADDR $KOPANO_KONNECT_DOMAIN  | sudo tee -a /etc/hosts
