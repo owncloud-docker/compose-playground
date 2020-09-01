@@ -34,16 +34,17 @@ docker-compose \
 Then manually sync LDAP users
 
 ```
-occ user:sync 'OCA\User_LDAP\User_Proxy'
+docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
+docker exec compose_owncloud_1 occ app:list openidconnect
 ```
 
-And enable te openidconnect app
+Confirm that the openidconnect app is enabled. If not, do
 
 ```
-occ a:e openidconnect
+occ app:enable openidconnect
 ```
 
-Go to owncloud: https://owncloud.docker-playground.local
+Go to owncloud: http://owncloud.docker-playground.local:9680
 Click the alternative login button 'Kopano'
 
 On the login of kopano konnect use aaliyah_abernathy / secret to login
