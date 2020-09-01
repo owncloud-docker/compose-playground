@@ -57,11 +57,11 @@ services:
     ## abiosoft/caddy:latest: is caddy_version: 1.0.3 -- cannot do: 'tls internal' is an invalid email, and 'tls off' causes ssl3_get_record:wrong version number
     image: "abiosoft/caddy:latest"
     ## caddy:latest: is CADDY_VERSION: v2.1.1 -- 
-    # image: "caddy:latest"
+    image: "caddy:2.1.1"
     volumes:
       - ./.caddy:/root/.caddy # to sync mkcert certificates to Caddy
-      - ./kopano/konnect/Caddyfile:/etc/Caddyfile  # caddy 1.0.3: to mount custom Caddyfile
-      # - ./kopano/konnect/Caddyfile.v2:/etc/caddy/Caddyfile  # caddy 2.1.1: to mount custom Caddyfile
+      # - ./kopano/konnect/Caddyfile:/etc/Caddyfile  # caddy 1.0.3: to mount custom Caddyfile
+      - ./kopano/konnect/Caddyfile.v2:/etc/caddy/Caddyfile  # caddy 2.1.1: to mount custom Caddyfile
     ports:
       - 80:80
       - 443:443
