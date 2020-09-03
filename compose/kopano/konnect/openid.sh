@@ -12,8 +12,7 @@ CONFIG=$(cat <<EOF
             "autoRedirectOnLoginPage": false,
             "redirect-url": "https://$OWNCLOUD_DOMAIN/index.php/apps/openidconnect/redirect",
             "mode": "userid",
-            "search-attribute": "preferred_username",
-            "use-token-introspection-endpoint": false
+            "search-attribute": "preferred_username"
         },
         "debug": true
     }
