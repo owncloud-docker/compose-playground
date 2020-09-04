@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -x
 
+# line removed, to workaround https://github.com/owncloud/openidconnect/pull/98
+# "use-token-introspection-endpoint": false
+
 CONFIG=$(cat <<EOF
 {
     "system": {
