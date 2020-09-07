@@ -7,6 +7,7 @@
 # - ~/ownCloud/release/ocis/test-2020-07-13.txt
 #
 # This setup should be greatly simplified by
+# - https://github.com/owncloud/ocis/pull/519
 # - https://github.com/owncloud/product/issues/165
 # - https://jira.owncloud.com/browse/OCIS-376
 # - https://jira.owncloud.com/browse/OCIS-392
@@ -18,12 +19,13 @@ echo "Estimated setup time (when weather is fine): 7 minutes ..."
 
 if [ -z "$OCIS_VERSION" ]; then
   # export OCIS_VERSION=master
-  export OCIS_VERSION=v1.0.0-beta9
+  export OCIS_VERSION=v1.0.0-rc1
   echo "No OCIS_VERSION specified, using $OCIS_VERSION"
   sleep 3
 fi
 
-source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose,binutils
+# use a cx31 -- we need more than 20GB disk space.
+source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
 set -x
 
 if [ -z "$IPADDR" ]; then
