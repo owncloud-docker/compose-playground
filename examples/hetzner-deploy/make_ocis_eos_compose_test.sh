@@ -179,10 +179,6 @@ docker-compose exec ocis ./bin/ocis run reva-users
 ##
 docker-compose exec ocis ./bin/ocis kill reva-storage-home
 docker-compose exec -e REVA_STORAGE_HOME_DRIVER=eoshome -e REVA_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158 ocis ./bin/ocis run reva-storage-home
-# CONFIRM: what about
-#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"
-#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Id.OpaqueId}}/{{.Id.OpaqueId}}"
-# CONFIRM: Is this HOME_MOUNT_ID a global thing, or only for einstein?
 
 ## 4. Home data provider
 ## Kill the home data provider. By default it uses the owncloud storage driver. We need to switch it
@@ -190,8 +186,6 @@ docker-compose exec -e REVA_STORAGE_HOME_DRIVER=eoshome -e REVA_STORAGE_HOME_MOU
 ##
 docker-compose exec ocis ./bin/ocis kill reva-storage-home-data
 docker-compose exec -e REVA_STORAGE_HOME_DATA_DRIVER=eoshome ocis ./bin/ocis run reva-storage-home-data
-# CONFIRM: what about
-#  -e REVA_STORAGE_EOS_LAYOUT="{{substr 0 1 .Username}}/{{.Username}}"
 
 ## {{< hint info >}} The difference between the home storage and the home data provider are that the
 ## former is responsible for metadata changes while the latter is responsible for actual data transfer.
@@ -199,22 +193,6 @@ docker-compose exec -e REVA_STORAGE_HOME_DATA_DRIVER=eoshome ocis ./bin/ocis run
 ## responsible for moving bytes to and from the storage. {{< /hint >}}
 ##
 
-# CONFIRM: no longer needed:
-# docker-compose exec ocis ./bin/ocis kill reva-frontend
-# docker-compose exec -e DAV_FILES_NAMESPACE="/eos/" ocis ./bin/ocis run reva-frontend
-#
-# #### TRY reva user restart very late.
-# docker-compose exec ocis ./bin/ocis kill reva-users
-# docker-compose exec ocis ./bin/ocis run reva-users
-#
-# # FIXME: Workaround for https://github.com/owncloud/ocis/issues/308
-# for d in ocis mq-master quark-1 quark-2 quark-3 fst mgm-master; do
-#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'einstein:x:20000:30000:Albert Einstein:/:/sbin/nologin'";
-#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'marie:x:20001:30000:Marie Curie:/:/sbin/nologin'";
-#   docker-compose exec \$d sh -c "echo >> /etc/passwd 'feynman:x:20002:30000:Richard Feynman:/:/sbin/nologin'";
-# done
-#
-#
 # FIXME: Workaround for https://github.com/owncloud/ocis/issues/396
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
@@ -287,8 +265,6 @@ cat <<EOM
 #
 # ocis          | 2020-08-27T10:50:11Z ERR reva/internal/grpc/services/storageprovider/storageprovider.go:410 > error deleting file: path:"/home/ownCloud-osx10.11-2.6.3.13765.pkg.sig"  error="eosclient: error while executing command: exit status 19" pkg=rgrpc service=reva traceid=dd9445674487c90417365538b853d766
 # in the logs
-#
-# CHECK the CONFIRM: flags in the code!
 
 ---------------------------------------------
 # This shell is now connected to root@$IPADDR

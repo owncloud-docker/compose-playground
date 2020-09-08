@@ -13,11 +13,11 @@
 
 echo "Estimated setup time: 8 minutes ..."
 
-source ./make_machine.sh -u openidconnect-test -p git,screen,docker.io,docker-compose
+source ./make_machine.sh -u openidconnect-1-0-0-rc3-test -p git,screen,docker.io,docker-compose
 
 comp_yml=kopano/konnect/docker-compose.yml
 #openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
-openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v1.0.0RC2/openidconnect-1.0.0RC2.tar.gz
+openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v1.0.0RC3/openidconnect-1.0.0RC3.tar.gz
 
 LOAD_SCRIPT << EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
