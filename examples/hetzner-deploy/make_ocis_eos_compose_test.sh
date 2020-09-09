@@ -15,7 +15,7 @@
 # 2020-08-26, jw@owncloud.com
 
 
-echo "Estimated setup time (when weather is fine): 7 minutes ..."
+echo "Estimated setup time (when weather is fine): 9 minutes ..."
 
 if [ -z "$OCIS_VERSION" ]; then
   # export OCIS_VERSION=master
@@ -36,7 +36,6 @@ fi
 version_file=this-is-ocis-$OCIS_VERSION.txt
 user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
 user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
-# eos_home_einstein=/eos/dockertest/reva/users/e/einstein
 eos_home_einstein=/eos/dockertest/reva/users/4/4c510ada-c86b-4815-8820-42cdf82c3d51/
 eos_uid=20000
 eos_gid=30000
@@ -191,7 +190,6 @@ wait_for_ocis
 #   echo "Please inspect docker-compose logs"
 # fi
 
-cat e/master/var/log/eos/mgm/eos.setup.log
 
 ## 2. LDAP Support
 ## Configure the OS to resolve users and groups using ldap
@@ -284,7 +282,6 @@ fi
 
 echo "Now log in with user einstein at https://${IPADDR}:9200"
 docker-compose exec ocis eos newfind /eos
-cat e/master/var/log/eos/mgm/eos.setup.log
 
 uptime
 sleep 5
