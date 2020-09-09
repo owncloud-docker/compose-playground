@@ -135,7 +135,7 @@ END_CONFIG_JSON
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
 echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
-echo >> .env PHOENIX_WEB_CONFIG=\$(pwd)/\$config_json
+echo >> .env PHOENIX_WEB_CONFIG=/ocis/\$config_json
 
 cat .env >> config/eos-docker.env
 
@@ -246,6 +246,11 @@ while [ "\$(docker-compose exec ocis eos fs ls -m | grep stat.active=online | wc
 done
 wait_for_eos_health
 
+# enable trashbin
+# docker-compose exec mgm-master eos space config default space.policy.recycle=on
+# docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
+# docker-compose exec mgm-master eos recycle config --size 1G
+
 # show some nice stats
 docker-compose exec ocis eos fs ls --io | sed -e 's/  / /g'
 docker-compose exec ocis eos space ls --io
@@ -289,20 +294,6 @@ cat <<EOM
 
 ## To list the globally trashed files (all users):
 # docker-compose exec mgm-master eos -r 0 0 recycle ls -g
-#
-# docker-compose exec mgm-master eos space config default space.policy.recycle=on
-# docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
-# docker-compose exec mgm-master recycle config --size 1G
-# then delete and list again
-#
-# maybe docker-compose exec mgm-master eos space config default space.policy.recycle=on
-# is not necessary
-# but it alone did not enable a trash
-# i had to configure a size before it worked
-# otherwise i would get
-#
-# ocis          | 2020-08-27T10:50:11Z ERR reva/internal/grpc/services/storageprovider/storageprovider.go:410 > error deleting file: path:"/home/ownCloud-osx10.11-2.6.3.13765.pkg.sig"  error="eosclient: error while executing command: exit status 19" pkg=rgrpc service=reva traceid=dd9445674487c90417365538b853d766
-# in the logs
 
 ---------------------------------------------
 # This shell is now connected to root@$IPADDR
