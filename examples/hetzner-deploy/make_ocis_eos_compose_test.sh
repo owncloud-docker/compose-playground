@@ -104,14 +104,15 @@ echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
 cat .env >> config/eos-docker.env
 
 ## Part two with the bigger hammer: patch the identifier-registration.yaml -- this file is autocreated when ocis starts for the first time.
+# the original file comes from https://github.com/owncloud/ocis-konnectd/blob/master/assets/identifier-registration.yaml
 reg_yml=config/identifier-registration.yaml
 if [ ! -f \$reg_yml ]; then
   docker-compose up -d ocis
   wait_for_ocis
   docker-compose stop ocis
-  # once only...
-  sed -i -e "s@redirect_uris:@redirect_uris:\\n      - https://${IPADDR}:9200/oidc-callback.html@"   \$reg_yml
-  sed -i -e "s@origins:@origins:\\n      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100@" \$reg_yml
+  # once only... and only for phoenix!
+  sed -i -e "s@^\s*- https://localhost:9200/\\$@      - https://${IPADDR}:9200/oidc-callback.html\\n      - https://localhost:9200/@" \$reg_yml
+  sed -i -e "s@^\s*- https://localhost:9200\\$@      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100\\n      - https://localhost:9200@" \$reg_yml
 fi
 
 ## patch in fixes seen in https://github.com/owncloud-docker/compose-playground/pull/44
