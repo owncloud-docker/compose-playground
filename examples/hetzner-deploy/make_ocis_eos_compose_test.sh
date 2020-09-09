@@ -94,12 +94,49 @@ docker system prune --all --force
 
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis					# there is a new docker-compse file...
-## patch the network.
+
+## workaround for https://jira.owncloud.com/browse/OCIS-489
+config_json=config/config.json
+cat <<END_CONFIG_JSON > \$config_json
+{
+  "server": "https://${IPADDR}:9200",
+  "theme": "owncloud",
+  "version": "0.1.0",
+  "openIdConnect": {
+    "metadata_url": "https://${IPADDR}:9200/.well-known/openid-configuration",
+    "authority": "https://${IPADDR}:9200",
+    "client_id": "phoenix",
+    "response_type": "code",
+    "scope": "openid profile email"
+  },
+  "apps": [
+    "files",
+    "draw-io",
+    "pdf-viewer",
+    "markdown-editor",
+    "media-viewer"
+  ],
+  "external_apps": [
+    {
+      "id": "accounts",
+      "path": "https://${IPADDR}:9200/accounts.js"
+    },
+    {
+      "id": "settings",
+      "path": "https://${IPADDR}:9200/settings.js"
+    }
+  ],
+  "options": {
+    "hideSearchBar": true
+  }
+}
+END_CONFIG_JSON
 
 ## FIXME: workaround for https://github.com/owncloud/ocis/issues/396
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
 echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
+echo >> .env PHOENIX_WEB_CONFIG=\$(pwd)/\$config_json
 
 cat .env >> config/eos-docker.env
 
@@ -111,12 +148,15 @@ if [ ! -f \$reg_yml ]; then
   wait_for_ocis
   docker-compose stop ocis
   # once only... and only for phoenix!
-  sed -i -e "s@^\s*- https://localhost:9200/\\$@      - https://${IPADDR}:9200/oidc-callback.html\\n      - https://localhost:9200/@" \$reg_yml
-  sed -i -e "s@^\s*- https://localhost:9200\\$@      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100\\n      - https://localhost:9200@" \$reg_yml
+  sed -i -e "s@^\\s*- https://localhost:9200/\\\$@      - https://${IPADDR}:9200/oidc-callback.html\\n      - https://${IPADDR}:9200/oidc-silent-callback.html\\n      - https://${IPADDR}:9200/\\n      - https://localhost:9200/@" \$reg_yml
+  sed -i -e "s@^\s*- https://localhost:9200\\\$@      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100\\n      - https://localhost:9200@" \$reg_yml
 fi
 
+##
 ## patch in fixes seen in https://github.com/owncloud-docker/compose-playground/pull/44
 # sed -i -e "s@KONNECTD_TLS: .*@KONNECTD_TLS: 1@" docker-compose.yml	# not really needed.
+
+
 
 
 ##################################################
