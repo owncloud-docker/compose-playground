@@ -247,9 +247,9 @@ done
 wait_for_eos_health
 
 # enable trashbin
-# docker-compose exec mgm-master eos space config default space.policy.recycle=on
-# docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
-# docker-compose exec mgm-master eos recycle config --size 1G
+docker-compose exec mgm-master eos space config default space.policy.recycle=on
+docker-compose exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
+docker-compose exec mgm-master eos recycle config --size 1G
 
 # show some nice stats
 docker-compose exec ocis eos fs ls --io | sed -e 's/  / /g'
