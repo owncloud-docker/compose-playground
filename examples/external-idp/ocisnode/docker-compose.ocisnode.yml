@@ -44,10 +44,6 @@ services:
     hostname: ocis
     networks:
       - ocisnet
-    volumes:
-      - .:/ocis
-      - ../ocis-reva:/ocis-reva
-      - ../reva:/reva
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN:-localhost}
       PROXY_OIDC_ISSUER: https://idp.owncloud.works:9300
