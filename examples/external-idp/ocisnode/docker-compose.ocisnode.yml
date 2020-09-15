@@ -35,7 +35,7 @@ services:
 
   ocis:
     container_name: ocis
-    image: owncloud/ocis-dev:latest
+    image: owncloud/ocis:latest
     tty: true
     privileged: true
     stdin_open: true
