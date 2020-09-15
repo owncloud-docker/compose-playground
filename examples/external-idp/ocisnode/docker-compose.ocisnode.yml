@@ -1,0 +1,64 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.2"
+    container_name: "traefik"
+    networks:
+      - ocisnet
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=jmueller@ocisnode.owncloud.works"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  whoami:
+    image: "containous/whoami"
+    container_name: "simple-service"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`ocisnode.owncloud.works`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+
+  ocis:
+    container_name: ocis
+    image: owncloud/ocis-dev:latest
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports:
+      - 9200:9200
+    hostname: ocis
+    networks:
+      - ocisnet
+    volumes:
+      - .:/ocis
+      - ../ocis-reva:/ocis-reva
+      - ../reva:/reva
+    environment:
+      OCIS_DOMAIN: ${OCIS_DOMAIN:-localhost}
+      PROXY_OIDC_ISSUER: https://idp.owncloud.works:9300
+      PROXY_OIDC_INSECURE: "true"
+      GRAPH_OIDC_ENDPOINT: https://idp.owncloud.works:9300
+      REVA_OIDC_ISSUER: https://idp.owncloud.works:9300
+      REVA_LDAP_IDP: https://idp.owncloud.works:9300
+      PHOENIX_OIDC_AUTHORITY: https://idp.owncloud.works:9300
+      PHOENIX_OIDC_METADATA_URL: https://idp.owncloud.works:9300/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN:-localhost}:9200
+      OCIS_LOG_LEVEL: debug
+      REVA_TRANSFER_EXPIRES: 86400
+      REVA_FRONTEND_URL: https://${OCIS_DOMAIN:-localhost}:9200
+      REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN:-localhost}:9200/data
