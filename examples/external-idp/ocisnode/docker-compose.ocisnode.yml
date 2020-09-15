@@ -62,7 +62,10 @@ services:
       REVA_TRANSFER_EXPIRES: 86400
       REVA_FRONTEND_URL: https://${OCIS_DOMAIN:-localhost}:9200
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN:-localhost}:9200/data
+<<<<<<< HEAD
 
 networks:
   ocisnet:
     external: true
+=======
+>>>>>>> b89c608875b7454311ef9d42d7c1ab1646f4c29a
