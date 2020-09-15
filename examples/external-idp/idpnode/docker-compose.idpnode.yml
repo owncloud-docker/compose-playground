@@ -73,3 +73,6 @@ services:
     environment:
       ACCOUNTS_LOG_LEVEL: debug
 
+networks:
+  idpnet:
+    external: true

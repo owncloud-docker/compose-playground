@@ -21,7 +21,7 @@ services:
       - "443:443"
       - "8080:8080"
     volumes:
-      - "./letsencrypt:/letsencrypt"
+      - "~/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   whoami:
@@ -62,3 +62,7 @@ services:
       REVA_TRANSFER_EXPIRES: 86400
       REVA_FRONTEND_URL: https://${OCIS_DOMAIN:-localhost}:9200
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN:-localhost}:9200/data
+
+networks:
+  ocisnet:
+    external: true
