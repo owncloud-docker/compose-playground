@@ -15,7 +15,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=postmaster@idpnode.owncloud.works"
+      - "--certificatesresolvers.myresolver.acme.email=postmaster@idp-node.owncloud.works"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
@@ -29,7 +29,7 @@ services:
     container_name: "simple-service"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`idpnode.owncloud.works`)"
+      - "traefik.http.routers.whoami.rule=Host(`idp-node.owncloud.works`)"
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.tls.certresolver=myresolver"
 
@@ -52,7 +52,7 @@ services:
       - idpnet
     environment:
       OCIS_LOG_LEVEL: debug
-      KONNECTD_ISS: https://idpnode.owncloud.works:9300
+      KONNECTD_ISS: https://idp-node.owncloud.works:9300
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
       LDAP_URI: ldap://glauth:9125

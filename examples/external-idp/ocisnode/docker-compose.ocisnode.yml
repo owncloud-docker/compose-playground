@@ -15,7 +15,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=jmueller@ocisnode.owncloud.works"
+      - "--certificatesresolvers.myresolver.acme.email=jmueller@ocis-node.owncloud.works"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
@@ -30,7 +30,7 @@ services:
     container_name: "simple-service"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`ocisnode.owncloud.works`)"
+      - "traefik.http.routers.whoami.rule=Host(`ocis-node.owncloud.works`)"
       - "traefik.http.routers.whoami.entrypoints=websecure"
       - "traefik.http.routers.whoami.tls.certresolver=myresolver"
 
