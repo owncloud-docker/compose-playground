@@ -8,7 +8,7 @@ services:
     networks:
       - ocisnet
     command:
-      - "--log.level=DEBUG"
+#     - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -55,8 +55,6 @@ services:
       - "traefik.http.routers.ocis.entrypoints=websecure"
       - "traefik.http.routers.ocis.tls.certresolver=myresolver"
       - "traefik.docker.network=proxy"
-
-    networks:
 
 networks:
   ocisnet:
