@@ -18,10 +18,12 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=jmueller@ocisnode.owncloud.works"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
+      - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - "~/letsencrypt:/letsencrypt"
+      - "./config/traefik.yml:/etc/traefik/traefik.yml
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   whoami:
