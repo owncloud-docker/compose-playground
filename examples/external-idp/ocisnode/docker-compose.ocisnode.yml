@@ -63,4 +63,4 @@ services:
 
 networks:
   ocisnet:
-    external: true
+    external: false
