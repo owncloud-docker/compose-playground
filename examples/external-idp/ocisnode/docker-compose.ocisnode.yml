@@ -51,14 +51,14 @@ services:
       REVA_TRANSFER_EXPIRES: 86400
       REVA_FRONTEND_URL: https://${OCIS_DOMAIN}:9200
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}:9200/data
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
-        - "traefik.http.routers.ocis.entrypoints=websecure"
-        - "traefik.http.routers.ocis.tls.certresolver=myresolver"
-        - "traefik.docker.network=ocisnet"
-        - "traefik.port=9200"
-        - "traefik.protocol=https"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
+      - "traefik.http.routers.ocis.entrypoints=websecure"
+      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.docker.network=ocisnet"
+      - "traefik.port=9200"
+      - "traefik.protocol=https"
 
 networks:
   ocisnet:
