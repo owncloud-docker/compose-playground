@@ -39,6 +39,8 @@ services:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
       PROXY_OIDC_INSECURE: "true"
+      PROXY_TRANSPORT_TLS_CERT: ~/letsencrypt/domain.crt
+      PROXY_TRANSPORT_TLS_KEY: ~/letsencrypt/domain.key
       GRAPH_OIDC_ENDPOINT: https://${IDP_DOMAIN}:9300
       REVA_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
       REVA_LDAP_IDP: https://${IDP_DOMAIN}:9300
@@ -49,12 +51,14 @@ services:
       REVA_TRANSFER_EXPIRES: 86400
       REVA_FRONTEND_URL: https://${OCIS_DOMAIN}:9200
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}:9200/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
-      - "traefik.http.routers.ocis.entrypoints=websecure"
-      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
-      - "traefik.docker.network=proxy"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
+        - "traefik.http.routers.ocis.entrypoints=websecure"
+        - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+        - "traefik.docker.network=ocisnet"
+        - "traefik.port=9200"
+        - "traefik.protocol=https"
 
 networks:
   ocisnet:
