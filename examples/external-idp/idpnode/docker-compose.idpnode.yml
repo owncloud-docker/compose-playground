@@ -52,7 +52,7 @@ services:
       - idpnet
     environment:
       OCIS_LOG_LEVEL: debug
-      KONNECTD_ISS: https://idp.owncloud.works:9300
+      KONNECTD_ISS: https://idpnode.owncloud.works:9300
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
       LDAP_URI: ldap://glauth:9125
