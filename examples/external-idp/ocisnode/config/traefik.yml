@@ -8,7 +8,7 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
-    https:
+    http:
       redirections:
         entryPoint:
           to: ocis
