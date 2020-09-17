@@ -38,9 +38,9 @@ services:
       PROXY_TLS: "false"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`idp-node.owncloud.works`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+      - "traefik.http.routers.ocis.rule=Host(`idp-node.owncloud.works`)"
+      - "traefik.http.routers.ocis.entrypoints=websecure"
+      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
       - "traefik.docker.network=idpnet"
       - "traefik.port=9300"
       - "traefik.protocol=https"
