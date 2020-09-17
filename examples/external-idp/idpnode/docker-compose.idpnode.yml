@@ -35,6 +35,14 @@ services:
       - ./config/proxy-idp.json:/etc/ocis/proxy.json
     environment:
       OCIS_LOG_LEVEL: debug
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`idp-node.owncloud.works`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+      - "traefik.docker.network=idpnet"
+      - "traefik.port=9300"
+      - "traefik.protocol=https"
 
   konnectd:
     container_name: konnectd
