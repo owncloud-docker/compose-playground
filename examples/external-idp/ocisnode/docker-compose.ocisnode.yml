@@ -8,7 +8,6 @@ services:
     networks:
       - ocisnet
     command:
-#     - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
