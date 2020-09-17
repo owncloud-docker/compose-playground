@@ -35,6 +35,7 @@ services:
       - ./config/proxy-idp.json:/etc/ocis/proxy.json
     environment:
       OCIS_LOG_LEVEL: debug
+      PROXY_TLS: "false"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=Host(`idp-node.owncloud.works`)"
