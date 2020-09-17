@@ -34,14 +34,11 @@ services:
     hostname: ocis
     networks:
       - ocisnet
-    volumes:
-      - "~/letsencrypt:/letsencrypt"
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
       PROXY_OIDC_INSECURE: "true"
-      PROXY_TRANSPORT_TLS_CERT: /letsencrypt/domain.crt
-      PROXY_TRANSPORT_TLS_KEY: /letsencrypt/domain.key
+      PROXY_TLS: "false"
       GRAPH_OIDC_ENDPOINT: https://${IDP_DOMAIN}:9300
       REVA_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
       REVA_LDAP_IDP: https://${IDP_DOMAIN}:9300
