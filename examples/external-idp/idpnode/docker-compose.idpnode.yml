@@ -32,9 +32,10 @@ services:
     networks:
       - idpnet
     volumes:
-      - ./config/proxy-idp.json:/etc/ocis/proxy.json
+      - ./config:/etc/ocis
     environment:
       OCIS_LOG_LEVEL: debug
+      OCIS_CONFIG_FILE: "/etc/ocis/proxy-idp.json"
       PROXY_TLS: "false"
     labels:
       - "traefik.enable=true"
