@@ -55,6 +55,7 @@ services:
       - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
       - "traefik.http.routers.ocis.entrypoints=websecure"
       - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.http.services.ocis.loadbalancer.server.port=9200"
       - "traefik.docker.network=ocisnet"
       - "traefik.port=9200"
       - "traefik.protocol=https"
