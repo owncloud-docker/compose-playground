@@ -8,7 +8,6 @@ services:
     networks:
       - ocisnet
     command:
-#     - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -32,32 +31,31 @@ services:
     stdin_open: true
     ports:
       - 9200:9200
+      - 9125:9125
     hostname: ocis
     networks:
       - ocisnet
-    volumes:
-      - "~/letsencrypt:/letsencrypt"
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
-      PROXY_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
+      PROXY_OIDC_ISSUER: https://${IDP_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
-      PROXY_TRANSPORT_TLS_CERT: /letsencrypt/domain.crt
-      PROXY_TRANSPORT_TLS_KEY: /letsencrypt/domain.key
-      GRAPH_OIDC_ENDPOINT: https://${IDP_DOMAIN}:9300
-      REVA_OIDC_ISSUER: https://${IDP_DOMAIN}:9300
-      REVA_LDAP_IDP: https://${IDP_DOMAIN}:9300
-      PHOENIX_OIDC_AUTHORITY: https://${IDP_DOMAIN}:9300
-      PHOENIX_OIDC_METADATA_URL: https://${IDP_DOMAIN}:9300/.well-known/openid-configuration
-      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}:9200
+      PROXY_TLS: "false"
+      GRAPH_OIDC_ENDPOINT: https://${IDP_DOMAIN}
+      REVA_OIDC_ISSUER: https://${IDP_DOMAIN}
+      REVA_LDAP_IDP: https://${IDP_DOMAIN}
+      PHOENIX_OIDC_AUTHORITY: https://${IDP_DOMAIN}
+      PHOENIX_OIDC_METADATA_URL: https://${IDP_DOMAIN}/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
       OCIS_LOG_LEVEL: debug
       REVA_TRANSFER_EXPIRES: 86400
-      REVA_FRONTEND_URL: https://${OCIS_DOMAIN}:9200
-      REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}:9200/data
+      REVA_FRONTEND_URL: https://${OCIS_DOMAIN}
+      REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
       - "traefik.http.routers.ocis.entrypoints=websecure"
       - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.http.services.ocis.loadbalancer.server.port=9200"
       - "traefik.docker.network=ocisnet"
       - "traefik.port=9200"
       - "traefik.protocol=https"
