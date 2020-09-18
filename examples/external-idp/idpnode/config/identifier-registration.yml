@@ -7,10 +7,10 @@ clients:
     insecure: yes
     trusted: yes
     redirect_uris:
-      - http://ocisnode.owncloud.works/oidc-callback.html
-      - http://ocisnode.owncloud.works/
-      - https://ocisnode.owncloud.works/
-      - https://ocisnode.owncloud.works/oidc-callback.html
+      - http://ocis-node.owncloud.works/oidc-callback.html
+      - http://ocis-node.owncloud.works/
+      - https://ocis-node.owncloud.works/
+      - https://ocis-node.owncloud.works/oidc-callback.html
     origins:
-      - http://ocisnode.owncloud.works
-      - https://ocisnode.owncloud.works
+      - http://ocis-node.owncloud.works
+      - https://ocis-node.owncloud.works
