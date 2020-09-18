@@ -13,6 +13,7 @@
 # - https://jira.owncloud.com/browse/OCIS-392
 #
 # 2020-08-26, jw@owncloud.com
+# 2020-09-17, jw@owncloud.com
 
 
 echo "Estimated setup time (when weather is fine): 9 minutes ..."
@@ -24,8 +25,8 @@ if [ -z "$OCIS_VERSION" ]; then
   sleep 3
 fi
 
-# use a cx31 -- we need more than 20GB disk space.
-source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos-compose -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
+# use a cx31 -- we need more than 40GB disk space.
+source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
 set -x
 
 if [ -z "$IPADDR" ]; then
@@ -274,8 +275,20 @@ if [ -f ~/make_machine.bashrc ]; then
   cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
   docker cp ~/make_machine.bashrc.md ocis:/
   docker cp $version_file            ocis:/
-  docker-compose exec ocis eos -r 0 0               mkdir -p $eos_home_einstein
-  docker-compose exec ocis eos -r 0 0               chown $eos_uid:$eos_gid $eos_home_einstein
+  # Fix https://github.com/owncloud/product/issues/127
+  # try auto-create einstein's home
+  curl -k -X PROPFIND https://$IPADDR:9200/remote.php/webdav -u einstein:relativity
+  if docker-compose exec ocis eos ls $eos_home_einstein; then
+    echo "WARNING: failed to auto-create home of user einstein. Trying manually ..."
+    # CAUTION: keep in sync with https://github.com/cs3org/reva/blob/master/pkg/storage/utils/eosfs/eosfs.go#L818-L952
+    docker-compose exec ocis eos -r 0 0                    mkdir -p $eos_home_einstein
+    docker-compose exec ocis eos -r 0 0     chown $eos_uid:$eos_gid $eos_home_einstein
+    docker-compose exec ocis eos attr set sys.allow.oc.sync="1"     $eos_home_einstein
+    docker-compose exec ocis eos attr set sys.forced.atomic="1"     $eos_home_einstein
+    docker-compose exec ocis eos attr set sys.mask="700"            $eos_home_einstein
+    docker-compose exec ocis eos attr set sys.mtime.propagation="1" $eos_home_einstein
+  fi
+
   docker-compose exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home_einstein/init
   docker-compose exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home_einstein/init/
 
@@ -300,15 +313,6 @@ cat <<EOM
 # Connect your browser or client to
 
    https://$IPADDR:9200
-
-   also check eos fs status again...
-
-# To restart completely from scratch
-
-   cd /root/src/github/owncloud/ocis
-   docker-compose down -v
-   make clean
-   docker-compose up -d 	# CAUTION: this also switches to /var/tmp/reva/data storage.
 
 ---------------------------------------------
 EOM
