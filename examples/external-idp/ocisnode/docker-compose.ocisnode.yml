@@ -31,6 +31,7 @@ services:
     stdin_open: true
     ports:
       - 9200:9200
+      - 9125:9125
     hostname: ocis
     networks:
       - ocisnet
