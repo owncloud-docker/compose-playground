@@ -61,7 +61,7 @@ services:
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
-      LDAP_URI: ldap://glauth:9125
+      LDAP_URI: ldap://ocis-node.owncloud.works:9125
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.konnectd.rule=Host(`idp-node.owncloud.works`)"
