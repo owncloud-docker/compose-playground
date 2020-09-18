@@ -51,9 +51,12 @@ services:
     image: owncloud/ocis-konnectd:latest
     networks:
       - idpnet
+    volumes:
+      - ./config:/etc/ocis
     environment:
       OCIS_LOG_LEVEL: debug
       KONNECTD_ISS: https://idp-node.owncloud.works:9300
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
       LDAP_URI: ldap://glauth:9125
