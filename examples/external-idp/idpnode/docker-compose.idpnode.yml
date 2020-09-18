@@ -62,6 +62,16 @@ services:
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
       LDAP_URI: ldap://ocis-node.owncloud.works:9125
+      LDAP_BINDDN: cn=konnectd,ou=sysusers,dc=example,dc=org
+      LDAP_BINDPW: konnectd
+      LDAP_BASEDN: ou=users,dc=example,dc=org
+      LDAP_SCOPE: sub
+      LDAP_LOGIN_ATTRIBUTE: cn
+      LDAP_EMAIL_ATTRIBUTE: mail
+      LDAP_NAME_ATTRIBUTE=: n
+      LDAP_UUID_ATTRIBUTE: uid
+      LDAP_UUID_ATTRIBUTE_TYPE: text
+      LDAP_FILTER: (objectClass=posixaccount)
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.konnectd.rule=Host(`idp-node.owncloud.works`)"
