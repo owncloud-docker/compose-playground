@@ -30,6 +30,11 @@ The second one is ocis which is exposing the webservice on port 9200 to traefic 
 When running a traefik as reverse proxy in front of ocis, its important to switch of the certificate creation of ocis internal service proxy.
 This can be done by `PROXY_TLS: "false"` as environment parameter for ocis.
 
+Adding a user to the account service can be done via commandline.
+`docker exec -it ocis sh`
+`ocis accounts add --preferred-name bob --on-premises-sam-account-name bob --displayname "Bob" --uidnumber 33333 --gidnumber 30000 --password 123456 --mail bob@example.org --enabled`
+After having setup the idp node, the user credentials can be used for login to ocis.
+
 ## IDP Node
 
 ### Stack
