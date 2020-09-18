@@ -278,7 +278,8 @@ if [ -f ~/make_machine.bashrc ]; then
   # Fix https://github.com/owncloud/product/issues/127
   # try auto-create einstein's home
   curl -k -X PROPFIND https://$IPADDR:9200/remote.php/webdav -u einstein:relativity
-  if docker-compose exec ocis eos ls $eos_home_einstein; then
+  if ! docker-compose exec ocis eos ls -la $eos_home_einstein; then
+    echo ""
     echo "WARNING: failed to auto-create home of user einstein. Trying manually ..."
     # CAUTION: keep in sync with https://github.com/cs3org/reva/blob/master/pkg/storage/utils/eosfs/eosfs.go#L818-L952
     docker-compose exec ocis eos -r 0 0                    mkdir -p $eos_home_einstein
