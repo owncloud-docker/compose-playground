@@ -39,9 +39,9 @@ services:
       PROXY_TLS: "false"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ocis.rule=Host(`idp-node.owncloud.works`)"
-      - "traefik.http.routers.ocis.entrypoints=websecure"
-      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.http.routers.proxy.rule=Host(`idp-node.owncloud.works`)"
+      - "traefik.http.routers.proxy.entrypoints=websecure"
+      - "traefik.http.routers.proxy.tls.certresolver=myresolver"
       - "traefik.docker.network=idpnet"
       - "traefik.port=9300"
       - "traefik.protocol=https"
@@ -55,7 +55,7 @@ services:
       - ./config:/etc/ocis
     environment:
       OCIS_LOG_LEVEL: debug
-      KONNECTD_ISS: https://idp-node.owncloud.works:9300
+      KONNECTD_ISS: https://idp-node.owncloud.works
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
