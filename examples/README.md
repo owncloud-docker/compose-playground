@@ -6,6 +6,9 @@ ocis and redis running with a configured domain. See here, how to use composable
 ## distributed-ocis
 ocis running with each service in a separate container
 
+## external-idp
+ocis and idp on 2 separate hcloud notes with traefik as reverse proxy, letsencrypt certificates and cloudflare dns.
+
 ## migration
 owncloud10 and OCIS with proxy deployment, good to test migration
 
