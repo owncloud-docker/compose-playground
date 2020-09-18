@@ -8,7 +8,6 @@ services:
     networks:
       - idpnet
     command:
-      - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -23,28 +22,6 @@ services:
     volumes:
       - "~/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
-  # proxy:
-  #   container_name: proxy
-  #   image: owncloud/ocis-proxy:latest
-  #   ports:
-  #     - 9300:9200
-  #   networks:
-  #     - idpnet
-  #   volumes:
-  #     - ./config:/etc/ocis
-  #   environment:
-  #     OCIS_LOG_LEVEL: debug
-  #     OCIS_CONFIG_FILE: "/etc/ocis/proxy-idp.json"
-  #     PROXY_TLS: "false"
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.proxy.rule=Host(`idp-node.owncloud.works`)"
-  #     - "traefik.http.routers.proxy.entrypoints=websecure"
-  #     - "traefik.http.routers.proxy.tls.certresolver=myresolver"
-  #     - "traefik.docker.network=idpnet"
-  #     - "traefik.port=9300"
-  #     - "traefik.protocol=https"
 
   konnectd:
     container_name: konnectd
@@ -80,22 +57,6 @@ services:
       - "traefik.docker.network=idpnet"
       - "traefik.port=9130"
       - "traefik.protocol=https"
-
-  # glauth:
-  #   container_name: glauth
-  #   image: owncloud/ocis-glauth:latest
-  #   networks:
-  #     - idpnet
-  #   environment:
-  #     GLAUTH_LOG_LEVEL: debug
-
-  # accounts:
-  #   container_name: accounts
-  #   image: owncloud/ocis-accounts:latest
-  #   networks:
-  #     - idpnet
-  #   environment:
-  #     ACCOUNTS_LOG_LEVEL: debug
 
 networks:
   idpnet:
