@@ -21,8 +21,8 @@ comp_yml=kopano/konnect/docker-compose.yml
 #openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 
-KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
-OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
+KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
 ## if you cannot work with cloudflare, you may try an /etc/hosts setup using:
 # KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
 # OWNCLOUD_DOMAIN=owncloud.docker-playground.local
