@@ -93,7 +93,7 @@ docker images -q | xargs -r docker rmi --force
 docker system prune --all --force
 
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
-cd ocis					# there is a new docker-compse file...
+cd ocis/ocis					# there is a new docker-compse file...
 
 ## workaround for https://jira.owncloud.com/browse/OCIS-489
 config_json=config/config.json
