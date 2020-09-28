@@ -38,6 +38,7 @@ services:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
       PROXY_TLS: "false"
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.rule=Host(`ocis-traefik-demo.owncloud.works`)"
