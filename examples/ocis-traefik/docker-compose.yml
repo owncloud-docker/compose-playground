@@ -40,7 +40,6 @@ services:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
-      PROXY_HTTP_ADDR: https://${OCIS_DOMAIN}
       PROXY_TLS: "false"
       OCIS_CONFIG_FILE: "/etc/ocis/proxy-config.json"
       KONNECTD_ISS: https://${OCIS_DOMAIN}
