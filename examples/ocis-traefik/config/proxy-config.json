@@ -2,14 +2,8 @@
   "HTTP": {
     "Namespace": "works.owncloud"
   },
-  "oidc": {
-    "issuer": "https://localhost:9200",
-    "insecure": true
-  },
   "policy_selector": {
-    "static": {
-      "policy": "reva"
-    }
+    "static": {"policy" : "reva"}
   },
   "policies": [
     {
@@ -36,11 +30,6 @@
           "backend": "http://localhost:9140"
         },
         {
-          "type": "regex",
-          "endpoint": "/ocs/v[12].php/cloud/user",
-          "backend": "http://localhost:9110"
-        },
-        {
           "endpoint": "/remote.php/",
           "backend": "http://localhost:9140"
         },
@@ -59,34 +48,6 @@
         {
           "endpoint": "/index.php/",
           "backend": "http://localhost:9140"
-        },
-        {
-          "endpoint": "/data",
-          "backend": "http://localhost:9140"
-        },
-        {
-          "endpoint": "/api/v0/accounts",
-          "backend": "http://localhost:9181"
-        },
-        {
-          "endpoint": "/accounts.js",
-          "backend": "http://localhost:9181"
-        },
-        {
-          "endpoint": "/api/v0/settings",
-          "backend":  "http://localhost:9190"
-        },
-        {
-          "endpoint": "/settings.js",
-          "backend":  "http://localhost:9190"
-	},
-	{
-          "endpoint": "/api/v0/greet",
-          "backend": "http://localhost:9105"
-        },
-        {
-          "endpoint": "/hello.js",
-          "backend": "http://localhost:9105"
         }
       ]
     },
@@ -111,36 +72,31 @@
         },
         {
           "endpoint": "/ocs/",
-          "backend": "https://demo.owncloud.com",
+          "backend": "http://owncloud:8080",
           "apache-vhost": true
         },
         {
           "endpoint": "/remote.php/",
-          "backend": "https://demo.owncloud.com",
+          "backend": "http://owncloud:8080",
           "apache-vhost": true
         },
         {
           "endpoint": "/dav/",
-          "backend": "https://demo.owncloud.com",
+          "backend": "http://owncloud:8080",
           "apache-vhost": true
         },
         {
           "endpoint": "/webdav/",
-          "backend": "https://demo.owncloud.com",
+          "backend": "http://owncloud:8080",
           "apache-vhost": true
         },
         {
           "endpoint": "/status.php",
-          "backend": "https://demo.owncloud.com"
+          "backend": "http://owncloud:8080"
         },
         {
           "endpoint": "/index.php/",
-          "backend": "https://demo.owncloud.com"
-        },
-        {
-          "endpoint": "/data",
-          "backend": "https://demo.owncloud.com",
-          "apache-vhost": true
+          "backend": "http://owncloud:8080"
         }
       ]
     }
