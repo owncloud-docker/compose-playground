@@ -34,11 +34,15 @@ services:
     hostname: ocis
     networks:
       - ocisnet
+    volumes:
+      - ./config:/etc/ocis
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
       PROXY_TLS: "false"
+      KONNECTD_ISS: ${OCIS_DOMAIN}
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}
       REVA_LDAP_IDP: https://${OCIS_DOMAIN}

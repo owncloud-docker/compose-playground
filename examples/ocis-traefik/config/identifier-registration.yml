@@ -1,0 +1,16 @@
+---
+# OpenID Connect client registry.
+clients:
+  - id: phoenix
+    name: OCIS
+    application_type: web
+    insecure: yes
+    trusted: yes
+    redirect_uris:
+      - http://ocis-node.owncloud.works/oidc-callback.html
+      - http://ocis-node.owncloud.works/
+      - https://ocis-node.owncloud.works/
+      - https://ocis-node.owncloud.works/oidc-callback.html
+    origins:
+      - http://ocis-node.owncloud.works
+      - https://ocis-node.owncloud.works
