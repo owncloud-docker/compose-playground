@@ -1,0 +1,52 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.2"
+    container_name: "traefik"
+    networks:
+      - ocisnet
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=jmueller@ocis-traefik-demo.owncloud.works"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "~/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  ocis:
+    container_name: ocis
+    image: owncloud/ocis:latest
+    tty: true
+    privileged: true
+    stdin_open: true
+    ports:
+      - 9200:9200
+    hostname: ocis
+    networks:
+      - ocisnet
+    environment:
+      OCIS_DOMAIN: ${OCIS_DOMAIN}
+      PROXY_OIDC_INSECURE: "true"
+      PROXY_TLS: "false"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ocis.rule=Host(`ocis-traefik-demo.owncloud.works`)"
+      - "traefik.http.routers.ocis.entrypoints=websecure"
+      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.http.services.ocis.loadbalancer.server.port=9200"
+      - "traefik.docker.network=ocisnet"
+      - "traefik.protocol=https"
+
+networks:
+  ocisnet:
+    external: false
