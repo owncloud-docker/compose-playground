@@ -40,9 +40,10 @@ services:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
+      PROXY_HTTP_ADDR: https://${OCIS_DOMAIN}
       PROXY_TLS: "false"
       OCIS_CONFIG_FILE: "/etc/ocis/proxy-config.json"
-      KONNECTD_ISS: ${OCIS_DOMAIN}
+      KONNECTD_ISS: https://${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}

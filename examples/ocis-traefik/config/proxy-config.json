@@ -1,6 +1,6 @@
 {
   "HTTP": {
-    "Namespace": "com.owncloud"
+    "Namespace": "works.owncloud"
   },
   "policy_selector": {
     "static": {"policy" : "reva"}
