@@ -13,11 +13,19 @@
 
 echo "Estimated setup time: 8 minutes ..."
 
-source ./make_machine.sh -u openidconnect-1-0-0-rc3-test -p git,screen,docker.io,docker-compose
+vers=1.0.0RC4
+d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)
+source ./make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
 
 comp_yml=kopano/konnect/docker-compose.yml
 #openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
-openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v1.0.0RC3/openidconnect-1.0.0RC3.tar.gz
+openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
+
+KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
+## if you cannot work with cloudflare, you may try an /etc/hosts setup using:
+# KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
+# OWNCLOUD_DOMAIN=owncloud.docker-playground.local
 
 LOAD_SCRIPT << EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
@@ -42,10 +50,8 @@ LOAD_SCRIPT << EOF
   docker system prune -f
   docker volume prune -f
 
-  export KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
-  export OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
-  # export KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
-  # export OWNCLOUD_DOMAIN=owncloud.docker-playground.local
+  export KOPANO_KONNECT_DOMAIN=$KOPANO_KONNECT_DOMAIN
+  export OWNCLOUD_DOMAIN=$OWNCLOUD_DOMAIN
   echo >> /etc/hosts 127.0.0.1 $KOPANO_KONNECT_DOMAIN
   echo >> /etc/hosts 127.0.0.1 $OWNCLOUD_DOMAIN
 
@@ -64,6 +70,8 @@ LOAD_SCRIPT << EOF
 
   cat <<EOM
 ---------------------------------------------
+### CAUTION: manual steps required here!
+
 # start a screen session, watch the logs with
 	docker-compose -f oidc-merged.yml logs -f
 
@@ -71,10 +79,18 @@ LOAD_SCRIPT << EOF
 	docker exec compose_owncloud_1 occ app:list openidconnect
 	docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
 
+# you may now first need to add the DNS entries at dash.cloudflare.com
+	$IPADDR $KOPANO_KONNECT_DOMAIN
+	$IPADDR $OWNCLOUD_DOMAIN
+
+# and wait for a log message like
+	caddy_1           | 2020/09/16 22:36:29 [INFO] [owncloud.oidc-jw-qa.owncloud.works] Server responded with a certificate.
+
 # then connect from remote (certs must be good!):
 	curl https://$KOPANO_KONNECT_DOMAIN/.well-known/openid-configuration
 	curl http://$IPADDR:9680/status.php
 	firefox https://$OWNCLOUD_DOMAIN
+	# CAUTION: only use the DNS name. IP Adresses are not supported by our certificates.
 
 # login via 'Kopano' with user: aaliyah_abernathy pass: secret
 
@@ -85,6 +101,8 @@ LOAD_SCRIPT << EOF
 # Study
 	https://github.com/owncloud-docker/compose-playground/blob/pmaier-fixes/compose/kopano/konnect/README.md
 	https://doc.owncloud.com/server/10.5/admin_manual/configuration/user/oidc/
+
+### CAUTION: manual steps required here!
 ---------------------------------------------
 EOM
 EOF
