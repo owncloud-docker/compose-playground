@@ -7,10 +7,10 @@ clients:
     insecure: yes
     trusted: yes
     redirect_uris:
-      - http://localhost:9100/oidc-callback.html
-      - http://localhost:9100/
-      - https://localhost:9200/
-      - https://localhost:9200/oidc-callback.html
+      - http://ocis-traefik-demo.owncloud.works/oidc-callback.html
+      - http://ocis-traefik-demo.owncloud.works/
+      - https://ocis-traefik-demo.owncloud.works/
+      - https://ocis-traefik-demo.owncloud.works/oidc-callback.html
     origins:
-      - http://localhost:9100
-      - https://localhost:9200
+      - http://ocis-traefik-demo.owncloud.works
+      - https://ocis-traefik-demo.owncloud.works
