@@ -68,4 +68,3 @@ services:
 
 networks:
   ocisnet:
-    external: false
