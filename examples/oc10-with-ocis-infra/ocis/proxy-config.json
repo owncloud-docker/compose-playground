@@ -16,15 +16,15 @@
         },
         {
           "endpoint": "/.well-known/",
-          "backend": "http://localhost:9130"
+          "backend": "http://ocis:9130"
         },
         {
           "endpoint": "/konnect/",
-          "backend": "http://localhost:9130"
+          "backend": "http://ocis:9130"
         },
         {
           "endpoint": "/signin/",
-          "backend": "http://localhost:9130"
+          "backend": "http://ocis:9130"
         },
         {
           "endpoint": "/ocs/",
