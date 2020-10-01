@@ -52,7 +52,7 @@ services:
       OWNCLOUD_MYSQL_UTF8MB4: "true"
       OWNCLOUD_REDIS_ENABLED: "true"
       OWNCLOUD_REDIS_HOST: redis
-      OWNCLOUD_DEBUG: true  #Disable TLS verification
+      OWNCLOUD_DEBUG: "true"  #Disable TLS verification
       OWNCLOUD_TRUSTED_PROXIES: ocis:9200
       OWNCLOUD_OVERWRITE_PROTOCOL: https
       OWNCLOUD_OVERWRITE_HOST: ocis:9200
@@ -76,7 +76,6 @@ services:
       #PROXY_TRANSPORT_TLS_CERT: /proxy_certs/localhost.crt
       #PROXY_TRANSPORT_TLS_KEY: /proxy_certs/localhost.key
       PROXY_TLS: "false"
-      #KONNECTD_ISS: https://ocis:9200
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
       PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
@@ -85,7 +84,20 @@ services:
       KONNECTD_VALIDATION_KEYS_PATH: "/konnectd_keys/"
       KONNECTD_SIGNING_PRIVATE_KEY: "/konnectd_keys/private-key.pem"
       KONNECTD_ENCRYPTION_SECRET: "/konnectd_keys/encryption.key"
-      KONNECTD_TLS: 0
+      KONNECTD_TLS: 1
+      #debug
+      OCIS_DOMAIN: ${OCIS_DOMAIN}
+      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      PROXY_OIDC_INSECURE: "true"
+      GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
+      REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}
+      REVA_TRANSFER_EXPIRES: 86400
+      REVA_FRONTEND_URL: https://${OCIS_DOMAIN}
+      REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
+      REVA_LDAP_IDP: https://${OCIS_DOMAIN}
     volumes:
       - ./ocis/proxy-config.json:/config/proxy-config.json
       - ./ocis/identifier-registration.yaml:/config/identifier-registration.yaml
