@@ -1,30 +1,74 @@
 {
   "HTTP": {
-    "Namespace": "com.owncloud"
+    "Namespace": "works.owncloud"
   },
   "policy_selector": {
-    "static": {"policy" : "oc10"}
+    "static": {"policy" : "reva"}
   },
   "policies": [
+    {
+      "name": "reva",
+      "routes": [
+        {
+          "endpoint": "/",
+          "backend": "http://localhost:9100"
+        },
+        {
+          "endpoint": "/.well-known/",
+          "backend": "http://localhost:9130"
+        },
+        {
+          "endpoint": "/konnect/",
+          "backend": "http://localhost:9130"
+        },
+        {
+          "endpoint": "/signin/",
+          "backend": "http://localhost:9130"
+        },
+        {
+          "endpoint": "/ocs/",
+          "backend": "http://localhost:9140"
+        },
+        {
+          "endpoint": "/remote.php/",
+          "backend": "http://localhost:9140"
+        },
+        {
+          "endpoint": "/dav/",
+          "backend": "http://localhost:9140"
+        },
+        {
+          "endpoint": "/webdav/",
+          "backend": "http://localhost:9140"
+        },
+        {
+          "endpoint": "/status.php",
+          "backend": "http://localhost:9140"
+        },
+        {
+          "endpoint": "/index.php/",
+          "backend": "http://localhost:9140"
+        }
+      ]
+    },
     {
       "name": "oc10",
       "routes": [
         {
           "endpoint": "/",
-          "backend": "http://owncloud:8080",
-          "apache-vhost": true
+          "backend": "http://localhost:9100"
         },
         {
           "endpoint": "/.well-known/",
-          "backend": "http://ocis:9130"
+          "backend": "http://localhost:9130"
         },
         {
           "endpoint": "/konnect/",
-          "backend": "http://ocis:9130"
+          "backend": "http://localhost:9130"
         },
         {
           "endpoint": "/signin/",
-          "backend": "http://ocis:9130"
+          "backend": "http://localhost:9130"
         },
         {
           "endpoint": "/ocs/",

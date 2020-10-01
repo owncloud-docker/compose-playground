@@ -29,14 +29,16 @@ services:
       # OC10 certificate resolver
       - "--certificatesresolvers.oc10.acme.tlschallenge=true"
       - "--certificatesresolvers.oc10.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.oc10.acme.email=user@${OCIS_DOMAIN}"
+      - "--certificatesresolvers.oc10.acme.email=user@${OC10_DOMAIN}"
       - "--certificatesresolvers.oc10.acme.storage=/letsencrypt/acme-oc10.json"
     ports:
+      - "80:80"
       - "443:443"
       - "8080:8080"
     volumes:
       - "~/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
   owncloud:
     build:
       context: ./owncloud
@@ -47,7 +49,7 @@ services:
       - db
       - redis
     environment:
-      OWNCLOUD_DOMAIN: ocis
+      OWNCLOUD_DOMAIN: ${OC10_DOMAIN}
       OWNCLOUD_DB_TYPE: mysql
       OWNCLOUD_DB_NAME: owncloud
       OWNCLOUD_DB_USERNAME: owncloud
