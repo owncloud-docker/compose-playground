@@ -53,9 +53,9 @@ services:
       OWNCLOUD_REDIS_ENABLED: "true"
       OWNCLOUD_REDIS_HOST: redis
       OWNCLOUD_DEBUG: "true"  #Disable TLS verification
-      OWNCLOUD_TRUSTED_PROXIES: ocis:9200
+      OWNCLOUD_TRUSTED_PROXIES: {$OCIS_DOMAIN}
       OWNCLOUD_OVERWRITE_PROTOCOL: https
-      OWNCLOUD_OVERWRITE_HOST: ocis:9200
+      OWNCLOUD_OVERWRITE_HOST: {$OCIS_DOMAIN}
       OWNCLOUD_APPS_ENABLE: "openidconnect,oauth2,user_ldap"
       OWNCLOUD_LOG_LEVEL: 0
     volumes:
