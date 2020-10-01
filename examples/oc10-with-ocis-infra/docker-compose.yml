@@ -21,10 +21,16 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.websecure.address=:443"
+      # Ocis certificate resolver
       - "--certificatesresolvers.ocis.acme.tlschallenge=true"
       - "--certificatesresolvers.ocis.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.ocis.acme.email=user@${OCIS_DOMAIN}"
-      - "--certificatesresolvers.ocis.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.ocis.acme.storage=/letsencrypt/acme-ocis.json"
+      # OC10 certificate resolver
+      - "--certificatesresolvers.oc10.acme.tlschallenge=true"
+      - "--certificatesresolvers.oc10.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.oc10.acme.email=user@${OCIS_DOMAIN}"
+      - "--certificatesresolvers.oc10.acme.storage=/letsencrypt/acme-oc10.json"
     ports:
       - "443:443"
       - "8080:8080"
@@ -61,6 +67,15 @@ services:
     volumes:
       - files:/mnt/data
       - tmp:/tmp/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oc10.rule=Host(`${OC10_DOMAIN}`)"
+      - "traefik.http.routers.oc10.entrypoints=websecure"
+      - "traefik.http.routers.oc10.tls.certresolver=oc10"
+      - "traefik.http.services.oc10.loadbalancer.server.port=8080"
+      - "traefik.docker.network=ocisnet"
+      - "traefik.protocol=https"
+
   ocis:
     image: owncloud/ocis:latest
     build:
