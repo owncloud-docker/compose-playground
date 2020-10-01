@@ -4,14 +4,14 @@
 ocis running on a hcloud node behind traefik as reverse proxy
 * Cloudflare DNS is resolving the domain
 * Letsencrypt is providing a valid ssl certificate for the domain
-* Traefik docker container terminates ssl and forwards https requests to ocis
+* Traefik docker container terminates ssl and forwards http requests to ocis
 * ocis docker container serves owncloud backend and delivers phoenix client
 
 ## Node
 
 ### Requirements
 * Server running Ubuntu 20.04 is public availible with a static ip address
-* A A-record for domain is pointing on the servers ip address
+* An A-record for domain is pointing on the servers ip address
 * Create user `$sudo adduser username`
 * Add user to sudo group `$sudo usermod -aG sudo username`
 * Add users pub key to `~/.ssh/authorized_keys`
@@ -24,8 +24,8 @@ ocis running on a hcloud node behind traefik as reverse proxy
   * `$ export OCIS_DOMAIN=your.domain.com`
 
 ### Stack
-The application stack contains two containers. The first one is traefik which is terminating https requests and forwards the requests to the internal docker network. Additional, traefik is creating a certificate that is stored in `acme.json` in the folder `letsencrypt` of the users home directory.
-The second one is ocis which is exposing the webservice on port 9200 to traefic.
+The application stack contains two containers. The first one is a traefik proxy which is terminating ssl and forwards the requests to the internal docker network. Additional, traefik is creating a certificate that is stored in `acme.json` in the folder `letsencrypt` of the users home directory.
+The second one is th ocis server which is exposing the webservice on port 9200 to traefic.
 
 ### Config
 Edit docker-compose.yml file to fit your domain setup
@@ -51,6 +51,7 @@ Edit docker-compose.yml file to fit your domain setup
       - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN}`)"
       ...
 ```
+
 A folder for letsencypt to store the certificate needs to be created
 `$ mkdir ~/letsencrypt`
 This folder is bind to the docker container and the certificate is persistently stored into it.
