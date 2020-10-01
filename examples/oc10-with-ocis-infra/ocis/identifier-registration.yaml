@@ -7,11 +7,11 @@ clients:
     insecure: yes
     trusted: yes
     redirect_uris:
-      - https://ocis-traefik-demo.owncloud.works/apps/openidconnect/redirect/
-      - https://ocis-traefik-demo.owncloud.works/apps/openidconnect/redirect
+      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect/
+      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect
     origins:
-      - http://ocis-traefik-demo.owncloud.works
-      - https://ocis-traefik-demo.owncloud.works
+      - http://ocis-bridge.owncloud.works
+      - https://ocis-bridge.owncloud.works
 
   - id: oc10
     name: OC10
@@ -19,11 +19,11 @@ clients:
     insecure: yes
     trusted: yes
     redirect_uris:
-      - https://ocis-traefik-demo.owncloud.works/apps/openidconnect/redirect/
-      - https://ocis-traefik-demo.owncloud.works/apps/openidconnect/redirect
+      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect/
+      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect
     origins:
-      - http://ocis-traefik-demo.owncloud.works
-      - https://ocis-traefik-demo.owncloud.works
+      - http://ocis-bridge.owncloud.works
+      - https://ocis-bridge.owncloud.works
 
   - id: ocis-explorer.js
     name: OCIS Graph Explorer
