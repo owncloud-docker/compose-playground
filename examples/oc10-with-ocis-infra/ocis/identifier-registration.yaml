@@ -1,5 +1,4 @@
 ---
-
 # OpenID Connect client registry.
 clients:
   - id: oc10
