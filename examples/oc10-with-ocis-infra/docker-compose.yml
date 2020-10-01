@@ -13,6 +13,24 @@ volumes:
     driver: local
 
 services:
+  traefik:
+    image: "traefik:v2.2"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.ocis.acme.tlschallenge=true"
+      - "--certificatesresolvers.ocis.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.ocis.acme.email=user@${OCIS_DOMAIN}"
+      - "--certificatesresolvers.ocis.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "~/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
   owncloud:
     build:
       context: ./owncloud
@@ -23,23 +41,23 @@ services:
       - db
       - redis
     environment:
-      - OWNCLOUD_DOMAIN=ocis
-      - OWNCLOUD_DB_TYPE=mysql
-      - OWNCLOUD_DB_NAME=owncloud
-      - OWNCLOUD_DB_USERNAME=owncloud
-      - OWNCLOUD_DB_PASSWORD=owncloud
-      - OWNCLOUD_DB_HOST=db
-      - OWNCLOUD_ADMIN_USERNAME=admin
-      - OWNCLOUD_ADMIN_PASSWORD=admin
-      - OWNCLOUD_MYSQL_UTF8MB4=true
-      - OWNCLOUD_REDIS_ENABLED=true
-      - OWNCLOUD_REDIS_HOST=redis
-      - OWNCLOUD_DEBUG=true  #Disable TLS verification
-      - OWNCLOUD_TRUSTED_PROXIES=ocis:9200
-      - OWNCLOUD_OVERWRITE_PROTOCOL=https
-      - OWNCLOUD_OVERWRITE_HOST=ocis:9200
-      - OWNCLOUD_APPS_ENABLE=openidconnect,oauth2,user_ldap
-      - OWNCLOUD_LOG_LEVEL=0
+      OWNCLOUD_DOMAIN: ocis
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_NAME: owncloud
+      OWNCLOUD_DB_USERNAME: owncloud
+      OWNCLOUD_DB_PASSWORD: owncloud
+      OWNCLOUD_DB_HOST: db
+      OWNCLOUD_ADMIN_USERNAME: admin
+      OWNCLOUD_ADMIN_PASSWORD: admin
+      OWNCLOUD_MYSQL_UTF8MB4: "true"
+      OWNCLOUD_REDIS_ENABLED: "true"
+      OWNCLOUD_REDIS_HOST: redis
+      OWNCLOUD_DEBUG: true  #Disable TLS verification
+      OWNCLOUD_TRUSTED_PROXIES: ocis:9200
+      OWNCLOUD_OVERWRITE_PROTOCOL: https
+      OWNCLOUD_OVERWRITE_HOST: ocis:9200
+      OWNCLOUD_APPS_ENABLE: "openidconnect,oauth2,user_ldap"
+      OWNCLOUD_LOG_LEVEL: 0
     volumes:
       - files:/mnt/data
       - tmp:/tmp/shared
@@ -53,30 +71,44 @@ services:
     expose:
       - "9130"
     environment:
-      - OCIS_LOG_LEVEL=debug
-      - OCIS_CONFIG_FILE=/config/proxy-config.json
-      - PROXY_TRANSPORT_TLS_CERT=/proxy_certs/localhost.crt
-      - PROXY_TRANSPORT_TLS_KEY=/proxy_certs/localhost.key
-      - KONNECTD_ISS=https://ocis:9200
-      - KONNECTD_VALIDATION_KEYS_PATH=/konnectd_keys/
-      - KONNECTD_SIGNING_PRIVATE_KEY=/konnectd_keys/private-key.pem
-      - KONNECTD_ENCRYPTION_SECRET=/konnectd_keys/encryption.key
-      - KONNECTD_TLS=0
+      OCIS_LOG_LEVEL: debug
+      OCIS_CONFIG_FILE: "/config/proxy-config.json"
+      #PROXY_TRANSPORT_TLS_CERT: /proxy_certs/localhost.crt
+      #PROXY_TRANSPORT_TLS_KEY: /proxy_certs/localhost.key
+      PROXY_TLS: "false"
+      #KONNECTD_ISS: https://ocis:9200
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
+      REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}
+      KONNECT_ISS: https://ocis-traefik-demo.owncloud.works
+      KONNECTD_VALIDATION_KEYS_PATH: "/konnectd_keys/"
+      KONNECTD_SIGNING_PRIVATE_KEY: "/konnectd_keys/private-key.pem"
+      KONNECTD_ENCRYPTION_SECRET: "/konnectd_keys/encryption.key"
+      KONNECTD_TLS: 0
     volumes:
       - ./ocis/proxy-config.json:/config/proxy-config.json
       - ./ocis/identifier-registration.yaml:/config/identifier-registration.yaml
       - tmp:/tmp/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN}`)"
+      - "traefik.http.routers.ocis.entrypoints=websecure"
+      - "traefik.http.routers.ocis.tls.certresolver=ocis"
+      - "traefik.http.services.ocis.loadbalancer.server.port=9200"
+      - "traefik.docker.network=ocisnet"
+      - "traefik.protocol=https"
 
   db:
     image: webhippie/mariadb:latest
     restart: always
     environment:
-      - MARIADB_ROOT_PASSWORD=owncloud
-      - MARIADB_USERNAME=owncloud
-      - MARIADB_PASSWORD=owncloud
-      - MARIADB_DATABASE=owncloud
-      - MARIADB_MAX_ALLOWED_PACKET=128M
-      - MARIADB_INNODB_LOG_FILE_SIZE=256M
+      MARIADB_ROOT_PASSWORD: owncloud
+      MARIADB_USERNAME: owncloud
+      MARIADB_PASSWORD: owncloud
+      MARIADB_DATABASE: owncloud
+      MARIADB_MAX_ALLOWED_PACKET: 128M
+      MARIADB_INNODB_LOG_FILE_SIZE: 256M
     healthcheck:
       test: ["CMD", "/usr/bin/healthcheck"]
       interval: 30s
