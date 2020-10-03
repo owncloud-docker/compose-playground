@@ -114,8 +114,7 @@ services:
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
       REVA_LDAP_IDP: https://${OCIS_DOMAIN}
     volumes:
-      - ./ocis/proxy-config.json:/config/proxy-config.json
-      - ./ocis/identifier-registration.yaml:/config/identifier-registration.yaml
+      - ./ocis:/config
       - tmp:/tmp/shared
     labels:
       - "traefik.enable=true"
