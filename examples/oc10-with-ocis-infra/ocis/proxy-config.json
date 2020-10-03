@@ -11,43 +11,43 @@
       "routes": [
         {
           "endpoint": "/",
-          "backend": "http://localhost:9100"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/.well-known/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/konnect/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/signin/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/ocs/",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/remote.php/",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/dav/",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/webdav/",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/status.php",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/index.php/",
-          "backend": "http://localhost:9140"
+          "backend": "https://ocis-bridge.owncloud.works"
         }
       ]
     },
@@ -56,47 +56,47 @@
       "routes": [
         {
           "endpoint": "/",
-          "backend": "http://localhost:9100"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/.well-known/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/konnect/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/signin/",
-          "backend": "http://localhost:9130"
+          "backend": "https://ocis-bridge.owncloud.works"
         },
         {
           "endpoint": "/ocs/",
-          "backend": "http://owncloud:8080",
+          "backend": "https://oc10-bridge.owncloud.works",
           "apache-vhost": true
         },
         {
           "endpoint": "/remote.php/",
-          "backend": "http://owncloud:8080",
+          "backend": "https://oc10-bridge.owncloud.works",
           "apache-vhost": true
         },
         {
           "endpoint": "/dav/",
-          "backend": "http://owncloud:8080",
+          "backend": "https://oc10-bridge.owncloud.works",
           "apache-vhost": true
         },
         {
           "endpoint": "/webdav/",
-          "backend": "http://owncloud:8080",
+          "backend": "https://oc10-bridge.owncloud.works",
           "apache-vhost": true
         },
         {
           "endpoint": "/status.php",
-          "backend": "http://owncloud:8080"
+          "backend": "https://oc10-bridge.owncloud.works"
         },
         {
           "endpoint": "/index.php/",
-          "backend": "http://owncloud:8080"
+          "backend": "https://oc10-bridge.owncloud.works"
         }
       ]
     }
