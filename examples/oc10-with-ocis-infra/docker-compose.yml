@@ -98,14 +98,14 @@ services:
       PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}
       KONNECT_ISS: https://${OCIS_DOMAIN}
-      KONNECTD_VALIDATION_KEYS_PATH: "/konnectd_keys/"
-      KONNECTD_SIGNING_PRIVATE_KEY: "/konnectd_keys/private-key.pem"
-      KONNECTD_ENCRYPTION_SECRET: "/konnectd_keys/encryption.key"
+      #KONNECTD_VALIDATION_KEYS_PATH: "/konnectd_keys/"
+      #KONNECTD_SIGNING_PRIVATE_KEY: "/konnectd_keys/private-key.pem"
+      #KONNECTD_ENCRYPTION_SECRET: "/konnectd_keys/encryption.key"
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
-      KONNECTD_TLS: 1
+      KONNECTD_TLS: 0
       #debug
       OCIS_DOMAIN: ${OCIS_DOMAIN}
-      PROXY_HTTP_ADDR: 0.0.0.0:9200
+      #PROXY_HTTP_ADDR: 0.0.0.0:9200
       PROXY_OIDC_INSECURE: "true"
       GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
       REVA_OIDC_ISSUER: https://${OCIS_DOMAIN}
