@@ -80,9 +80,9 @@ services:
 
   ocis:
     image: owncloud/ocis:latest
-    build:
-      context: ./ocis
-      dockerfile: Dockerfile
+    #build:
+    #  context: ./ocis
+    #  dockerfile: Dockerfile
     ports:
       - 9200:9200
     expose:
