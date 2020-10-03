@@ -29,7 +29,7 @@ services:
       # OC10 certificate resolver
       - "--certificatesresolvers.oc10.acme.tlschallenge=true"
       - "--certificatesresolvers.oc10.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.oc10.acme.email=user@${OC10_DOMAIN}"
+      - "--certificatesresolvers.oc10.acme.email=user@${OCIS_DOMAIN}"
       - "--certificatesresolvers.oc10.acme.storage=/letsencrypt/acme-oc10.json"
     ports:
       - "80:80"
