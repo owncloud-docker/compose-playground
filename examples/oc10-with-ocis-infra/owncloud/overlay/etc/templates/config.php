@@ -32,7 +32,7 @@ function getConfigFromEnv() {
       0 => $domain
     ],
     'openid-connect' => [
-        'provider-url' => 'https://ocis-traefik-demo.owncloud.works',
+        'provider-url' => 'https://ocis-bridge.owncloud.works',
         'client-id' => 'oc10',
         'client-secret' => 'super',
         'loginButtonName' => 'OpenId Connect',
