@@ -79,10 +79,9 @@ services:
       - "traefik.protocol=https"
 
   ocis:
+    container_name: ocis
     image: owncloud/ocis:latest
-    #build:
-    #  context: ./ocis
-    #  dockerfile: Dockerfile
+    hostname: ocis
     ports:
       - 9200:9200
     expose:
