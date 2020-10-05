@@ -79,7 +79,6 @@ services:
       - "traefik.protocol=https"
 
   ocis:
-    container_name: ocis
     image: owncloud/ocis:latest
     ports:
       - 9200:9200
