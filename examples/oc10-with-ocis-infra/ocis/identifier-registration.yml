@@ -18,6 +18,7 @@ clients:
   - id: oc10
     name: OC10
     application_type: web
+    secret: super
     insecure: yes
     trusted: yes
     redirect_uris:
