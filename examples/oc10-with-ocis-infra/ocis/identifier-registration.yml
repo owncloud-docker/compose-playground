@@ -22,11 +22,11 @@ clients:
     insecure: yes
     trusted: yes
     redirect_uris:
-      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect/
-      - https://ocis-bridge.owncloud.works/apps/openidconnect/redirect
+      - https://oc10-bridge.owncloud.works/apps/openidconnect/redirect/
+      - https://oc10-bridge.owncloud.works/apps/openidconnect/redirect
     origins:
-      - http://ocis-bridge.owncloud.works
-      - https://ocis-bridge.owncloud.works
+      - http://oc10-bridge.owncloud.works
+      - https://oc10-bridge.owncloud.works
 
   - id: ocis-explorer.js
     name: OCIS Graph Explorer
