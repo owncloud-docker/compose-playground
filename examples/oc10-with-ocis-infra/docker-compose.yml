@@ -99,6 +99,7 @@ services:
       KONNECTD_ISS: https://${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
       KONNECTD_TLS: 0
+      KONNECTD_SIGNING_KID: super
       GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
