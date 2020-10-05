@@ -64,7 +64,7 @@ services:
       OWNCLOUD_TRUSTED_PROXIES: ${OC10_DOMAIN}
       OWNCLOUD_OVERWRITE_PROTOCOL: https
       OWNCLOUD_OVERWRITE_HOST: ${OC10_DOMAIN}
-      OWNCLOUD_APPS_ENABLE: "openidconnect,oauth2,user_ldap"
+      OWNCLOUD_APPS_ENABLE: "openidconnect,oauth2,user_ldap,graphapi"
       OWNCLOUD_LOG_LEVEL: 0
     volumes:
       - files:/mnt/data
