@@ -109,6 +109,9 @@ services:
       REVA_FRONTEND_URL: https://${OCIS_DOMAIN}
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
       REVA_LDAP_IDP: https://${OCIS_DOMAIN}
+      GLAUTH_BACKEND_DATASTORE: owncloud
+      GLAUTH_BACKEND_SERVER: https://${OC10_DOMAIN}
+      GLAUTH_BACKEND_BASEDN: dc=example,dc=org
     volumes:
       - ./ocis:/config
     labels:
