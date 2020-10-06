@@ -32,24 +32,20 @@ function getConfigFromEnv() {
       0 => $domain
     ],
     'openid-connect' => [
-        'provider-url' => 'https://ocis:9200',
+        'provider-url' => 'https://ocis-bridge.owncloud.works',
         'client-id' => 'oc10',
         'client-secret' => 'super',
         'loginButtonName' => 'OpenId Connect',
         'search-attribute' => 'preferred_username',
         'mode' => 'userid',
-
-        // Manual config if no auto-discovery is available
-        /*
         'provider-params' => [
-          "authorization_endpoint" => "http://ocis:9130/signin/v1/identifier/_/authorize",
-          "token_endpoint" => "http://ocis:9130/konnect/v1/token",
-          "userinfo_endpoint"=> "http://ocis:9130/konnect/v1/userinfo",
-          "end_session_endpoint" => "http://ocis:9130/signin/v1/identifier/_/endsession",
-          "check_session_iframe" => "http://ocis:9130/konnect/v1/session/check-session.html",
-          "jwks_uri" => "http://ocis:9130/konnect/v1/jwks.json"
+          "authorization_endpoint" => "https://ocis-bridge.owncloud.works//signin/v1/identifier/_/authorize",
+          "token_endpoint" => "https://ocis-bridge.owncloud.works//konnect/v1/token",
+          "userinfo_endpoint"=> "https://ocis-bridge.owncloud.works//konnect/v1/userinfo",
+          "end_session_endpoint" => "https://ocis-bridge.owncloud.works//signin/v1/identifier/_/endsession",
+          "check_session_iframe" => "https://ocis-bridge.owncloud.works//konnect/v1/session/check-session.html",
+          "jwks_uri" => "https://ocis-bridge.owncloud.works//konnect/v1/jwks.json"
         ]
-        */
       ],
     'datadirectory' => getenv('OWNCLOUD_VOLUME_FILES'),
     'dbtype' => getenv('OWNCLOUD_DB_TYPE'),
