@@ -14,12 +14,13 @@
 echo "Estimated setup time: 8 minutes ..."
 
 vers=1.0.0RC4
+oauth2_vers=0.4.4RC1
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)
 source ./make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
 
 comp_yml=kopano/konnect/docker-compose.yml
-#openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
+oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
 KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
 OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
@@ -34,7 +35,7 @@ LOAD_SCRIPT << EOF
   git branch -a
 
   # allow switch back and forth
-  sed -i -e 's@OWNCLOUD_APPS_INSTALL=.*@OWNCLOUD_APPS_INSTALL=$openidconnect_url@g' $comp_yml
+  sed -i -e 's@OWNCLOUD_APPS_INSTALL=.*@OWNCLOUD_APPS_INSTALL=$openidconnect_url $oauth2_url@g' $comp_yml
   # already committed to branch pmaier-fixes:
   # sed -i -e 's/OWNCLOUD_APPS_ENABLE=.*/OWNCLOUD_APPS_ENABLE=openidconnect/g' $comp_yml
   grep OWNCLOUD_APPS_ $comp_yml
@@ -68,6 +69,8 @@ LOAD_SCRIPT << EOF
     config > oidc-merged.yml
   docker-compose -f oidc-merged.yml up -d
 
+  docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2'
+
   cat <<EOM
 ---------------------------------------------
 ### CAUTION: manual steps required here!
@@ -76,15 +79,20 @@ LOAD_SCRIPT << EOF
 	docker-compose -f oidc-merged.yml logs -f
 
 # when everything is done, check the app and sync the users:
-	docker exec compose_owncloud_1 occ app:list openidconnect
 	docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
 
 # you may now first need to add the DNS entries at dash.cloudflare.com
 	$IPADDR $KOPANO_KONNECT_DOMAIN
 	$IPADDR $OWNCLOUD_DOMAIN
 
-# and wait for a log message like
-	caddy_1           | 2020/09/16 22:36:29 [INFO] [owncloud.oidc-jw-qa.owncloud.works] Server responded with a certificate.
+# restart caddy (as often as needed)
+	docker-compose -f oidc-merged.yml stop caddy
+	docker-compose -f oidc-merged.yml start caddy
+
+# until you see log messages like
+	caddy_1           | 2020/10/07 00:22:01 [INFO] [konnect-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
+	caddy_1           | 2020/10/07 00:22:04 [INFO] [owncloud-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
+
 
 # then connect from remote (certs must be good!):
 	curl https://$KOPANO_KONNECT_DOMAIN/.well-known/openid-configuration
