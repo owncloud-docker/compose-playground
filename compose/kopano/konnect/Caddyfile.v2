@@ -27,6 +27,7 @@
 	# tls internal
 
 	# owncloud 10
+	reverse_proxy /.well-known/* kopano_konnect:8777
 	reverse_proxy owncloud:8080 {
 	}
 }

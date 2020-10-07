@@ -46,9 +46,11 @@ occ app:enable openidconnect
 
 Go to owncloud: http://owncloud.docker-playground.local:9680
 Click the alternative login button 'Kopano'
-
 On the login of kopano konnect use aaliyah_abernathy / secret to login
 
-This is the well-known address to be used for OpenID Connect
+Local administrator user: admin / admin
+
+This is the well-known address to be used for OpenID Connect (must be available in the owncloud domain!):
 https://konnect.docker-playground.local/.well-known/openid-configuration
+https://owncloud.docker-playground.local/.well-known/openid-configuration
 

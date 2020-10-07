@@ -36,6 +36,7 @@
 	tls self_signed
 
 	# owncloud 10
+	proxy /.well-known/openid-configuration kopano_konnect:8777
 	proxy / owncloud:8080 {
 		transparent
 	}
