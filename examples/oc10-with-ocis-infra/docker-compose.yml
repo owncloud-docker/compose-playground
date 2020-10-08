@@ -112,6 +112,9 @@ services:
       GLAUTH_BACKEND_DATASTORE: owncloud
       GLAUTH_BACKEND_SERVER: https://${OC10_DOMAIN}
       GLAUTH_BACKEND_BASEDN: dc=example,dc=org
+      REVA_STORAGE_METADATA_PROVIDER_DRIVER: owncloud # storage fails start up if backend owncloud is selected and this env vars isn't set
+      REVA_STORAGE_METADATA_DATA_PROVIDER_DRIVER: owncloud # storage fails start up if backend owncloud is selected and this env vars isn't set
+      ACCOUNTS_STORAGE_DISK_PATH: /var/tmp/ocis-accounts # accounts fails to start when cs3 backend is used atm
     volumes:
       - ./ocis:/config
     labels:
