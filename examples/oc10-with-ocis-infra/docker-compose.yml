@@ -79,7 +79,10 @@ services:
       - "traefik.protocol=https"
 
   ocis:
-    image: owncloud/ocis:latest
+    #image: owncloud/ocis:latest
+    build:
+      context: ./ocis
+      dockerfile: Dockerfile
     ports:
       - 9200:9200
     expose:
@@ -100,7 +103,7 @@ services:
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
       KONNECTD_TLS: 0
       KONNECTD_SIGNING_KID: super
-      GRAPH_OIDC_ENDPOINT: https://${OCIS_DOMAIN}
+      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
       PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
@@ -110,8 +113,22 @@ services:
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
       REVA_LDAP_IDP: https://${OCIS_DOMAIN}
       GLAUTH_BACKEND_DATASTORE: owncloud
-      GLAUTH_BACKEND_SERVER: https://${OC10_DOMAIN}
+      GLAUTH_BACKEND_SERVERS: https://${OC10_DOMAIN}/apps/graphapi/v1.0
       GLAUTH_BACKEND_BASEDN: dc=example,dc=org
+      REVA_STORAGE_METADATA_PROVIDER_DRIVER: owncloud # storage fails start up if backend owncloud is selected and this env vars isn't set
+      REVA_STORAGE_METADATA_DATA_PROVIDER_DRIVER: owncloud # storage fails start up if backend owncloud is selected and this env vars isn't set
+      ACCOUNTS_STORAGE_DISK_PATH: /var/tmp/ocis-accounts # accounts fails to start when cs3 backend is used atm
+      LDAP_URI: ldap://localhost:9125
+      LDAP_BINDDN: "cn=admin,dc=example,dc=org"
+      LDAP_BINDPW: "admin"
+      LDAP_BASEDN: "dc=example,dc=org"
+      LDAP_SCOPE: sub
+      LDAP_LOGIN_ATTRIBUTE: uid
+      LDAP_EMAIL_ATTRIBUTE: mail
+      LDAP_NAME_ATTRIBUTE: givenName
+      LDAP_UUID_ATTRIBUTE: uid
+      LDAP_UUID_ATTRIBUTE_TYPE: text
+      LDAP_FILTER: "(objectClass=posixaccount)"
     volumes:
       - ./ocis:/config
     labels:
