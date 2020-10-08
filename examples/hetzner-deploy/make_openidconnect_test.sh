@@ -2,7 +2,7 @@
 #
 # see also:
 #  https://github.com/owncloud-docker/compose-playground/issues/6
-#  https://github.com/owncloud-docker/compose-playground/pull/51 	pmaier-fixes 
+#  https://github.com/owncloud-docker/compose-playground/pull/51 	pmaier-fixes
 #  https://github.com/owncloud-docker/compose-playground/blob/master/compose/kopano/konnect/README.md
 #  https://doc.owncloud.com/server/10.5/admin_manual/configuration/user/oidc/
 #
@@ -19,11 +19,16 @@ d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)
 source ./make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
 
 comp_yml=kopano/konnect/docker-compose.yml
+reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
-KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
-OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
+## choose with or without version number, in case we want two systems.
+# KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
+# OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
+KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
+
 ## if you cannot work with cloudflare, you may try an /etc/hosts setup using:
 # KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
 # OWNCLOUD_DOMAIN=owncloud.docker-playground.local
@@ -36,8 +41,6 @@ LOAD_SCRIPT << EOF
 
   # allow switch back and forth
   sed -i -e 's@OWNCLOUD_APPS_INSTALL=.*@OWNCLOUD_APPS_INSTALL=$openidconnect_url $oauth2_url@g' $comp_yml
-  # already committed to branch pmaier-fixes:
-  # sed -i -e 's/OWNCLOUD_APPS_ENABLE=.*/OWNCLOUD_APPS_ENABLE=openidconnect/g' $comp_yml
   grep OWNCLOUD_APPS_ $comp_yml
 
   # disable ipv6, to not confuse ocis server:
@@ -69,7 +72,12 @@ LOAD_SCRIPT << EOF
     config > oidc-merged.yml
   docker-compose -f oidc-merged.yml up -d
 
-  docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2'
+  while ! docker exec compose_owncloud_1 occ status | grep 'installed: true'; do
+     echo "Waiting for ownCloud to become ready ..."
+     sleep 5
+  done
+  docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
+  docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
 
   cat <<EOM
 ---------------------------------------------
@@ -77,9 +85,6 @@ LOAD_SCRIPT << EOF
 
 # start a screen session, watch the logs with
 	docker-compose -f oidc-merged.yml logs -f
-
-# when everything is done, check the app and sync the users:
-	docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
 
 # you may now first need to add the DNS entries at dash.cloudflare.com
 	$IPADDR $KOPANO_KONNECT_DOMAIN
@@ -95,7 +100,7 @@ LOAD_SCRIPT << EOF
 
 
 # then connect from remote (certs must be good!):
-	curl https://$KOPANO_KONNECT_DOMAIN/.well-known/openid-configuration
+	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration
 	curl http://$IPADDR:9680/status.php
 	firefox https://$OWNCLOUD_DOMAIN
 	# CAUTION: only use the DNS name. IP Adresses are not supported by our certificates.
