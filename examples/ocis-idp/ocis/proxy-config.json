@@ -3,8 +3,12 @@
     "Namespace": "com.owncloud"
   },
   "policy_selector": {
-    "static": {"policy" : "reva"}
-  },
+    "migration": {
+      "acc_found_policy" : "reva",
+      "acc_not_found_policy": "oc10",
+      "unauthenticated_policy": "oc10"
+  }
+},
   "policies": [
     {
       "name": "reva",

@@ -95,15 +95,16 @@ services:
       #PROXY_TRANSPORT_TLS_CERT: /proxy_certs/localhost.crt
       #PROXY_TRANSPORT_TLS_KEY: /proxy_certs/localhost.key
       OCIS_DOMAIN: ${OCIS_DOMAIN}
-      OCIS_CONFIG_FILE: "/config/proxy-config.json"
+      PROXY_CONFIG_FILE: "/config/proxy-config.json"
       PROXY_TLS: "false"
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
+      PROXY_AUTOPROVISION_ACCOUNTS: "true"
       KONNECTD_ISS: https://${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
       KONNECTD_TLS: 0
       KONNECTD_SIGNING_KID: super
-      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}
+      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}/apps/graphapi/v1.0
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
       PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
       PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
@@ -131,6 +132,7 @@ services:
       LDAP_FILTER: "(objectClass=posixaccount)"
     volumes:
       - ./ocis:/config
+      - ./ocis/proxy-config.json:/etc/ocis/proxy.json
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN}`)"
