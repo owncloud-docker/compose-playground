@@ -95,9 +95,9 @@ The second file is the proxy-config.json which configures the ocis internal serv
 ```
     ...
     volumes:
-      - ./config:/etc/ocis
+      - ./config/proxy-config.json:/etc/ocis/proxy.json
     environment:
       ...
-      OCIS_CONFIG_FILE: "/etc/ocis/proxy-config.json"
+      OCIS_CONFIG_FILE: "/etc/ocis/proxy.json"
       ...
 ```

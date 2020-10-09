@@ -35,7 +35,7 @@ services:
       - ./config:/etc/ocis
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
-      OCIS_CONFIG_FILE: "/etc/ocis/proxy-config.json"
+      OCIS_CONFIG_FILE: "/etc/ocis/proxy.json"
       PROXY_TLS: "false"
       PROXY_HTTP_ADDR: 0.0.0.0:9200
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
