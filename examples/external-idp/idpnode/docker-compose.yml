@@ -1,4 +1,4 @@
-version: "3.3"
+version: '3.7'
 
 services:
 
@@ -12,10 +12,10 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=postmaster@idp-node.owncloud.works"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.idp.acme.tlschallenge=true"
+      - "--certificatesresolvers.idp.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.idp.acme.email=postmaster@${IDP_DOMAIN}"
+      - "--certificatesresolvers.idp.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
       - "8080:8080"
@@ -34,11 +34,11 @@ services:
       - ./config:/etc/ocis
     environment:
       OCIS_LOG_LEVEL: debug
-      KONNECTD_ISS: https://idp-node.owncloud.works
+      KONNECTD_ISS: https://${IDP_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/etc/ocis/identifier-registration.yml"
       KONNECTD_LOG_LEVEL: debug
       KONNECTD_TLS: '0'
-      LDAP_URI: ldap://ocis-node.owncloud.works:9125
+      LDAP_URI: ldap://${OCIS_DOMAIN}:9125
       LDAP_BINDDN: cn=konnectd,ou=sysusers,dc=example,dc=org
       LDAP_BINDPW: konnectd
       LDAP_BASEDN: ou=users,dc=example,dc=org
@@ -51,13 +51,9 @@ services:
       LDAP_FILTER: (objectClass=posixaccount)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.konnectd.rule=Host(`idp-node.owncloud.works`)"
-      - "traefik.http.routers.konnectd.entrypoints=websecure"
-      - "traefik.http.routers.konnectd.tls.certresolver=myresolver"
+      - "traefik.http.routers.idp.rule=Host(`${IDP_DOMAIN}`)"
+      - "traefik.http.routers.idp.entrypoints=websecure"
+      - "traefik.http.routers.idp.tls.certresolver=idp"
       - "traefik.docker.network=idpnet"
       - "traefik.port=9130"
       - "traefik.protocol=https"
-
-networks:
-  idpnet:
-    external: true

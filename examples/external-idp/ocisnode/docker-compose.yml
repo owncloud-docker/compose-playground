@@ -1,4 +1,4 @@
-version: "3.3"
+version: '3.7'
 
 services:
 
@@ -12,10 +12,10 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=jmueller@ocis-node.owncloud.works"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.ocis.acme.tlschallenge=true"
+      - "--certificatesresolvers.ocis.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.ocis.acme.email=postmaster@${OCIS_DOMAIN}"
+      - "--certificatesresolvers.ocis.acme.storage=/letsencrypt/acme.json"
     ports:
       - "443:443"
       - "8080:8080"
@@ -52,14 +52,10 @@ services:
       REVA_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ocis.rule=Host(`ocis-node.owncloud.works`)"
+      - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN}`)"
       - "traefik.http.routers.ocis.entrypoints=websecure"
-      - "traefik.http.routers.ocis.tls.certresolver=myresolver"
+      - "traefik.http.routers.ocis.tls.certresolver=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
       - "traefik.docker.network=ocisnet"
       - "traefik.port=9200"
       - "traefik.protocol=https"
-
-networks:
-  ocisnet:
-    external: false
