@@ -6,14 +6,14 @@
 #  https://github.com/owncloud-docker/compose-playground/blob/master/compose/kopano/konnect/README.md
 #  https://doc.owncloud.com/server/10.5/admin_manual/configuration/user/oidc/
 #
-# CAUTION: Do not use obvious README in https://github.com/owncloud/openidconnect/ - it is wrong.
+# CAUTION: Do not use the obvious README in https://github.com/owncloud/openidconnect/ - it is wrong.
 #
-# 2020-09-01, jw@owncloud.com
+# 2020-10-16, jw@owncloud.com
 #
 
 echo "Estimated setup time: 8 minutes ..."
 
-vers=1.0.0RC4
+vers=1.0.0RC5
 oauth2_vers=0.4.4RC1
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)
 source ./make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
@@ -23,11 +23,13 @@ reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
+OWNCLOUD_RELEASE_DOCKER_TAG=10.5.0	# found on https://hub.docker.com/r/owncloud/server/tags/
+
 ## choose with or without version number, in case we want two systems.
-# KOPANO_KONNECT_DOMAIN=konnect-$d_vers.oidc-jw-qa.owncloud.works
-# OWNCLOUD_DOMAIN=owncloud-$d_vers.oidc-jw-qa.owncloud.works
-KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
-OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
+KOPANO_KONNECT_DOMAIN=konnect.oidc-$d_vers.jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=oc-10-5-0.oidc-$d_vers.jw-qa.owncloud.works
+# KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
+# OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
 
 ## if you cannot work with cloudflare, you may try an /etc/hosts setup using:
 # KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
@@ -59,6 +61,7 @@ LOAD_SCRIPT << EOF
   echo >> /etc/hosts 127.0.0.1 $KOPANO_KONNECT_DOMAIN
   echo >> /etc/hosts 127.0.0.1 $OWNCLOUD_DOMAIN
 
+  export OWNCLOUD_RELEASE_DOCKER_TAG=$OWNCLOUD_RELEASE_DOCKER_TAG
   docker-compose \
     -f owncloud-base.yml \
     -f owncloud-official.yml \
@@ -69,8 +72,8 @@ LOAD_SCRIPT << EOF
     -f owncloud-exported-ports.yml \
     -f ldap/openldap-autoconfig-base.yml \
     -f kopano/konnect/docker-compose.yml \
-    config > oidc-merged.yml
-  docker-compose -f oidc-merged.yml up -d
+    config > merged.yml
+  docker-compose -f merged.yml up -d
 
   while ! docker exec compose_owncloud_1 occ status | grep 'installed: true'; do
      echo "Waiting for ownCloud to become ready ..."
@@ -84,20 +87,25 @@ LOAD_SCRIPT << EOF
 ### CAUTION: manual steps required here!
 
 # start a screen session, watch the logs with
-	docker-compose -f oidc-merged.yml logs -f
+	docker-compose -f merged.yml logs -f
 
-# you may now first need to add the DNS entries at dash.cloudflare.com
+# you may now first need to add the DNS entries at https://dash.cloudflare.com
 	$IPADDR $KOPANO_KONNECT_DOMAIN
 	$IPADDR $OWNCLOUD_DOMAIN
 
 # restart caddy (as often as needed)
-	docker-compose -f oidc-merged.yml stop caddy
-	docker-compose -f oidc-merged.yml start caddy
+	docker-compose -f merged.yml stop caddy
+	docker-compose -f merged.yml start caddy
 
 # until you see log messages like
 	caddy_1           | 2020/10/07 00:22:01 [INFO] [konnect-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
 	caddy_1           | 2020/10/07 00:22:04 [INFO] [owncloud-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
 
+# to start a migration from oauth to openidconnect:
+	a) comment out second reverse_proxy .well-known entry in kopano/konnect/Caddyfile.v2
+	b) docker-compose -f merged.yml restart caddy
+	c) log in as admin and disable openidconnect app
+	d) docker exec compose_owncloud_1 chmod 0 custom/openidconnect	# fake uninstall. Revert with chmod 755
 
 # then connect from remote (certs must be good!):
 	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration
