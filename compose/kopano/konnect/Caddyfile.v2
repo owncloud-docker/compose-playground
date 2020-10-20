@@ -24,13 +24,19 @@
 	# errors stderr
 	log
 
+	## let caddy do selfsigned certs internally (oidc does not like them??):
 	# tls internal
+	## or better let it fetch a cert from letsencrypt (default!) ...
 
 	# owncloud 10
 	## simple static well known, directly to the idp:
 	# reverse_proxy /.well-known/* kopano_konnect:8777
+	## better let the well-known url be handled by the openidconnect app:
+	redir /.well-known/openid-configuration /index.php/apps/openidconnect/config 301
+	## best, do so with an internal redirect, so that it is invisible to the web clients.
+	rewrite /.well-known/openid-configuration /index.php/apps/openidconnect/config
+	## avoid a security warning:
+	header Strict-Transport-Security max-age=15552000;
 	reverse_proxy owncloud:8080 {
-	  ## more correct well-known, handled by the openidconnet app:
-	  redir /.well-known/openid-configuration /index.php/apps/openidconnect/config
 	}
 }
