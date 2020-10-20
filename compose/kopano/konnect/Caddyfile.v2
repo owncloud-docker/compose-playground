@@ -27,7 +27,10 @@
 	# tls internal
 
 	# owncloud 10
-	reverse_proxy /.well-known/* kopano_konnect:8777
+	## simple static well known, directly to the idp:
+	# reverse_proxy /.well-known/* kopano_konnect:8777
 	reverse_proxy owncloud:8080 {
+	  ## more correct well-known, handled by the openidconnet app:
+	  redir /.well-known/openid-configuration /index.php/apps/openidconnect/config
 	}
 }
