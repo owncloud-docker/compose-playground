@@ -54,10 +54,14 @@ services:
       - /tmp
 
   caddy:
+    ## abiosoft/caddy:latest: is caddy_version: 1.0.3 -- cannot do: 'tls internal' is an invalid email, and 'tls off' causes ssl3_get_record:wrong version number
     image: "abiosoft/caddy:latest"
+    ## caddy:latest: is CADDY_VERSION: v2.1.1 -- 
+    image: "caddy:2.1.1"
     volumes:
       - ./.caddy:/root/.caddy # to sync mkcert certificates to Caddy
-      - ./kopano/konnect/Caddyfile:/etc/Caddyfile  # to mount custom Caddyfile
+      # - ./kopano/konnect/Caddyfile:/etc/Caddyfile  # caddy 1.0.3: to mount custom Caddyfile
+      - ./kopano/konnect/Caddyfile.v2:/etc/caddy/Caddyfile  # caddy 2.1.1: to mount custom Caddyfile
     ports:
       - 80:80
       - 443:443
@@ -65,6 +69,7 @@ services:
     environment:
       - ACME_AGREE=true
       - KOPANO_KONNECT_DOMAIN=${KOPANO_KONNECT_DOMAIN}
+      - OWNCLOUD_DOMAIN=${OWNCLOUD_DOMAIN}
     networks: 
       default:
         aliases: 
@@ -77,8 +82,9 @@ services:
     environment:
       - KOPANO_KONNECT_DOMAIN=${KOPANO_KONNECT_DOMAIN}
       - OWNCLOUD_DOMAIN=${OWNCLOUD_DOMAIN}
-      - OWNCLOUD_APPS_INSTALL=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
-      - OWNCLOUD_APPS_ENABLE="openidconnect"
+      # - OWNCLOUD_APPS_INSTALL=https://github.com/owncloud/openidconnect/releases/download/v0.2.0/openidconnect-0.2.0.tar.gz
+      - OWNCLOUD_APPS_INSTALL=https://github.com/owncloud/openidconnect/releases/download/v1.0.0RC2/openidconnect-1.0.0RC2.tar.gz
+      - OWNCLOUD_APPS_ENABLE=openidconnect
       - OWNCLOUD_LOGLEVEL=0
       
 volumes:

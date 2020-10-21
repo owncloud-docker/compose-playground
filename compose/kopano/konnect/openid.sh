@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -x
 
+# line removed, to workaround https://github.com/owncloud/openidconnect/pull/98
+# "use-token-introspection-endpoint": false
+
 CONFIG=$(cat <<EOF
 {
     "system": {
@@ -12,8 +15,7 @@ CONFIG=$(cat <<EOF
             "autoRedirectOnLoginPage": false,
             "redirect-url": "https://$OWNCLOUD_DOMAIN/index.php/apps/openidconnect/redirect",
             "mode": "userid",
-            "search-attribute": "preferred_username",
-            "use-token-introspection-endpoint": false
+            "search-attribute": "preferred_username"
         },
         "debug": true
     }

@@ -51,7 +51,7 @@ CONFIG=$(cat <<EOF
             "s01ldap_userfilter_groups": "",
             "s01ldap_userfilter_objectclass": "",
             "s01ldap_userlist_filter": "(objectclass=*)",
-            "s01use_memberof_to_detect_membership": "1",
+            "s01use_memberof_to_detect_membership": "1"
         }
     }
 }

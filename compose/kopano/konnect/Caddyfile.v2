@@ -1,0 +1,41 @@
+{$KOPANO_KONNECT_DOMAIN} {
+	# errors stderr
+	log
+
+	# https://caddyserver.com/docs/caddyfile/directives/tls
+	# abiosoft/caddy:latest caddy_version 1.0.3 interprets 'tls internal' as an email-address and fails.
+	# caddy/latest CADDY_VERSION: 2.1.1 understands tls internal.
+	#	tls internal
+
+	# konnect oidc
+	reverse_proxy /.well-known/* kopano_konnect:8777
+	reverse_proxy /konnect/* kopano_konnect:8777
+
+	# konnect identifier login area
+	reverse_proxy /signin/* kopano_konnect:8777 {
+	}
+
+	# owncloud 10 FIXME: what is this???
+	reverse_proxy /oc10 owncloud:8080 {
+	}
+}
+
+{$OWNCLOUD_DOMAIN} {
+	# errors stderr
+	log
+
+	## let caddy do selfsigned certs internally (oidc does not like them??):
+	# tls internal
+	## or better let it fetch a cert from letsencrypt (default!) ...
+
+	# owncloud 10
+	## simple static well known, directly to the idp:
+	# reverse_proxy /.well-known/* kopano_konnect:8777
+	## better let the well-known url be handled by the openidconnect app:
+	## Do so with an internal redirect, as the well known urls must not be redirected with HTTP/30x
+	rewrite /.well-known/openid-configuration /index.php/apps/openidconnect/config
+	## avoid a security warning:
+	header Strict-Transport-Security max-age=15552000;
+	reverse_proxy owncloud:8080 {
+	}
+}

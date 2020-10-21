@@ -2,6 +2,10 @@
 	errors stderr
 	log stdout
 
+	# https://caddyserver.com/docs/caddyfile/directives/tls
+	# abiosoft/caddy:latest caddy_version 1.0.3 interprets 'tls internal' as an email-address and fails.
+	# v1: 'tsl self_signed' generate and use an untrusted, self-signed certificate in memory that lasts 7 days
+	# caddy/latest CADDY_VERSION: 2.1.1 understands tls internal.
 	tls self_signed
 
 	# konnect oidc
@@ -32,6 +36,9 @@
 	tls self_signed
 
 	# owncloud 10
+        ## FIXME: the static .well-known is bad. It should (as seen in Caddyfile.v2) go through
+	# rewrite /.well-known/openid-configuration /index.php/apps/openidconnect/config
+	proxy /.well-known/openid-configuration kopano_konnect:8777
 	proxy / owncloud:8080 {
 		transparent
 	}
