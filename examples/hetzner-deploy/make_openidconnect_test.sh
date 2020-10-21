@@ -78,12 +78,17 @@ LOAD_SCRIPT << EOF
     config > merged.yml
   docker-compose -f merged.yml up -d
 
-  while ! docker exec compose_owncloud_1 occ status | grep 'installed: true'; do
+  while ! docker exec compose_owncloud_1 occ status 2>/dev/null| grep 'installed: true'; do
      echo "Waiting for ownCloud to become ready ..."
      sleep 5
   done
   docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
-  docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy'
+
+  while ! docker exec compose_owncloud_1 occ user:sync -l 2>/dev/null | grep 'User_LDAP'; do
+    echo "Waiting for user_ldap to be come ready ..."
+    sleep 5;
+  done
+  docker exec compose_owncloud_1 occ user:sync --missing-account-action=disable 'OCA\User_LDAP\User_Proxy' || echo "user:sync failed"
 
   cat <<EOM
 ---------------------------------------------
@@ -106,7 +111,7 @@ LOAD_SCRIPT << EOF
 
 # to start a migration from oauth to openidconnect:
 	a) docker exec compose_owncloud_1 occ app:enable oauth2
-	b) docker exec compose_owncloud_1 occ app:disable ipenidconnect
+	b) docker exec compose_owncloud_1 occ app:disable openidconnect
 
 # then connect from remote (certs must be good!):
 	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration	# if oauht2: 302 to /login page. if openidconnect: json config
