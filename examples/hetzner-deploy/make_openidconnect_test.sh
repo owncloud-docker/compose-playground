@@ -28,7 +28,7 @@ oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oa
 
 OWNCLOUD_RELEASE_DOCKER_TAG=10.5.0	# found on https://hub.docker.com/r/owncloud/server/tags/
 
-## choose with or without version number, in case we want two systems.
+## choose with or without version numbers and timestamps, in case we want multiple systems.
 KOPANO_KONNECT_DOMAIN=konnect.oidc-$d_vers.jw-qa.owncloud.works
 OWNCLOUD_DOMAIN=oc-10-5-0.oidc-$d_vers.jw-qa.owncloud.works
 # KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
@@ -41,7 +41,7 @@ OWNCLOUD_DOMAIN=oc-10-5-0.oidc-$d_vers.jw-qa.owncloud.works
 LOAD_SCRIPT << EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
   cd compose-playground/compose
-  git checkout pmaier-fixes || true
+  # git checkout pmaier-fixes || true
   git branch -a
 
   # allow switch back and forth
@@ -96,7 +96,7 @@ LOAD_SCRIPT << EOF
 	$IPADDR $KOPANO_KONNECT_DOMAIN
 	$IPADDR $OWNCLOUD_DOMAIN
 
-# restart caddy (as often as needed)
+# wait 10 min or restart caddy (as often as needed)
 	docker-compose -f merged.yml stop caddy
 	docker-compose -f merged.yml start caddy
 
@@ -105,13 +105,11 @@ LOAD_SCRIPT << EOF
 	caddy_1           | 2020/10/07 00:22:04 [INFO] [owncloud-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
 
 # to start a migration from oauth to openidconnect:
-	a) comment out second reverse_proxy .well-known entry in kopano/konnect/Caddyfile.v2
-	b) docker-compose -f merged.yml restart caddy
-	c) log in as admin and disable openidconnect app
-	d) docker exec compose_owncloud_1 chmod 0 custom/openidconnect	# fake uninstall. Revert with chmod 755
+	a) docker exec compose_owncloud_1 occ app:enable oauth2
+	b) docker exec compose_owncloud_1 occ app:disable ipenidconnect
 
 # then connect from remote (certs must be good!):
-	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration
+	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration	# if oauht2: 302 to /login page. if openidconnect: json config
 	curl http://$IPADDR:9680/status.php
 	firefox https://$OWNCLOUD_DOMAIN
 	# CAUTION: only use the DNS name. IP Adresses are not supported by our certificates.
