@@ -36,6 +36,8 @@
 	tls self_signed
 
 	# owncloud 10
+        ## FIXME: the static .well-known is bad. It should (as seen in Caddyfile.v2) go through
+	# rewrite /.well-known/openid-configuration /index.php/apps/openidconnect/config
 	proxy /.well-known/openid-configuration kopano_konnect:8777
 	proxy / owncloud:8080 {
 		transparent

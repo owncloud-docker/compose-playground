@@ -32,8 +32,7 @@
 	## simple static well known, directly to the idp:
 	# reverse_proxy /.well-known/* kopano_konnect:8777
 	## better let the well-known url be handled by the openidconnect app:
-	redir /.well-known/openid-configuration /index.php/apps/openidconnect/config 301
-	## best, do so with an internal redirect, so that it is invisible to the web clients.
+	## Do so with an internal redirect, as the well known urls must not be redirected with HTTP/30x
 	rewrite /.well-known/openid-configuration /index.php/apps/openidconnect/config
 	## avoid a security warning:
 	header Strict-Transport-Security max-age=15552000;
