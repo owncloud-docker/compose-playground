@@ -48,12 +48,13 @@ LOAD_SCRIPT << EOF
   sed -i -e 's@OWNCLOUD_APPS_INSTALL=.*@OWNCLOUD_APPS_INSTALL=$openidconnect_url $oauth2_url@g' $comp_yml
   grep OWNCLOUD_APPS_ $comp_yml
 
-  # disable ipv6, to not confuse ocis server:
-  echo >> /etc/sysctl.conf "net.ipv6.conf.all.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.default.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.lo.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
-  sysctl -p
+#  We often see networks disappear after a day or two. Maybe that is related to disabling ipv6?
+#  # disable ipv6, to not confuse ocis server:
+#  echo >> /etc/sysctl.conf "net.ipv6.conf.all.disable_ipv6 = 1"
+#  echo >> /etc/sysctl.conf "net.ipv6.conf.default.disable_ipv6 = 1"
+#  echo >> /etc/sysctl.conf "net.ipv6.conf.lo.disable_ipv6 = 1"
+#  echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
+#  sysctl -p
 
   # cleanup orphaned volumes!
   docker system prune -f
@@ -92,8 +93,6 @@ LOAD_SCRIPT << EOF
 
   cat <<EOM
 ---------------------------------------------
-### CAUTION: manual steps required here!
-
 # start a screen session, watch the logs with
 	docker-compose -f merged.yml logs -f
 
@@ -102,8 +101,7 @@ LOAD_SCRIPT << EOF
 	$IPADDR $OWNCLOUD_DOMAIN
 
 # wait 10 min or restart caddy (as often as needed)
-	docker-compose -f merged.yml stop caddy
-	docker-compose -f merged.yml start caddy
+	docker-compose -f merged.yml restart caddy
 
 # until you see log messages like
 	caddy_1           | 2020/10/07 00:22:01 [INFO] [konnect-1-0-0rc4.oidc-jw-qa.owncloud.works] Server responded with a certificate.
@@ -117,19 +115,12 @@ LOAD_SCRIPT << EOF
 	curl https://$OWNCLOUD_DOMAIN/.well-known/openid-configuration	# if oauht2: 302 to /login page. if openidconnect: json config
 	curl http://$IPADDR:9680/status.php
 	firefox https://$OWNCLOUD_DOMAIN
-	# CAUTION: only use the DNS name. IP Adresses are not supported by our certificates.
 
 # login via 'Kopano' with user: aaliyah_abernathy pass: secret
 
 # you may first need to add the DNS entries to cloudflare or to your local hosts file
 	echo $IPADDR $KOPANO_KONNECT_DOMAIN  | sudo tee -a /etc/hosts
   	echo $IPADDR $OWNCLOUD_DOMAIN | sudo tee -a /etc/hosts
-
-# Study
-	https://github.com/owncloud-docker/compose-playground/blob/pmaier-fixes/compose/kopano/konnect/README.md
-	https://doc.owncloud.com/server/10.5/admin_manual/configuration/user/oidc/
-
-### CAUTION: manual steps required here!
 ---------------------------------------------
 EOM
 EOF
