@@ -2,6 +2,7 @@
 #
 # 2020-10-26, jw@owncloud.com
 #
+# https://doc.owncloud.com/server/developer_manual/testing/ui-testing.html
 
 echo "Estimated setup time: 8 minutes ..."
 
@@ -25,6 +26,7 @@ EOCC
   git clone -b v$vers https://github.com/owncloud/core.git owncloud
   chown -R www-data:www-data owncloud
   cd owncloud
+  git clone https://github.com/owncloud/testing apps/testing
 
   $example_make_cmd
 
