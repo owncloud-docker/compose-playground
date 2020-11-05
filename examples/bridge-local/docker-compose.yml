@@ -1,0 +1,114 @@
+version: '3.7'
+
+volumes:
+  files:
+    driver: local
+  mysql:
+    driver: local
+  backup:
+    driver: local
+  redis:
+    driver: local
+  tmp:
+    driver: local
+
+services:
+  oc10:
+    build:
+      context: ./oc10
+      dockerfile: Dockerfile
+    expose:
+      - "8080"
+    depends_on:
+      - db
+      - redis
+    environment:
+      OWNCLOUD_DOMAIN: ${OC10_DOMAIN}
+      OWNCLOUD_DB_TYPE: mysql
+      OWNCLOUD_DB_NAME: owncloud
+      OWNCLOUD_DB_USERNAME: owncloud
+      OWNCLOUD_DB_PASSWORD: owncloud
+      OWNCLOUD_DB_HOST: db
+      OWNCLOUD_ADMIN_USERNAME: admin
+      OWNCLOUD_ADMIN_PASSWORD: admin
+      OWNCLOUD_MYSQL_UTF8MB4: "true"
+      OWNCLOUD_REDIS_ENABLED: "true"
+      OWNCLOUD_REDIS_HOST: redis
+      OWNCLOUD_DEBUG: "true"
+      OWNCLOUD_TRUSTED_PROXIES: ${OC10_DOMAIN}
+      OWNCLOUD_OVERWRITE_PROTOCOL: https
+      OWNCLOUD_OVERWRITE_HOST: ${OC10_DOMAIN}
+      OWNCLOUD_APPS_ENABLE: "openidconnect,oauth2,user_ldap,graphapi"
+      OWNCLOUD_LOG_LEVEL: 0
+    volumes:
+      - files:/mnt/data
+      - tmp:/tmp/shared
+
+  ocis:
+    image: owncloud/ocis:latest
+    ports:
+      - 9200:9200
+    environment:
+      OCIS_DOMAIN: ${OCIS_DOMAIN}
+      PROXY_CONFIG_FILE: "/config/proxy-config.json"
+      PROXY_TLS: "true"
+      PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
+      PROXY_OIDC_INSECURE: "true"
+      PROXY_AUTOPROVISION_ACCOUNTS: "true"
+      KONNECTD_ISS: https://${OCIS_DOMAIN}
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
+      KONNECTD_TLS: 0
+      KONNECTD_SIGNING_KID: super
+      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}/apps/graphapi/v1.0
+      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
+      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
+      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
+      PHOENIX_WEB_CONFIG: "/config/web/config.json"
+      STORAGE_OIDC_ISSUER: https://${OCIS_DOMAIN}
+      STORAGE_TRANSFER_EXPIRES: 86400
+      STORAGE_FRONTEND_URL: https://${OCIS_DOMAIN}
+      STORAGE_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
+      STORAGE_LDAP_IDP: https://${OCIS_DOMAIN}
+      GLAUTH_BACKEND_DATASTORE: owncloud
+      GLAUTH_BACKEND_SERVERS: https://${OC10_DOMAIN}/apps/graphapi/v1.0
+      GLAUTH_BACKEND_BASEDN: dc=example,dc=org
+      LDAP_URI: ldap://localhost:9125
+      LDAP_BINDDN: "cn=admin,dc=example,dc=org"
+      LDAP_BINDPW: "admin"
+      LDAP_BASEDN: "dc=example,dc=org"
+      LDAP_SCOPE: sub
+      LDAP_LOGIN_ATTRIBUTE: uid
+      LDAP_EMAIL_ATTRIBUTE: mail
+      LDAP_NAME_ATTRIBUTE: givenName
+      LDAP_UUID_ATTRIBUTE: uid
+      LDAP_UUID_ATTRIBUTE_TYPE: text
+      LDAP_FILTER: "(objectClass=posixaccount)"
+    volumes:
+      - ./ocis:/config
+      - ./ocis/proxy-config.json:/etc/ocis/proxy.json
+
+  db:
+    image: webhippie/mariadb:latest
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: owncloud
+      MARIADB_USERNAME: owncloud
+      MARIADB_PASSWORD: owncloud
+      MARIADB_DATABASE: owncloud
+      MARIADB_MAX_ALLOWED_PACKET: 128M
+      MARIADB_INNODB_LOG_FILE_SIZE: 256M
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - mysql:/var/lib/mysql
+      - backup:/var/lib/backup
+
+  redis:
+    image: webhippie/redis:latest
+    environment:
+      - REDIS_DATABASES=1
+    volumes:
+      - redis:/var/lib/redis
