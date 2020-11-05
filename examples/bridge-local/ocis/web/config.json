@@ -1,10 +1,10 @@
 {
-  "server": "https://${OCIS_DOMAIN}",
+  "server": "https://ocis.local:9200",
   "theme": "owncloud",
   "version": "0.1.0",
   "openIdConnect": {
-      "metadata_url": "https://${OCIS_DOMAIN}/.well-known/openid-configuration",
-      "authority": "https://${OCIS_DOMAIN}",
+      "metadata_url": "https://ocis.local:9200/.well-known/openid-configuration",
+      "authority": "https://ocis.local:9200",
       "client_id": "phoenix",
       "response_type": "code",
       "scope": "openid profile email"
@@ -16,13 +16,13 @@
                         "de": "Klassisches ownCloud"
                 },
                 "icon": "switch_ui",
-                "url": "https://${OC10_DOMAIN}",
+                "url": "https://oc10.local:8080",
                 "target": "_self"
         },
         {
               "title": {"en": "Classic Settings"},
               "icon": "application",
-              "url": "https://${OC10_DOMAIN}/index.php/settings/personal",
+              "url": "https://oc10.local:8080/index.php/settings/personal",
               "target": "_self",
               "menu": "user"
         }

@@ -57,7 +57,7 @@ services:
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
       KONNECTD_ISS: https://${OCIS_DOMAIN}
       KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
-      KONNECTD_TLS: 0
+      KONNECTD_TLS: 1
       KONNECTD_SIGNING_KID: super
       GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}/apps/graphapi/v1.0
       PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
