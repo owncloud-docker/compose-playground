@@ -13,12 +13,25 @@ volumes:
     driver: local
 
 services:
+  traefik:
+    image: traefik:v2.2
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml
+      - ./traefik/traefik.config.toml:/etc/traefik/traefik.config.toml
+      - ./traefik/devcerts:/etc/certs
+
   oc10:
     build:
       context: ./oc10
       dockerfile: Dockerfile
+    domainname: local
+    hostname: oc10
     ports:
-      - 8080:8080
+      - 10118:8080
     depends_on:
       - db
       - redis
@@ -46,12 +59,14 @@ services:
 
   ocis:
     image: owncloud/ocis:latest
+    domainname: local
+    hostname: ocis
     ports:
-      - 9200:9200
+      - 10119:9200
     environment:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
       PROXY_CONFIG_FILE: "/config/proxy-config.json"
-      PROXY_TLS: "true"
+      PROXY_TLS: "false"
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
       PROXY_OIDC_INSECURE: "true"
       PROXY_AUTOPROVISION_ACCOUNTS: "true"

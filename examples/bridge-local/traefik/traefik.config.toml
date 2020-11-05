@@ -1,0 +1,54 @@
+[http]
+  [http.routers]
+    [http.routers.http-to-ocis]
+      rule = "Host(`ocis.local`)"
+      service = "ocis"
+      entrypoints = ["http"]
+      middlewares = ["redirect"]
+
+    [http.routers.https-to-ocis]
+      rule = "Host(`ocis.local`)"
+      service = "ocis"
+      entrypoints = ["https"]
+      [http.routers.https-to-ocis.ocis-tls]
+
+    [http.routers.http-to-oc10]
+      rule = "Host(`oc10.local`)"
+      service = "oc10"
+      entrypoints = ["http"]
+      middlewares = ["redirect"]
+
+    [http.routers.https-to-oc10]
+      rule = "Host(`oc10.local`)"
+      service = "oc10"
+      entrypoints = ["https"]
+      [http.routers.https-to-oc10.oc10-tls]
+
+  [http.services]
+    [http.services.ocis]
+      [http.services.ocis.loadBalancer]
+       passHostHeader = true
+
+        [[http.services.ocis.loadBalancer.servers]]
+          # This is where your dev app lives.
+          url = "https://127.0.0.1:10119/"
+
+    [http.services.oc10]
+      [http.services.oc10.loadBalancer]
+       passHostHeader = true
+
+        [[http.services.oc10.loadBalancer.servers]]
+          # This is where your dev app lives.
+          url = "http://127.0.0.1:10118/"
+
+  [http.middlewares]
+    [http.middlewares.redirect.redirectScheme]
+      scheme = "https"
+
+[tls]
+  [[ocis-tls.certificates]]
+    certFile = "/etc/certs/ocis.local.pem"
+    keyFile = "/etc/certs/ocis.local-key.pem"
+  [[oc10-tls.certificates]]
+    certFile = "/etc/certs/oc10.local.pem"
+    keyFile = "/etc/certs/oc10.local-key.pem"
