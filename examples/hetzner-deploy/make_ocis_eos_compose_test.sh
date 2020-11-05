@@ -91,6 +91,7 @@ wait_for_eos_health () {
 echo -e "#! /bin/sh\ncd ~/ocis/ocis\ndocker-compose -f $compose_yml logs -f --tail=10 ocis" > /usr/local/bin/show_logs
 chmod a+x /usr/local/bin/show_logs
 
+
 cd ~
 rm -rf ./ocis
 docker images -q | xargs -r docker rmi --force
@@ -101,7 +102,7 @@ docker volume prune --force
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis/ocis
 
-## FIXME website is blank without this.
+## FIXME unclear if still needed...
 ##
 ## workaround for https://jira.owncloud.com/browse/OCIS-489
 # 2020-10-29: should be fixed by https://github.com/owncloud/ocis-phoenix/pull/83
@@ -145,7 +146,10 @@ cd ocis/ocis
 #################################################
 ## commented out, to see if still neeeded:
 #
-# ## FIXME: workaround for https://github.com/owncloud/ocis/issues/396
+## FIXME: .env hacking is still needed.
+## Otherwise we only have localhost endpoints in 	curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
+## and the webpage remains blank. No login possible.
+#
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
 echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
@@ -154,13 +158,14 @@ echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
 cat .env >> config/eos-docker.env
 
 #################################################
-## FIXME: we still see localhost only with 1.0.0-rc3 - this hack is still needed.
+##
 ## it is no longer auto-created, but we have multiple candidates around:
 # for reg_yml in ../konnectd/*/identifier-registration.yaml ; do
 #   sed -i -e "s@://localhost:9@://$IPADDR:9@" $reg_yml
 # done
 
-
+## FIXME: without this we get http error 400.  when trying to login. The log has 'invalid redirect: https://95.216.209.166:9200/oidc-callback.html'
+##
 # ## Part two with the bigger hammer: patch the identifier-registration.yaml -- this file is autocreated when ocis starts for the first time.
 # # the original file comes from https://github.com/owncloud/ocis-konnectd/blob/master/assets/identifier-registration.yaml
 # reg_yml=config/identifier-registration.yaml
@@ -185,30 +190,37 @@ cat .env >> config/eos-docker.env
 ## Start the eos cluster and ocis via the compose stack.
 ##
 docker-compose -f $compose_yml up -d
-##
+wait_for_ocis
+
+## FIXME: the identifier-registration.yaml now only exists inside the continer. Need to patch it there...
+docker-compose -f docker-compose-eos-test.yml exec ocis sed -i -e 's@://localhost:9@://95.216.209.166:9@' /config/identifier-registration.yaml
+docker-compose -f $compose_yml stop ocis
+docker-compose -f $compose_yml up -d
 wait_for_ocis
 
 
 ## 2. LDAP Support
 ## Configure the OS to resolve users and groups using ldap
 ##
-docker-compose -f $compose_yml exec -d ocis /start-ldap
+## FIXME: /start-ldap no longer exists. but wait for ldap somehoe stil magically works. most of the time.
+# docker-compose -f $compose_yml exec -d ocis /start-ldap
 
-## {{< hint info >}} If the user is not found at first you might need to wait a few more minutes
-##  in case the ocis container is still compiling. {{< /hint >}}
-##
 wait_for_ldap
 
 ## Check that the OS in the ocis container can now resolve einstein or the other demo users
 ##
 docker-compose -f $compose_yml exec ocis id einstein
 # uid=20000(einstein) gid=30000(users) groups=30000(users),30001(sailing-lovers),30002(violin-haters),30007(physics-lovers)
+## FIXME: the extra groups are missing now.
+# uid=20000(einstein) gid=30000 groups=30000
 
+## No longer needed, since ldap seems to autostart.
 ## We also need to restart the storage-users service so it picks up the changed environment.
 ## Without a restart it is not able to resolve users from LDAP.
 ##
-docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
-docker-compose -f $compose_yml exec ocis $ocis_bin run storage-users
+## 
+# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
+# docker-compose -f $compose_yml exec ocis $ocis_bin run storage-users
 
 
 ## FIXME: duplicate STORAGE_STORAGE and sotrage-storage here? This is
