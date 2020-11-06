@@ -29,7 +29,7 @@ if [ -z "$OCIS_VERSION" ]; then
 fi
 
 # use a cx31 -- we need more than 40GB disk space.
-source ./make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
+source lib/make_machine.sh -t cx31 -u ocis-${OCIS_VERSION}-eos -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
 set -x
 
 if [ -z "$IPADDR" ]; then
@@ -44,7 +44,7 @@ eos_home_einstein=/eos/dockertest/reva/users/4/4c510ada-c86b-4815-8820-42cdf82c3
 eos_uid=20000
 eos_gid=30000
 
-LOAD_SCRIPT <<EOF
+INIT_SCRIPT <<EOF
 
 wait_for_ocis () {
   ## it compiles code upon first start. this can take ca 6 minutes.
@@ -102,85 +102,31 @@ docker volume prune --force
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis/ocis
 
-## FIXME unclear if still needed...
-##
-## workaround for https://jira.owncloud.com/browse/OCIS-489
-# 2020-10-29: should be fixed by https://github.com/owncloud/ocis-phoenix/pull/83
-##
-# config_json=config/config.json
-# cat <<END_CONFIG_JSON > \$config_json
-# {
-#   "server": "https://${IPADDR}:9200",
-#   "theme": "owncloud",
-#   "version": "0.1.0",
-#   "openIdConnect": {
-#     "metadata_url": "https://${IPADDR}:9200/.well-known/openid-configuration",
-#     "authority": "https://${IPADDR}:9200",
-#     "client_id": "phoenix",
-#     "response_type": "code",
-#     "scope": "openid profile email"
-#   },
-#   "apps": [
-#     "files",
-#     "draw-io",
-#     "pdf-viewer",
-#     "markdown-editor",
-#     "media-viewer"
-#   ],
-#   "external_apps": [
-#     {
-#       "id": "accounts",
-#       "path": "https://${IPADDR}:9200/accounts.js"
-#     },
-#     {
-#       "id": "settings",
-#       "path": "https://${IPADDR}:9200/settings.js"
-#     }
-#   ],
-#   "options": {
-#     "hideSearchBar": true
-#   }
-# }
-# END_CONFIG_JSON
+if grep -q BRANCH: $compose_yml; then
+  if grep "BRANCH: $OCIS_VERSION" $compose_yml; then
+     echo "$compose_yml mentions \"BRANCH: $OCIS_VERSION\", nice!"
+  else
+    grep BRANCH: $compose_yml
+    echo "ERROR: expected to see "BRANCH: $OCIS_VERSION" in $compose_yml !"
+    exit 1
+  fi
+else
+  echo "$compose_yml does not mention any BRANCH. Adding one as build: args: ..."
+  sed -i -e 's/^      context:/      args:\n        BRANCH: '"$OCIS_VERSION"'\n      context:/' $compose_yml
+  git diff
+fi
 
-#################################################
-## commented out, to see if still neeeded:
-#
-## FIXME: .env hacking is still needed.
-## Otherwise we only have localhost endpoints in 	curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
+## .env hacking is always needed. Otherwise we only have localhost endpoints in 	curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
 ## and the webpage remains blank. No login possible.
 #
+# BRANCH is actually a buildarg in docker/eos-ocis/Dockerfile
 echo >  .env OCIS_DOMAIN=$IPADDR
-echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
-echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
-# echo >> .env PHOENIX_WEB_CONFIG=/ocis/\$config_json
-# 
+echo >> .env BRANCH=$OCIS_VERSION
+## FIXME: are these two still needed?
+# echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
+# echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
+
 cat .env >> config/eos-docker.env
-
-#################################################
-##
-## it is no longer auto-created, but we have multiple candidates around:
-# for reg_yml in ../konnectd/*/identifier-registration.yaml ; do
-#   sed -i -e "s@://localhost:9@://$IPADDR:9@" $reg_yml
-# done
-
-## FIXME: without this we get http error 400.  when trying to login. The log has 'invalid redirect: https://95.216.209.166:9200/oidc-callback.html'
-##
-# ## Part two with the bigger hammer: patch the identifier-registration.yaml -- this file is autocreated when ocis starts for the first time.
-# # the original file comes from https://github.com/owncloud/ocis-konnectd/blob/master/assets/identifier-registration.yaml
-# reg_yml=config/identifier-registration.yaml
-# if [ ! -f \$reg_yml ]; then
-#   docker-compose -f $compose_yml up -d ocis
-#   wait_for_ocis
-#   docker-compose -f $compose_yml stop ocis
-#   # once only... and only for phoenix!
-#   sed -i -e "s@^\\s*- https://localhost:9200/\\\$@      - https://${IPADDR}:9200/oidc-callback.html\\n      - https://${IPADDR}:9200/oidc-silent-callback.html\\n      - https://${IPADDR}:9200/\\n      - https://localhost:9200/@" \$reg_yml
-#   sed -i -e "s@^\s*- https://localhost:9200\\\$@      - https://${IPADDR}:9200\\n      - http://${IPADDR}:9100\\n      - https://localhost:9200@" \$reg_yml
-# fi
-
-
-
-
 
 ##################################################
 # Keep the code below in sync with https://github.com/owncloud/ocis/blob/master/docs/eos.md
@@ -192,17 +138,21 @@ cat .env >> config/eos-docker.env
 docker-compose -f $compose_yml up -d
 wait_for_ocis
 
+exit 0
+
 ## FIXME: the identifier-registration.yaml now only exists inside the continer. Need to patch it there...
-docker-compose -f docker-compose-eos-test.yml exec ocis sed -i -e 's@://localhost:9@://95.216.209.166:9@' /config/identifier-registration.yaml
-docker-compose -f $compose_yml stop ocis
-docker-compose -f $compose_yml up -d
+## FIXME: without this we get http error 400.  when trying to login. The log has 'invalid redirect: https://95.216.209.166:9200/oidc-callback.html'
+docker-compose -f docker-compose-eos-test.yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /config/identifier-registration.yaml
+docker-compose -f $compose_yml restart ocis
+# docker-compose -f $compose_yml stop ocis
+# docker-compose -f $compose_yml up -d
 wait_for_ocis
 
 
 ## 2. LDAP Support
 ## Configure the OS to resolve users and groups using ldap
 ##
-## FIXME: /start-ldap no longer exists. but wait for ldap somehoe stil magically works. most of the time.
+## FIXME: /start-ldap no longer exists. but wait for ldap somehow stil magically works. The docs still have that.
 # docker-compose -f $compose_yml exec -d ocis /start-ldap
 
 wait_for_ldap
@@ -214,11 +164,11 @@ docker-compose -f $compose_yml exec ocis id einstein
 ## FIXME: the extra groups are missing now.
 # uid=20000(einstein) gid=30000 groups=30000
 
-## No longer needed, since ldap seems to autostart.
+## No longer needed, since ldap seems to autostart. FIXME: the docs still have that.
 ## We also need to restart the storage-users service so it picks up the changed environment.
 ## Without a restart it is not able to resolve users from LDAP.
 ##
-## 
+##
 # docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
 # docker-compose -f $compose_yml exec ocis $ocis_bin run storage-users
 
@@ -230,21 +180,21 @@ docker-compose -f $compose_yml exec ocis id einstein
 ## Kill the home storage. By default it uses the owncloud storage driver. We need to switch it
 ##  to the eoshome driver and make it use the storage id of the eos storage provider:
 ##
-docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home
-docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DRIVER=eoshome -e STORAGE_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158 ocis $ocis_bin run storage-storage-home
+# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home
+# docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DRIVER=eoshome -e STORAGE_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158 ocis $ocis_bin run storage-storage-home
 
 
 ## 4. Home data provider
 ## Kill the home data provider. By default it uses the owncloud storage driver. We need to switch it
 ## to the eoshome driver and make it use the storage id of the eos storage provider:
 ##
-docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home-data
-docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DATA_DRIVER=eoshome ocis $ocis_bin run storage-storage-home-data
+# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home-data
+# docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DATA_DRIVER=eoshome ocis $ocis_bin run storage-storage-home-data
 
 
 ## MISSING in https://owncloud.github.io/ocis/eos/ ->  https://github.com/owncloud/ocis/issues/361
 #
-# FIXME: Workaround for https://github.com/owncloud/ocis/issues/396, 
+# FIXME: Workaround for https://github.com/owncloud/ocis/issues/396,
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
 wait_for_eos_fst
@@ -258,10 +208,10 @@ done
 wait_for_eos_health
 
 ## FIXME: commmented out, to check if still needed
-# # enable trashbin
-# docker-compose -f $compose_yml exec mgm-master eos space config default space.policy.recycle=on
-# docker-compose -f $compose_yml exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
-# docker-compose -f $compose_yml exec mgm-master eos recycle config --size 1G
+# enable trashbin
+docker-compose -f $compose_yml exec mgm-master eos space config default space.policy.recycle=on
+docker-compose -f $compose_yml exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
+docker-compose -f $compose_yml exec mgm-master eos recycle config --size 1G
 
 # show some nice stats
 docker-compose -f $compose_yml exec ocis eos fs ls --io | sed -e 's/  / /g'
@@ -289,9 +239,9 @@ if [ -f ~/make_machine.bashrc ]; then
   docker cp ~/make_machine.bashrc.md ocis:/
   docker cp $version_file            ocis:/
 
-#   # Fix https://github.com/owncloud/product/issues/127
-#   # try auto-create einstein's home
-#   curl -k -X PROPFIND https://$IPADDR:9200/remote.php/webdav -u einstein:relativity
+  # Fix https://github.com/owncloud/product/issues/127
+  # try auto-create einstein's home
+  curl -k -X PROPFIND https://$IPADDR:9200/remote.php/webdav -u einstein:relativity
 #   if ! docker-compose -f $compose_yml exec ocis eos ls -la $eos_home_einstein; then
 #     echo ""
 #     echo "WARNING: failed to auto-create home of user einstein. Trying manually ..."
@@ -303,13 +253,13 @@ if [ -f ~/make_machine.bashrc ]; then
 #     docker-compose -f $compose_yml exec ocis eos attr set sys.mask="700"            $eos_home_einstein
 #     docker-compose -f $compose_yml exec ocis eos attr set sys.mtime.propagation="1" $eos_home_einstein
 #   fi
-# 
-#   docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home_einstein/init
-#   docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home_einstein/init/
-# 
-#   docker-compose -f $compose_yml exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
-#   docker-compose -f $compose_yml exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
-#   docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home_einstein/
+
+  docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home_einstein/init
+  docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home_einstein/init/
+
+  docker-compose -f $compose_yml exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
+  docker-compose -f $compose_yml exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
+  docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /tmp/Speech.ogg /tmp/Portrait.jpg $eos_home_einstein/
 fi
 
 
@@ -333,5 +283,3 @@ cat <<EOM
 ---------------------------------------------
 EOM
 EOF
-
-RUN_SCRIPT

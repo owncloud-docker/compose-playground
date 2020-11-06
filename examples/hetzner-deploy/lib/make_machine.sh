@@ -1,7 +1,13 @@
 #! /bin/bash
 # Factory switcher to choose between hcloud_tf, hcloud_py, and simple.
 
-libdir=$(dirname $0)/lib
+if [ -z "$BASH_SOURCE" ]; then
+  libdir=$(dirname $0)/lib	# a source command does not update $0, we have to add the lib ourselves. grrr.
+else
+  libdir=$(dirname "$BASH_SOURCE")
+fi
+echo libdir=$libdir
+
 test -z "$HCLOUD_TOKEN" && export HCLOUD_TOKEN=$TF_VAR_hcloud_token
 test -z "$OC_DEPLOY" -a -n "$OC_DEPLOY_ADDR" && OC_DEPLOY=simple
 if [ -z "$OC_DEPLOY" -a -n "$HCLOUD_TOKEN" ]; then
@@ -31,22 +37,44 @@ EOF
   exit 1;
 fi
 
-scriptfile=./tmpscript$$.sh
+tmpscriptfile=./tmpscript$$.sh
+scriptfile=$tmpscriptfile
+scriptfolder=
 function LOAD_SCRIPT {
-  cat $1 > $scriptfile
+  if [ -z "$1" ]; then
+     # inline style usage with <<EOF or such ...
+     cat > $scriptfile
+  else
+     scriptfolder=$(dirname "$1")
+     if [ "$scriptfolder" == "." ]; then
+       scriptfolder=
+       cp "$1" $scriptfile
+     else
+       scriptfile="$1"
+     fi
+  fi
 }
 
 function RUN_SCRIPT {
   if [ "$OC_DEPLOY_ADDR" = localhost -o "$OC_DEPLOY_ADDR" = 127.0.0.1 ]; then
     sudo bash $scriptfile
   else
-    echo 'set +x' >> $scriptfile
-    echo '. ~/.bashrc' >> $scriptfile
-    scp -q $scriptfile root@$IPADDR:make_machine.bashrc
-    ssh -t root@$IPADDR bash --rcfile make_machine.bashrc
+    if [ -z "$scriptfolder" ]; then
+      echo 'set +x' >> $scriptfile
+      echo '. ~/.bashrc' >> $scriptfile
+      scp -q $scriptfile root@$IPADDR:INIT.bashrc
+      ssh -t root@$IPADDR bash --rcfile INIT.bashrc
+    else
+      scp -q -r $scriptfolder root@$IPADDR:INIT
+      echo >  $tmpscriptfile "cd INIT; source $(basename $scriptfile)"
+      echo >> $tmpscriptfile "set +x"
+      echo >> $tmpscriptfile "cd ~; source ~/.bashrc"
+      scp -q  $tmpscriptfile root@$IPADDR:INIT.bashrc
+      ssh -t root@$IPADDR bash --rcfile INIT.bashrc
+    fi
   fi
   set +x
-  rm -f $scriptfile
+  rm -f $tmpscriptfile
 
   if [ "$OC_DEPLOY" != 'simple' ]; then
     cat <<EOF
@@ -62,6 +90,14 @@ function RUN_SCRIPT {
 EOF
   fi
 }
+
+function INIT_SCRIPT {
+  LOAD_SCRIPT $1
+  # For an interactive session, we must not have a stdin redirect. Use exec blackmagic to remove one, if any.
+  exec </dev/tty	
+  RUN_SCRIPT
+}
+
 
 # not used normally, but fulfill what the usage says:
 echo export IPADDR=$IPADDR NAME=$NAME

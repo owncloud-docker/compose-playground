@@ -19,7 +19,7 @@ echo "Estimated setup time: 8 minutes ..."
 vers=1.0.0RC5
 oauth2_vers=0.4.4RC1
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source ./make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
+source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
 
 comp_yml=kopano/konnect/docker-compose.yml
 reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
@@ -38,7 +38,7 @@ OWNCLOUD_DOMAIN=oc-10-5-0.oidc-$d_vers.jw-qa.owncloud.works
 # KOPANO_KONNECT_DOMAIN=konnect.docker-playground.local
 # OWNCLOUD_DOMAIN=owncloud.docker-playground.local
 
-LOAD_SCRIPT << EOF
+INIT_SCRIPT << EOF
   git clone https://github.com/owncloud-docker/compose-playground.git
   cd compose-playground/compose
   # git checkout pmaier-fixes || true
@@ -125,4 +125,3 @@ LOAD_SCRIPT << EOF
 EOM
 EOF
 
-RUN_SCRIPT

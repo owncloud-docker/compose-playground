@@ -11,9 +11,9 @@
 # 2020-04-15, jw@owncloud.com
 #
 
-source ./make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose
+source lib/make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose
 
-LOAD_SCRIPT << EOF
+INIT_SCRIPT << EOF
   # compose docker container
   git clone https://github.com/owncloud-docker/compose-playground.git
   sed -i -e 's/your-url/$IPADDR/g' compose-playground/compose/ocis/config/identifier-registration.yml
@@ -44,5 +44,3 @@ LOAD_SCRIPT << EOF
 ---------------------------------------------
 EOM
 EOF
-
-RUN_SCRIPT
