@@ -1,3 +1,4 @@
 .vscode
 .env
 .caddy
+examples/bridge-local/traefik/devcerts
