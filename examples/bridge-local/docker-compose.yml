@@ -83,6 +83,7 @@ services:
       GLAUTH_BACKEND_DATASTORE: owncloud
       GLAUTH_BACKEND_SERVERS: https://${OC10_DOMAIN}/apps/graphapi/v1.0
       GLAUTH_BACKEND_BASEDN: dc=example,dc=org
+      GLAUTH_BACKEND_INSECURE: "true"
       LDAP_URI: ldap://localhost:9125
       LDAP_BINDDN: "cn=admin,dc=example,dc=org"
       LDAP_BINDPW: "admin"

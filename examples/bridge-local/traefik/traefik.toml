@@ -4,7 +4,7 @@
 [log]
   # If something goes wrong, changing this to `DEBUG` might help you finding
   # out what happens.
-  level = "DEBUG" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+  level = "INFO" #DEBUG, INFO, WARN, ERROR, FATAL, PANIC
   format = "common"
 
 [entryPoints]
