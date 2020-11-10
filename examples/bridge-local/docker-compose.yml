@@ -15,6 +15,11 @@ volumes:
 services:
   traefik:
     image: traefik:v2.2
+    networks:
+      default:
+        aliases:
+          - ${OC10_DOMAIN}
+          - ${OCIS_DOMAIN}
     ports:
       - 80:80
       - 443:443
@@ -28,8 +33,6 @@ services:
     build:
       context: ./oc10
       dockerfile: Dockerfile
-    domainname: local
-    hostname: oc10
     depends_on:
       - db
       - redis
@@ -56,34 +59,23 @@ services:
       - tmp:/tmp/shared
 
   ocis:
-    image: owncloud/ocis:latest
-    domainname: local
-    hostname: ocis
-    environment:
+    context: ./ocis
+    dockerfile: Dockerfile
+    args:
       OCIS_DOMAIN: ${OCIS_DOMAIN}
+      OC10_DOMAIN: ${OC10_DOMAIN}
+    environment:
+      OCIS_LOG_LEVEL: debug
+      # proxy
       PROXY_CONFIG_FILE: "/config/proxy-config.json"
       PROXY_TLS: "false"
       PROXY_OIDC_ISSUER: https://${OCIS_DOMAIN}
-      PROXY_OIDC_INSECURE: "true"
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
+      # konnectd - binddn must exist as oc10 admin user
       KONNECTD_ISS: https://${OCIS_DOMAIN}
-      KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yml"
-      KONNECTD_TLS: 1
+      KONNECTD_IDENTIFIER_REGISTRATION_CONF: "/config/identifier-registration.yaml"
+      KONNECTD_TLS: 0
       KONNECTD_SIGNING_KID: super
-      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}/apps/graphapi/v1.0
-      PHOENIX_OIDC_AUTHORITY: https://${OCIS_DOMAIN}
-      PHOENIX_OIDC_METADATA_URL: https://${OCIS_DOMAIN}/.well-known/openid-configuration
-      PHOENIX_WEB_CONFIG_SERVER: https://${OCIS_DOMAIN}
-      PHOENIX_WEB_CONFIG: "/config/web/config.json"
-      STORAGE_OIDC_ISSUER: https://${OCIS_DOMAIN}
-      STORAGE_TRANSFER_EXPIRES: 86400
-      STORAGE_FRONTEND_URL: https://${OCIS_DOMAIN}
-      STORAGE_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
-      STORAGE_LDAP_IDP: https://${OCIS_DOMAIN}
-      GLAUTH_BACKEND_DATASTORE: owncloud
-      GLAUTH_BACKEND_SERVERS: https://${OC10_DOMAIN}/apps/graphapi/v1.0
-      GLAUTH_BACKEND_BASEDN: dc=example,dc=org
-      GLAUTH_BACKEND_INSECURE: "true"
       LDAP_URI: ldap://localhost:9125
       LDAP_BINDDN: "cn=admin,dc=example,dc=org"
       LDAP_BINDPW: "admin"
@@ -95,6 +87,19 @@ services:
       LDAP_UUID_ATTRIBUTE: uid
       LDAP_UUID_ATTRIBUTE_TYPE: text
       LDAP_FILTER: "(objectClass=posixaccount)"
+      # glauth
+      GLAUTH_BACKEND_DATASTORE: owncloud
+      GLAUTH_BACKEND_SERVERS: https://${OC10_DOMAIN}/apps/graphapi/v1.0
+      # graph
+      GRAPH_OIDC_ENDPOINT: https://${OC10_DOMAIN}/apps/graphapi/v1.0
+      # web ui
+      PHOENIX_WEB_CONFIG: "/config/web/config.json"
+      # storage - although not used, yet
+      STORAGE_OIDC_ISSUER: https://${OCIS_DOMAIN}
+      STORAGE_TRANSFER_EXPIRES: 86400
+      STORAGE_FRONTEND_URL: https://${OCIS_DOMAIN}
+      STORAGE_DATAGATEWAY_URL: https://${OCIS_DOMAIN}/data
+      STORAGE_LDAP_IDP: https://${OCIS_DOMAIN}
     volumes:
       - ./ocis:/config
       - ./ocis/proxy-config.json:/etc/ocis/proxy.json

@@ -32,7 +32,7 @@ function getConfigFromEnv() {
       0 => $domain
     ],
     'openid-connect' => [
-        'provider-url' => 'https://${OCIS_DOMAIN}',
+        'provider-url' => 'https://ocis.local',
         'client-id' => 'oc10',
         'client-secret' => 'super',
         'loginButtonName' => 'OpenId Connect',
@@ -47,8 +47,8 @@ function getConfigFromEnv() {
     'dbpassword' => getenv('OWNCLOUD_DB_PASSWORD'),
     'dbtableprefix' => getenv('OWNCLOUD_DB_PREFIX'),
 
-    'phoenix.baseUrl' => 'https://${OCIS_DOMAIN}',
-    'cors.allowed-domains' => ['https://${OCIS_DOMAIN}'],
+    'phoenix.baseUrl' => 'https://ocis.local',
+    'cors.allowed-domains' => ['https://ocis.local'],
 
     'log_type' => 'owncloud',
 
