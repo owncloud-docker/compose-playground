@@ -12,9 +12,8 @@
 # - https://jira.owncloud.com/browse/OCIS-392
 #
 # 2020-08-26, jw@owncloud.com
-# 2020-09-17, jw@owncloud.com
-# 2020-10-30, jw@owncloud.com
 # 2020-11-05, jw@owncloud.com
+# 2020-11-11, jw@owncloud.com
 
 echo "Estimated setup time (when weather is fine): 10 minutes ..."
 
@@ -102,19 +101,20 @@ docker volume prune --force
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis/ocis
 
-if grep -q BRANCH: $compose_yml; then
-  if grep "BRANCH: $OCIS_VERSION" $compose_yml; then
-     echo "$compose_yml mentions \"BRANCH: $OCIS_VERSION\", nice!"
-  else
-    grep BRANCH: $compose_yml
-    echo "ERROR: expected to see "BRANCH: $OCIS_VERSION" in $compose_yml !"
-    exit 1
-  fi
-else
-  echo "$compose_yml does not mention any BRANCH. Adding one as build: args: ..."
-  sed -i -e 's/^      context:/      args:\n        BRANCH: '"$OCIS_VERSION"'\n      context:/' $compose_yml
-  git diff
-fi
+## don't do pinning, ldap would not start.
+# if grep -q BRANCH: $compose_yml; then
+#   if grep "BRANCH: $OCIS_VERSION" $compose_yml; then
+#      echo "$compose_yml mentions \"BRANCH: $OCIS_VERSION\", nice!"
+#   else
+#     grep BRANCH: $compose_yml
+#     echo "ERROR: expected to see "BRANCH: $OCIS_VERSION" in $compose_yml !"
+#     exit 1
+#   fi
+# else
+#   echo "$compose_yml does not mention any BRANCH. Adding one as build: args: ..."
+#   sed -i -e 's/^      context:/      args:\n        BRANCH: '"$OCIS_VERSION"'\n      context:/' $compose_yml
+#   git diff
+# fi
 
 ## .env hacking is always needed. Otherwise we only have localhost endpoints in 	curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
 ## and the webpage remains blank. No login possible.
@@ -123,8 +123,8 @@ fi
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env BRANCH=$OCIS_VERSION
 ## FIXME: are these two still needed?
-# echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
-# echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
+echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
+echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
 
 cat .env >> config/eos-docker.env
 
@@ -138,14 +138,14 @@ cat .env >> config/eos-docker.env
 docker-compose -f $compose_yml up -d
 wait_for_ocis
 
-exit 0
-
 ## FIXME: the identifier-registration.yaml now only exists inside the continer. Need to patch it there...
 ## FIXME: without this we get http error 400.  when trying to login. The log has 'invalid redirect: https://95.216.209.166:9200/oidc-callback.html'
-docker-compose -f docker-compose-eos-test.yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /config/identifier-registration.yaml
-docker-compose -f $compose_yml restart ocis
-# docker-compose -f $compose_yml stop ocis
-# docker-compose -f $compose_yml up -d
+## FIXME: -> https://github.com/owncloud/ocis/issues/812
+docker-compose -f $compose_yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /config/identifier-registration.yaml || true
+docker-compose -f $compose_yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /ocis/config/identifier-registration.yaml || true
+# docker-compose -f $compose_yml restart ocis
+docker-compose -f $compose_yml stop ocis
+docker-compose -f $compose_yml up -d
 wait_for_ocis
 
 
@@ -160,6 +160,7 @@ wait_for_ldap
 ## Check that the OS in the ocis container can now resolve einstein or the other demo users
 ##
 docker-compose -f $compose_yml exec ocis id einstein
+docker-compose -f $compose_yml exec ocis id einstein | grep -q 'no such user' && exit 1
 # uid=20000(einstein) gid=30000(users) groups=30000(users),30001(sailing-lovers),30002(violin-haters),30007(physics-lovers)
 ## FIXME: the extra groups are missing now.
 # uid=20000(einstein) gid=30000 groups=30000
@@ -207,8 +208,23 @@ while [ "\$(docker-compose -f $compose_yml exec ocis eos fs ls -m | grep stat.ac
 done
 wait_for_eos_health
 
-## FIXME: commmented out, to check if still needed
-# enable trashbin
+## FIXME: maybe not needed, but after fs was offline, maybe it helps?
+# tr '\0' '\n' < /proc/143/environ  | grep DRIVER 
+#  STORAGE_HOME_DRIVER=eoshome
+#  STORAGE_USERS_DRIVER=eos
+docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-home
+docker-compose -f $compose_yml exec -e STORAGE_HOME_DRIVER=eoshome ocis $ocis_bin run storage-home
+docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
+docker-compose -f $compose_yml exec -e STORAGE_USERS_DRIVER=eos ocis $ocis_bin run storage-users
+
+## new in latest eos.md:
+## indeed that path does not exist... as Joern said, I should not do it???
+# docker-compose exec ocis eos mkdir -p /eos/dockertest/ocis/metadata
+# docker-compose exec ocis eos chown 2:2 /eos/dockertest/ocis/metadata
+# docker-compose exec ocis $ocis_bin kill storage-metadata
+# docker-compose exec -e STORAGE_METADATA_DRIVER=eos -e STORAGE_METADATA_ROOT=/eos/dockertest/ocis/metadata ocis $ocis_bin run storage-metadata
+
+# still needed: enable trashbin
 docker-compose -f $compose_yml exec mgm-master eos space config default space.policy.recycle=on
 docker-compose -f $compose_yml exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
 docker-compose -f $compose_yml exec mgm-master eos recycle config --size 1G
