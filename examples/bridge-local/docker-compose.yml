@@ -59,11 +59,12 @@ services:
       - tmp:/tmp/shared
 
   ocis:
-    context: ./ocis
-    dockerfile: Dockerfile
-    args:
-      OCIS_DOMAIN: ${OCIS_DOMAIN}
-      OC10_DOMAIN: ${OC10_DOMAIN}
+    build:
+      context: ./ocis
+      dockerfile: Dockerfile
+      args:
+        OCIS_DOMAIN: ${OCIS_DOMAIN}
+        OC10_DOMAIN: ${OC10_DOMAIN}
     environment:
       OCIS_LOG_LEVEL: debug
       # proxy
