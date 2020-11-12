@@ -18,8 +18,5 @@ picking some ocis services for deploy. two small golang programms communicate wi
 ## ocis-idp
 configure ocis with an external oidc-idp
 
-## oc10-with-ocis-infra
-ownCloud 10 with OIDC behind ocis-reverse-proxy and ocis-glauth as user-backend.
-
 ## hetzner-deploy
 deploy a machine (or an entire ocis-eos setup) to hetzner cloud
