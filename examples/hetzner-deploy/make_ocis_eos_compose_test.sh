@@ -87,7 +87,7 @@ wait_for_eos_health () {
   done
 }
 
-echo -e "#! /bin/sh\ncd ~/ocis/ocis\ndocker-compose -f $compose_yml logs -f --tail=10 ocis" > /usr/local/bin/show_logs
+echo -e "#! /bin/sh\ncd ~/ocis/ocis\ndocker-compose -f $compose_yml logs -f --tail=10 --no-color ocis" > /usr/local/bin/show_logs
 chmod a+x /usr/local/bin/show_logs
 
 
@@ -174,25 +174,6 @@ docker-compose -f $compose_yml exec ocis id einstein | grep -q 'no such user' &&
 # docker-compose -f $compose_yml exec ocis $ocis_bin run storage-users
 
 
-## FIXME: duplicate STORAGE_STORAGE and sotrage-storage here? This is
-##        as documented in https://owncloud.github.io/ocis/eos/ but looks like a copy/past glitch???
-#
-## 3. Home storage
-## Kill the home storage. By default it uses the owncloud storage driver. We need to switch it
-##  to the eoshome driver and make it use the storage id of the eos storage provider:
-##
-# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home
-# docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DRIVER=eoshome -e STORAGE_STORAGE_HOME_MOUNT_ID=1284d238-aa92-42ce-bdc4-0b0000009158 ocis $ocis_bin run storage-storage-home
-
-
-## 4. Home data provider
-## Kill the home data provider. By default it uses the owncloud storage driver. We need to switch it
-## to the eoshome driver and make it use the storage id of the eos storage provider:
-##
-# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-storage-home-data
-# docker-compose -f $compose_yml exec -e STORAGE_STORAGE_HOME_DATA_DRIVER=eoshome ocis $ocis_bin run storage-storage-home-data
-
-
 ## MISSING in https://owncloud.github.io/ocis/eos/ ->  https://github.com/owncloud/ocis/issues/361
 #
 # FIXME: Workaround for https://github.com/owncloud/ocis/issues/396,
@@ -202,7 +183,7 @@ wait_for_eos_fst
 # expect to see stat.active=online four times!
 while [ "\$(docker-compose -f $compose_yml exec ocis eos fs ls -m | grep stat.active=online | wc -l)" -lt 4 ]; do
   sleep 5
-  docker-compose -f $compose_yml exec mgm-master eos space set default on
+  docker-compose -f $compose_yml exec ocis eos space set default on
   sleep 5
   docker-compose -f $compose_yml exec ocis eos fs ls
 done
@@ -225,9 +206,9 @@ docker-compose -f $compose_yml exec -e STORAGE_USERS_DRIVER=eos ocis $ocis_bin r
 # docker-compose exec -e STORAGE_METADATA_DRIVER=eos -e STORAGE_METADATA_ROOT=/eos/dockertest/ocis/metadata ocis $ocis_bin run storage-metadata
 
 # still needed: enable trashbin
-docker-compose -f $compose_yml exec mgm-master eos space config default space.policy.recycle=on
-docker-compose -f $compose_yml exec mgm-master eos recycle config --add-bin /eos/dockertest/reva/users
-docker-compose -f $compose_yml exec mgm-master eos recycle config --size 1G
+docker-compose -f $compose_yml exec ocis eos space config default space.policy.recycle=on
+docker-compose -f $compose_yml exec ocis eos recycle config --add-bin /eos/dockertest/reva/users
+docker-compose -f $compose_yml exec ocis eos recycle config --size 1G
 
 # show some nice stats
 docker-compose -f $compose_yml exec ocis eos fs ls --io | sed -e 's/  / /g'
@@ -288,7 +269,7 @@ sleep 5
 cat <<EOM
 
 ## To list the globally trashed files (all users):
-# docker-compose exec mgm-master eos -r 0 0 recycle ls -g
+# docker-compose exec ocis eos -r 0 0 recycle ls -g
 
 ---------------------------------------------
 # This shell is now connected to root@$IPADDR
