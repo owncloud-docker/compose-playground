@@ -12,12 +12,13 @@
 #
 # 2020-10-16, jw@owncloud.com
 # 2020-11-20, jw@owncloud.com
+# 2020-11-30, jw@owncloud.com
 #
 
 echo "Estimated setup time: 8 minutes ..."
 
-vers=1.0.0RC5
-oauth2_vers=0.4.4RC1
+vers=1.0.0
+oauth2_vers=0.4.4
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
 source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
 
@@ -26,11 +27,12 @@ reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
-OWNCLOUD_RELEASE_DOCKER_TAG=10.5.0	# found on https://hub.docker.com/r/owncloud/server/tags/
+OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0-rc1	# found on https://hub.docker.com/r/owncloud/server/tags/
+d_tag=$(echo $OWNCLOUD_RELEASE_DOCKER_TAG  | tr '[A-Z]' '[a-z]' | tr . -)
 
 ## choose with or without version numbers and timestamps, in case we want multiple systems.
 KOPANO_KONNECT_DOMAIN=konnect.oidc-$d_vers.jw-qa.owncloud.works
-OWNCLOUD_DOMAIN=oc-10-5-0.oidc-$d_vers.jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=oc-$d_tag.oidc-$d_vers.jw-qa.owncloud.works
 # KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
 # OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
 
