@@ -117,9 +117,7 @@ cd ocis/ocis
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env BRANCH=$OCIS_VERSION
 echo >> .env EOS_OCIS_TAG=$EOS_OCIS_TAG
-## FIXME: are these two still needed?
-echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
-echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
+echo >> .env STORAGE_FRONTEND_UPLOAD_DISABLE_TUS=false
 
 cat .env >> config/eos-docker.env
 
@@ -151,28 +149,6 @@ docker-compose -f $compose_yml exec ocis id einstein
 docker-compose -f $compose_yml exec ocis id einstein | grep -q 'no such user' && exit 1
 # uid=20000(einstein) gid=30000 groups=30000
 
-
-# FIXME: Workaround for https://github.com/owncloud/ocis/issues/396,
-# - Uploads fail with "mismatched offset"
-# - eos cp fails with "No space left on device"
-wait_for_eos_fst
-# expect to see stat.active=online four times!
-while [ "\$(docker-compose -f $compose_yml exec ocis eos fs ls -m | grep stat.active=online | wc -l)" -lt 4 ]; do
-  sleep 5
-  docker-compose -f $compose_yml exec ocis eos space set default on
-  sleep 5
-  docker-compose -f $compose_yml exec ocis eos fs ls
-done
-wait_for_eos_health
-
-## FIXME: maybe not needed, but after fs was offline, maybe it helps?
-# tr '\0' '\n' < /proc/143/environ  | grep DRIVER
-#  STORAGE_HOME_DRIVER=eoshome
-#  STORAGE_USERS_DRIVER=eos
-docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-home
-docker-compose -f $compose_yml exec -e STORAGE_HOME_DRIVER=eoshome ocis $ocis_bin run storage-home
-docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
-docker-compose -f $compose_yml exec -e STORAGE_USERS_DRIVER=eos ocis $ocis_bin run storage-users
 
 ## new in latest eos.md:
 ## indeed that path does not exist... as Joern said, I should not do it???
