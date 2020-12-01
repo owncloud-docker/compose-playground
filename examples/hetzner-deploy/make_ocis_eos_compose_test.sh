@@ -14,6 +14,7 @@
 # 2020-08-26, jw@owncloud.com
 # 2020-11-05, jw@owncloud.com
 # 2020-11-11, jw@owncloud.com
+# 2020-11-30, jw@owncloud.com
 
 echo "Estimated setup time (when weather is fine): 10 minutes ..."
 
@@ -22,8 +23,13 @@ ocis_bin=/usr/local/bin/ocis
 
 if [ -z "$OCIS_VERSION" ]; then
   # export OCIS_VERSION=master
-  export OCIS_VERSION=v1.0.0-rc3
+  export OCIS_VERSION=v1.0.0-rc6
   echo "No OCIS_VERSION specified, using $OCIS_VERSION"
+  sleep 3
+fi
+if [ -z "$EOS_OCIS_TAG" ]; then
+  export EOS_OCIS_TAG=$(echo $OCIS_VERSION | sed -e 's/v//')
+  echo "No EOS_OCIS_TAG specified, using $EOS_OCIS_TAG"
   sleep 3
 fi
 
@@ -48,13 +54,15 @@ INIT_SCRIPT <<EOF
 wait_for_ocis () {
   ## it compiles code upon first start. this can take ca 6 minutes.
   while true; do
-    # expect to see "Starting server ... 0.0.0.0:9200" in the logs.
     docker-compose -f $compose_yml logs --tail=10 ocis
-    if [ -n "\$(docker-compose -f $compose_yml logs ocis | grep 'Starting server' | grep 0.0.0.0:9200)" ]; then
-      break
+    docker-compose -f $compose_yml ps
+    if [ -n "\$(docker-compose -f $compose_yml ps | grep 'Up' | grep '0.0.0.0:9200->9200/tcp')" ]; then
+      if [ "\$(curl -s -k https://localhost:9200/.well-known/openid-configuration | grep https: | wc -l)" -gt 3 ]; then
+	break
+      fi
     fi
     echo " ... waiting for 0.0.0.0:9200 ..."
-    sleep 15;
+    sleep 10;
   done
 }
 
@@ -101,27 +109,14 @@ docker volume prune --force
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
 cd ocis/ocis
 
-## don't do pinning, ldap would not start.
-# if grep -q BRANCH: $compose_yml; then
-#   if grep "BRANCH: $OCIS_VERSION" $compose_yml; then
-#      echo "$compose_yml mentions \"BRANCH: $OCIS_VERSION\", nice!"
-#   else
-#     grep BRANCH: $compose_yml
-#     echo "ERROR: expected to see "BRANCH: $OCIS_VERSION" in $compose_yml !"
-#     exit 1
-#   fi
-# else
-#   echo "$compose_yml does not mention any BRANCH. Adding one as build: args: ..."
-#   sed -i -e 's/^      context:/      args:\n        BRANCH: '"$OCIS_VERSION"'\n      context:/' $compose_yml
-#   git diff
-# fi
-
-## .env hacking is always needed. Otherwise we only have localhost endpoints in 	curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
+## .env hacking is always needed. Otherwise we only have localhost endpoints in
+## curl -k https://$IPADDR:9200/.well-known/openid-configuration | grep https:
 ## and the webpage remains blank. No login possible.
 #
 # BRANCH is actually a buildarg in docker/eos-ocis/Dockerfile
 echo >  .env OCIS_DOMAIN=$IPADDR
 echo >> .env BRANCH=$OCIS_VERSION
+echo >> .env EOS_OCIS_TAG=$EOS_OCIS_TAG
 ## FIXME: are these two still needed?
 echo >> .env REVA_FRONTEND_URL=https://$IPADDR:9200
 echo >> .env REVA_DATAGATEWAY_URL=https://$IPADDR:9200/data
@@ -143,39 +138,20 @@ wait_for_ocis
 ## FIXME: -> https://github.com/owncloud/ocis/issues/812
 docker-compose -f $compose_yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /config/identifier-registration.yaml || true
 docker-compose -f $compose_yml exec ocis sed -i -e 's@://localhost:9@://$IPADDR:9@' /ocis/config/identifier-registration.yaml || true
-# docker-compose -f $compose_yml restart ocis
+# # docker-compose -f $compose_yml restart ocis
 docker-compose -f $compose_yml stop ocis
 docker-compose -f $compose_yml up -d
-wait_for_ocis
+# wait_for_ocis
 
-
-## 2. LDAP Support
-## Configure the OS to resolve users and groups using ldap
-##
-## FIXME: /start-ldap no longer exists. but wait for ldap somehow stil magically works. The docs still have that.
-# docker-compose -f $compose_yml exec -d ocis /start-ldap
-
-wait_for_ldap
 
 ## Check that the OS in the ocis container can now resolve einstein or the other demo users
 ##
+wait_for_ldap
 docker-compose -f $compose_yml exec ocis id einstein
 docker-compose -f $compose_yml exec ocis id einstein | grep -q 'no such user' && exit 1
-# uid=20000(einstein) gid=30000(users) groups=30000(users),30001(sailing-lovers),30002(violin-haters),30007(physics-lovers)
-## FIXME: the extra groups are missing now.
 # uid=20000(einstein) gid=30000 groups=30000
 
-## No longer needed, since ldap seems to autostart. FIXME: the docs still have that.
-## We also need to restart the storage-users service so it picks up the changed environment.
-## Without a restart it is not able to resolve users from LDAP.
-##
-##
-# docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-users
-# docker-compose -f $compose_yml exec ocis $ocis_bin run storage-users
 
-
-## MISSING in https://owncloud.github.io/ocis/eos/ ->  https://github.com/owncloud/ocis/issues/361
-#
 # FIXME: Workaround for https://github.com/owncloud/ocis/issues/396,
 # - Uploads fail with "mismatched offset"
 # - eos cp fails with "No space left on device"
@@ -190,7 +166,7 @@ done
 wait_for_eos_health
 
 ## FIXME: maybe not needed, but after fs was offline, maybe it helps?
-# tr '\0' '\n' < /proc/143/environ  | grep DRIVER 
+# tr '\0' '\n' < /proc/143/environ  | grep DRIVER
 #  STORAGE_HOME_DRIVER=eoshome
 #  STORAGE_USERS_DRIVER=eos
 docker-compose -f $compose_yml exec ocis $ocis_bin kill storage-home
@@ -215,7 +191,7 @@ docker-compose -f $compose_yml exec ocis eos fs ls --io | sed -e 's/  / /g'
 docker-compose -f $compose_yml exec ocis eos space ls --io
 
 
-if [ -f ~/make_machine.bashrc ]; then
+if [ -f ~/INIT.bashrc ]; then
   echo >  $version_file '\`\`\`'
   echo >> $version_file "OCIS_VERSION:         $OCIS_VERSION"
   echo >> $version_file "ocis --version:       \$(docker-compose -f $compose_yml exec ocis $ocis_bin --version)"
@@ -231,28 +207,17 @@ if [ -f ~/make_machine.bashrc ]; then
 
 
   # make some files appear within the owncloud
-  echo '\`\`\`' > ~/make_machine.bashrc.md
-  cat ~/make_machine.bashrc >>  ~/make_machine.bashrc.md
-  docker cp ~/make_machine.bashrc.md ocis:/
-  docker cp $version_file            ocis:/
+  echo '\`\`\`' > ~/INIT.bashrc.md
+  cat ~/INIT.bashrc >>  ~/INIT.bashrc.md
+  docker cp ~/INIT.bashrc.md ocis:/
+  docker cp $version_file    ocis:/
 
   # Fix https://github.com/owncloud/product/issues/127
   # try auto-create einstein's home
   curl -k -X PROPFIND https://$IPADDR:9200/remote.php/webdav -u einstein:relativity
-#   if ! docker-compose -f $compose_yml exec ocis eos ls -la $eos_home_einstein; then
-#     echo ""
-#     echo "WARNING: failed to auto-create home of user einstein. Trying manually ..."
-#     # CAUTION: keep in sync with https://github.com/cs3org/reva/blob/master/pkg/storage/utils/eosfs/eosfs.go#L818-L952
-#     docker-compose -f $compose_yml exec ocis eos -r 0 0                    mkdir -p $eos_home_einstein
-#     docker-compose -f $compose_yml exec ocis eos -r 0 0     chown $eos_uid:$eos_gid $eos_home_einstein
-#     docker-compose -f $compose_yml exec ocis eos attr set sys.allow.oc.sync="1"     $eos_home_einstein
-#     docker-compose -f $compose_yml exec ocis eos attr set sys.forced.atomic="1"     $eos_home_einstein
-#     docker-compose -f $compose_yml exec ocis eos attr set sys.mask="700"            $eos_home_einstein
-#     docker-compose -f $compose_yml exec ocis eos attr set sys.mtime.propagation="1" $eos_home_einstein
-#   fi
 
   docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid mkdir $eos_home_einstein/init
-  docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /$version_file /make_machine.bashrc.md $eos_home_einstein/init/
+  docker-compose -f $compose_yml exec ocis eos -r $eos_uid $eos_gid cp /$version_file /INIT.bashrc.md $eos_home_einstein/init/
 
   docker-compose -f $compose_yml exec ocis curl $user_portrait_url -so /tmp/Portrait.jpg
   docker-compose -f $compose_yml exec ocis curl $user_speech_url   -so /tmp/Speech.ogg
