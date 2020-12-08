@@ -23,7 +23,7 @@ ocis_bin=/usr/local/bin/ocis
 
 if [ -z "$OCIS_VERSION" ]; then
   # export OCIS_VERSION=master
-  export OCIS_VERSION=v1.0.0-rc6
+  export OCIS_VERSION=v1.0.0-rc7
   echo "No OCIS_VERSION specified, using $OCIS_VERSION"
   sleep 3
 fi
@@ -146,6 +146,10 @@ docker-compose -f $compose_yml up -d
 ##
 wait_for_ldap
 docker-compose -f $compose_yml exec ocis id einstein
+for i in 1 2 3 4 5 6 7 8 9 0; do
+  docker-compose -f $compose_yml exec ocis id einstein && break
+  sleep 5
+done
 docker-compose -f $compose_yml exec ocis id einstein | grep -q 'no such user' && exit 1
 # uid=20000(einstein) gid=30000 groups=30000
 
