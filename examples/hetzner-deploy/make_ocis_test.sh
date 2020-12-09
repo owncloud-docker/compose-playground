@@ -84,6 +84,7 @@ echo >> .env OCIS_VERSION=$OCIS_VERSION
 echo >> .env OCIS_DOCKER_TAG=$OCIS_DOCKER_TAG
 echo >> .env OCIS_DOMAIN=$OCIS_DOMAIN
 echo >> .env TRAEFIK_DOMAIN=$TRAEFIK_DOMAIN
+echo >> .env TRAEFIK_ACME_MAIL=jw@owncloud.com
 
 docker-compose -f $compose_yml up -d
 wait_for_ocis
