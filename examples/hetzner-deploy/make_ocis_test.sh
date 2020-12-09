@@ -1,46 +1,140 @@
 #!/bin/bash
 #
-# see also:
-#  https://golang.org/doc/install
-#  https://github.com/owncloud/ocis/
-#  https://owncloud.github.io/
+# References:
+# - https://owncloud.github.io/ocis/
+# - https://github.com/owncloud/ocis/blob/master/ocis/docker-compose-eos-test.yml
+# - ~/ownCloud/release/ocis/test-2020-07-13.txt
 #
-# This sets up an ocis dev environment in 2min 30sec.
-# Building ocis again takes ca 3min.
+# based on make_ocis_eos_compose_test.sh -- but wothout all the EOS overhead.
+# 2020-12-08, jw@owncloud.com
+
+echo "Estimated setup time (when weather is fine): 10 minutes ..."
+
+compose_yml=docker-compose.yml
+ocis_bin=/usr/bin/ocis
+
+if [ -z "$OCIS_VERSION" ]; then
+  # export OCIS_VERSION=master
+  export OCIS_VERSION=v1.0.0-rc7
+  echo "No OCIS_VERSION specified, using $OCIS_VERSION"
+  sleep 3
+fi
+if [ -z "$OCIS_DOCKER_TAG" ]; then
+  export OCIS_DOCKER_TAG=$(echo $OCIS_VERSION | sed -e 's/v//')
+  test "$OCIS_DOCKER_TAG" = "master" && OCIS_DOCKER_TAG=latest
+  echo "No OCIS_DOCKER_TAG specified, using $OCIS_DOCKER_TAG"
+  sleep 3
+fi
+
+d_tag=$(echo $OCIS_DOCKER_TAG  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%m%d)
+BASE_DOMAIN=ocis-$d_tag.jw-qa.owncloud.works
+TRAEFIK_DOMAIN=traefik.$BASE_DOMAIN
+OCIS_DOMAIN=web.$BASE_DOMAIN
+
+# use a cx31 -- we need more than 40GB disk space.
+source lib/make_machine.sh -t cx31 -u ocis-${OCIS_VERSION} -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
+set -x
+
+if [ -z "$IPADDR" ]; then
+  echo "Error: make_machine.sh failed."
+  exit 1;
+fi
+
+version_file=this-is-ocis-$OCIS_VERSION.txt
+user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
+user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
+
+INIT_SCRIPT <<EOF
+
+wait_for_ocis () {
+  ## it compiles code upon first start. this can take ca 6 minutes.
+  while true; do
+    docker-compose -f $compose_yml logs --tail=10 ocis
+    docker-compose -f $compose_yml ps
+    if [ -n "\$(docker-compose -f $compose_yml ps | grep 'Up' | grep '0.0.0.0:443->443/tcp')" ]; then
+      if [ "\$(curl -s -k https://$OCIS_DOMAIN/.well-known/openid-configuration | grep https: | wc -l)" -gt 3 ]; then
+	break
+      fi
+    fi
+    echo " ... waiting for 0.0.0.0:443 ..."
+    sleep 10;
+  done
+}
+
+echo -e "#! /bin/sh\ncd ~/ocis/ocis\ndocker-compose -f $compose_yml logs -f --tail=10 --no-color ocis" > /usr/local/bin/show_logs
+chmod a+x /usr/local/bin/show_logs
+
+
+cd ~
+rm -rf ./ocis
+docker images -q | xargs -r docker rmi --force
+docker system prune --all --force
+docker volume prune --force
+
+
+git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
+cd ocis/deployments/examples/ocis_traefik
+
+## .env hacking is always needed. Otherwise we only have localhost endpoints in
+## curl -k https://$IPADDR/.well-known/openid-configuration | grep https:
+## and the webpage remains blank. No login possible.
 #
-# 2020-04-15, jw@owncloud.com
-#
+echo >> .env IPADDR=$IPADDR
+echo >> .env OCIS_VERSION=$OCIS_VERSION
+echo >> .env OCIS_DOCKER_TAG=$OCIS_DOCKER_TAG
+echo >> .env OCIS_DOMAIN=$OCIS_DOMAIN
+echo >> .env TRAEFIK_DOMAIN=$TRAEFIK_DOMAIN
 
-source lib/make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose
+docker-compose -f $compose_yml up -d
+wait_for_ocis
 
-INIT_SCRIPT << EOF
-  # compose docker container
-  git clone https://github.com/owncloud-docker/compose-playground.git
-  sed -i -e 's/your-url/$IPADDR/g' compose-playground/compose/ocis/config/identifier-registration.yml
+## FIXME: is this still needed in the system??
+docker-compose -f $compose_yml exec ocis id einstein
+# uid=20000(einstein) gid=30000 groups=30000
 
-  # disable ipv6, to not confuse ocis server:
-  echo >> /etc/sysctl.conf "net.ipv6.conf.all.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.default.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.lo.disable_ipv6 = 1"
-  echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
-  sysctl -p
 
-  cd compose-playground/compose/ocis
-  echo >> .env OCIS_BASE_URL=$IPADDR
-  echo >> .env OCIS_HTTP_PORT=9200
-  echo >> .env OCIS_DOCKER_TAG=1.0.0-beta4
-  docker-compose -f ocis.yml -f ../cache/redis-ocis.yml up &
+if [ -f ~/INIT.bashrc ]; then
+  echo >  $version_file '\`\`\`'
+  echo >> $version_file "OCIS_VERSION:         $OCIS_VERSION"
+  echo >> $version_file "ocis --version:       \$(docker-compose -f $compose_yml exec ocis $ocis_bin --version)"
+  echo >> $version_file "git log:              \$(git log --decorate=full | head -1)"
+  echo >> $version_file "$ocis_bin contains:"
+  docker-compose -f $compose_yml exec ocis strings $ocis_bin | grep '^dep\s.*owncloud' | sort -u >> $version_file
+  ## FIXME: six of these versions are still unintialized. E.g. "ocis-phoenix   v0.0.0-00010101000000-000000000000"
 
-  cat <<EOM
+
+  # make some files appear within the owncloud
+  echo '\`\`\`' > ~/INIT.bashrc.md
+  cat ~/INIT.bashrc >>  ~/INIT.bashrc.md
+  docker cp ~/INIT.bashrc.md ocis:/
+  docker cp $version_file    ocis:/
+  docker-compose -f $compose_yml exec ocis wget $user_speech_url
+  docker-compose -f $compose_yml exec ocis wget $user_portrait_url
+
+  # auto-create einstein's home, before prepopulating some files...
+  # curl -k -X PROPFIND https://$OCIS_DOMAIN/remote.php/webdav -u einstein:relativity
+fi
+
+echo "Now log in with user einstein at https://${OCIS_DOMAIN}"
+
+uptime
+sleep 5
+cat <<EOM
+
 ---------------------------------------------
-# machine prepared.
-# connect from remote:
-	curl -k https://$IPADDR:9200/status.php
+# This shell is now connected to root@$IPADDR
+# Connect your browser or client to
 
-# Follow the instructions at
-	https://github.com/owncloud/ocis/#quickstart
-	https://owncloud.github.io/ocis/getting-started/#docker-compose
-	https://github.com/owncloud/ocis/blob/master/docs/basic-remote-setup.md#use-docker-compose
+   https://$OCIS_DOMAIN
+
+# you may first need to add the DNS entries at https://dash.cloudflare.com
+	$IPADDR *.$BASE_DOMAIN
+
+# try also
+
+   curl -k -s https://$OCIS_DOMAIN/.well-known/openid-configuration | grep https
+
+   curl -k -X PROPFIND https://$OCIS_DOMAIN/remote.php/webdav -u einstein:relativity
 ---------------------------------------------
 EOM
 EOF
