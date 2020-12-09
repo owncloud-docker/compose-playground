@@ -6,10 +6,9 @@
 # - ~/ownCloud/release/ocis/test-2020-07-13.txt
 #
 # This setup should be greatly simplified by
-# - https://github.com/owncloud/ocis/pull/519
-# - https://github.com/owncloud/product/issues/165
-# - https://jira.owncloud.com/browse/OCIS-376
-# - https://jira.owncloud.com/browse/OCIS-392
+# - https://github.com/owncloud/ocis/pull/519		[POC] setting up tests with eos on drone-ci
+# - https://github.com/owncloud/product/issues/165	jira-OCIS-376	Local deployment for EOS with two nodes (scale-out) (CD)
+# - https://jira.owncloud.com/browse/OCIS-392		streamline docker-compose.yml
 #
 # 2020-08-26, jw@owncloud.com
 # 2020-11-05, jw@owncloud.com
