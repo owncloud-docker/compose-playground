@@ -52,6 +52,9 @@ wait_for_ocis () {
     docker-compose -f $compose_yml logs --tail=10 ocis
     docker-compose -f $compose_yml ps
     if [ -n "\$(docker-compose -f $compose_yml ps | grep 'Up' | grep '0.0.0.0:443->443/tcp')" ]; then
+      sleep 10
+      break
+      # FIXME:: code below cannot work when DOMAIN is not yet set up.
       if [ "\$(curl -s -k https://$OCIS_DOMAIN/.well-known/openid-configuration | grep https: | wc -l)" -gt 3 ]; then
 	break
       fi
@@ -84,7 +87,8 @@ echo >> .env OCIS_VERSION=$OCIS_VERSION
 echo >> .env OCIS_DOCKER_TAG=$OCIS_DOCKER_TAG
 echo >> .env OCIS_DOMAIN=$OCIS_DOMAIN
 echo >> .env TRAEFIK_DOMAIN=$TRAEFIK_DOMAIN
-echo >> .env TRAEFIK_ACME_MAIL=jw@owncloud.com
+echo >> .env OCIS_LOG_LEVEL=debug
+# echo >> .env TRAEFIK_ACME_MAIL=jw@owncloud.com	# not needed any more.
 
 docker-compose -f $compose_yml up -d
 wait_for_ocis
