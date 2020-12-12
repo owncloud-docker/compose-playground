@@ -52,14 +52,13 @@ wait_for_ocis () {
     docker-compose -f $compose_yml logs --tail=10 ocis
     docker-compose -f $compose_yml ps
     if [ -n "\$(docker-compose -f $compose_yml ps | grep 'Up' | grep '0.0.0.0:443->443/tcp')" ]; then
-      sleep 10
-      break
-      # FIXME:: code below cannot work when DOMAIN is not yet set up.
-      if [ "\$(curl -s -k https://$OCIS_DOMAIN/.well-known/openid-configuration | grep https: | wc -l)" -gt 3 ]; then
+      if [ "\$(docker-compose exec ocis wget -O - http://localhost:9200/.well-known/openid-configuration | grep https: | wc -l)" -gt 3 ]; then
 	break
       fi
+      echo " ... 0.0.0.0:443 is up, but no .well-known seen."
+    else
+      echo " ... waiting for a service at 0.0.0.0:443 ..."
     fi
-    echo " ... waiting for 0.0.0.0:443 ..."
     sleep 10;
   done
 }
@@ -92,11 +91,6 @@ echo >> .env OCIS_LOG_LEVEL=debug
 
 docker-compose -f $compose_yml up -d
 wait_for_ocis
-
-## FIXME: is this still needed in the system??
-docker-compose -f $compose_yml exec ocis id einstein
-# uid=20000(einstein) gid=30000 groups=30000
-
 
 if [ -f ~/INIT.bashrc ]; then
   echo >  $version_file '\`\`\`'
