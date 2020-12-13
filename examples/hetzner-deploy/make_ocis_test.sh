@@ -2,8 +2,9 @@
 #
 # References:
 # - https://owncloud.github.io/ocis/
-# - https://github.com/owncloud/ocis/blob/master/ocis/docker-compose-eos-test.yml
-# - ~/ownCloud/release/ocis/test-2020-07-13.txt
+# - https://owncloud.github.io/ocis/deployment/basic-remote-setup/
+# - https://github.com/owncloud/ocis/blob/master/deployments/examples/ocis_traefik/docker-compose.yml
+# - ~/ownCloud/release/ocis/test-*.txt,issues.txt
 #
 # based on make_ocis_eos_compose_test.sh -- but wothout all the EOS overhead.
 # 2020-12-08, jw@owncloud.com
