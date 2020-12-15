@@ -6,10 +6,10 @@
 # - https://github.com/owncloud/ocis/blob/master/deployments/examples/ocis_traefik/docker-compose.yml
 # - ~/ownCloud/release/ocis/test-*.txt,issues.txt
 #
-# based on make_ocis_eos_compose_test.sh -- but wothout all the EOS overhead.
+# based on make_ocis_eos_compose_test.sh -- but without all the EOS overhead.
 # 2020-12-08, jw@owncloud.com
 
-echo "Estimated setup time (when weather is fine): 10 minutes ..."
+echo "Estimated setup time (when weather is fine): 2 minutes ..."
 
 compose_yml=docker-compose.yml
 ocis_bin=/usr/bin/ocis
@@ -64,9 +64,10 @@ wait_for_ocis () {
   done
 }
 
-echo -e "#! /bin/sh\ncd ~/ocis/ocis\ndocker-compose -f $compose_yml logs -f --tail=10 --no-color ocis" > /usr/local/bin/show_logs
-chmod a+x /usr/local/bin/show_logs
+compose_subdir=deployments/examples/ocis_traefik
 
+echo -e "#! /bin/sh\ncd ~/ocis/$compose_subdir\ndocker-compose -f $compose_yml logs -f --tail=10 --no-color ocis" > /usr/local/bin/show_logs
+chmod a+x /usr/local/bin/show_logs
 
 cd ~
 rm -rf ./ocis
@@ -74,9 +75,8 @@ docker images -q | xargs -r docker rmi --force
 docker system prune --all --force
 docker volume prune --force
 
-
 git clone https://github.com/owncloud/ocis.git -b $OCIS_VERSION
-cd ocis/deployments/examples/ocis_traefik
+cd ~/ocis/$compose_subdir
 
 ## .env hacking is always needed. Otherwise we only have localhost endpoints in
 ## curl -k https://$IPADDR/.well-known/openid-configuration | grep https:
@@ -88,31 +88,34 @@ echo >> .env OCIS_DOCKER_TAG=$OCIS_DOCKER_TAG
 echo >> .env OCIS_DOMAIN=$OCIS_DOMAIN
 echo >> .env TRAEFIK_DOMAIN=$TRAEFIK_DOMAIN
 echo >> .env OCIS_LOG_LEVEL=debug
-# echo >> .env TRAEFIK_ACME_MAIL=jw@owncloud.com	# not needed any more.
 
 docker-compose -f $compose_yml up -d
 wait_for_ocis
 
 if [ -f ~/INIT.bashrc ]; then
-  echo >  $version_file '\`\`\`'
-  echo >> $version_file "OCIS_VERSION:         $OCIS_VERSION"
-  echo >> $version_file "ocis --version:       \$(docker-compose -f $compose_yml exec ocis $ocis_bin --version)"
-  echo >> $version_file "git log:              \$(git log --decorate=full | head -1)"
-  echo >> $version_file "$ocis_bin contains:"
+  echo >  ./$version_file '\`\`\`'
+  echo >> ./$version_file "OCIS_VERSION:         $OCIS_VERSION"
+  echo >> ./$version_file "ocis --version:       \$(docker-compose -f $compose_yml exec ocis $ocis_bin --version)"
+  echo >> ./$version_file "git log:              \$(git log --decorate=full | head -1)"
+  echo >> ./$version_file "$ocis_bin contains:"
   docker-compose -f $compose_yml exec ocis strings $ocis_bin | grep '^dep\s.*owncloud' | sort -u >> $version_file
   ## FIXME: six of these versions are still unintialized. E.g. "ocis-phoenix   v0.0.0-00010101000000-000000000000"
-
 
   # make some files appear within the owncloud
   echo '\`\`\`' > ~/INIT.bashrc.md
   cat ~/INIT.bashrc >>  ~/INIT.bashrc.md
-  docker cp ~/INIT.bashrc.md ocis:/
-  docker cp $version_file    ocis:/
-  docker-compose -f $compose_yml exec ocis wget $user_speech_url
-  docker-compose -f $compose_yml exec ocis wget $user_portrait_url
+  wget $user_speech_url	  -O speech.ogg
+  wget $user_portrait_url -O portrait.jpg
 
-  # auto-create einstein's home, before prepopulating some files...
-  # curl -k -X PROPFIND https://$OCIS_DOMAIN/remote.php/webdav -u einstein:relativity
+  echo "127.0.0.1 $OCIS_DOMAIN" >> /etc/hosts	# local DNS entry, in case remote DNS is not yet set up
+  # First auto-create einstein's home ...
+  curl -k -u einstein:relativity -X PROPFIND         https://$OCIS_DOMAIN/remote.php/webdav
+  # ... then prepopulating some files
+  curl -k -u einstein:relativity -X MKCOL            https://$OCIS_DOMAIN/remote.php/webdav/init
+  curl -k -u einstein:relativity -T ./speech.ogg     https://$OCIS_DOMAIN/remote.php/webdav/speech.ogg
+  curl -k -u einstein:relativity -T ./portrait.jpg   https://$OCIS_DOMAIN/remote.php/webdav/portrait.jpg
+  curl -k -u einstein:relativity -T ./$version_file  https://$OCIS_DOMAIN/remote.php/webdav/init/$version_file
+  curl -k -u einstein:relativity -T ~/INIT.bashrc.md https://$OCIS_DOMAIN/remote.php/webdav/init/INIT.bashrc.md
 fi
 
 echo "Now log in with user einstein at https://${OCIS_DOMAIN}"
@@ -135,6 +138,11 @@ cat <<EOM
    curl -k -s https://$OCIS_DOMAIN/.well-known/openid-configuration | grep https
 
    curl -k -X PROPFIND https://$OCIS_DOMAIN/remote.php/webdav -u einstein:relativity
+
+# if login fails, try
+
+   docker-compose exec ocis bash -c 'ocis kill glauth; sleep 5; ocis glauth server &'
+
 ---------------------------------------------
 EOM
 EOF
