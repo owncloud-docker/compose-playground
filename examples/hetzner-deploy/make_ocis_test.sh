@@ -7,10 +7,11 @@
 # - ~/ownCloud/release/ocis/test-*.txt,issues.txt
 #
 # based on make_ocis_eos_compose_test.sh -- but without all the EOS overhead.
-# 2020-12-08, jw@owncloud.com
+# 2020-12-15, jw@owncloud.com
 
 echo "Estimated setup time (when weather is fine): 2 minutes ..."
 
+compose_subdir=deployments/examples/ocis_traefik
 compose_yml=docker-compose.yml
 ocis_bin=/usr/bin/ocis
 
@@ -63,8 +64,6 @@ wait_for_ocis () {
     sleep 10;
   done
 }
-
-compose_subdir=deployments/examples/ocis_traefik
 
 echo -e "#! /bin/sh\ncd ~/ocis/$compose_subdir\ndocker-compose -f $compose_yml logs -f --tail=10 --no-color ocis" > /usr/local/bin/show_logs
 chmod a+x /usr/local/bin/show_logs
