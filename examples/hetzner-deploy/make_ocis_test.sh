@@ -44,7 +44,8 @@ fi
 
 version_file=this-is-ocis-$OCIS_VERSION.txt
 user_portrait_url=https://upload.wikimedia.org/wikipedia/commons/3/32/Max_Liebermann_Portrait_Albert_Einstein_1925.jpg
-user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
+# user_speech_url=https://upload.wikimedia.org/wikipedia/commons/4/46/03_ALBERT_EINSTEIN.ogg
+user_speech_url=https://www.einstein-website.de/z_biography/einstein1930.mp3
 
 INIT_SCRIPT <<EOF
 
