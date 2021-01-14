@@ -27,7 +27,7 @@ reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
-OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0-rc1	# found on https://hub.docker.com/r/owncloud/server/tags/
+OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0	# found on https://hub.docker.com/r/owncloud/server/tags/
 d_tag=$(echo $OWNCLOUD_RELEASE_DOCKER_TAG  | tr '[A-Z]' '[a-z]' | tr . -)
 
 ## choose with or without version numbers and timestamps, in case we want multiple systems.
