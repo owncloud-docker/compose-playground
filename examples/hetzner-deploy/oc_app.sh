@@ -75,7 +75,7 @@ if [ $orga = "owncloud" -a $appname != "client" -a $appname != "core" ]; then
     echo ""
     echo "$vers_name"
     cd ..
-    chmod -R 777 .
+    chmod -R 777 . 2>/dev/null	# may print many errors when adding a second app while owncloud is running...
     dockermount=$(pwd -P)
 
     if [ -n "$(echo $dockermount | grep :)" ]; then
