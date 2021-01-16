@@ -85,7 +85,7 @@ if [ $orga = "owncloud" -a $appname != "client" -a $appname != "core" ]; then
       echo "To run $assetname with an owncloud server in docker, try (within screen)"
       echo ""
       echo "  docker run --rm -ti -v $dockermount:/mnt/data -p 883:8080 owncloud/server:latest"
-      echo "  docker exec -ti $(docker ps -q | head -1) occ app:enable $appname"
+      echo "  docker exec -ti \$(docker ps -q | head -1) occ app:enable $appname"
     fi
   fi
 fi
