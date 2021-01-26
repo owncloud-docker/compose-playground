@@ -17,7 +17,7 @@
 
 echo "Estimated setup time: 8 minutes ..."
 
-vers=1.0.0
+vers=2.0.0RC1
 oauth2_vers=0.4.4
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
 source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
@@ -50,14 +50,6 @@ INIT_SCRIPT << EOF
   sed -i -e 's@OWNCLOUD_APPS_INSTALL=.*@OWNCLOUD_APPS_INSTALL=$openidconnect_url $oauth2_url@g' $comp_yml
   grep OWNCLOUD_APPS_ $comp_yml
 
-#  We often see networks disappear after a day or two. Maybe that is related to disabling ipv6?
-#  # disable ipv6, to not confuse ocis server:
-#  echo >> /etc/sysctl.conf "net.ipv6.conf.all.disable_ipv6 = 1"
-#  echo >> /etc/sysctl.conf "net.ipv6.conf.default.disable_ipv6 = 1"
-#  echo >> /etc/sysctl.conf "net.ipv6.conf.lo.disable_ipv6 = 1"
-#  echo >> /etc/sysctl.conf "net.ipv6.conf.eth0.disable_ipv6 = 1"
-#  sysctl -p
-
   # cleanup orphaned volumes!
   docker system prune -f
   docker volume prune -f
@@ -85,6 +77,13 @@ INIT_SCRIPT << EOF
      echo "Waiting for ownCloud to become ready ..."
      sleep 5
   done
+  docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
+
+  # workaround for https://github.com/owncloud-docker/base/pull/140
+  docker exec compose_owncloud_1 occ market:uninstall openidconnect
+  docker exec compose_owncloud_1 wget $openidconnect_url -O /tmp/o.tar.gz
+  docker exec compose_owncloud_1 occ market:install -n -l /tmp/o.tar.gz
+  docker exec compose_owncloud_1 occ app:enable openidconnect
   docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
 
   while ! docker exec compose_owncloud_1 occ user:sync -l 2>/dev/null | grep 'User_LDAP'; do
