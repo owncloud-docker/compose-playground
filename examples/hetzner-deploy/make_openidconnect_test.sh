@@ -17,7 +17,7 @@
 
 echo "Estimated setup time: 8 minutes ..."
 
-vers=1.0.0
+vers=2.0.0RC1
 oauth2_vers=0.4.4
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
 source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
@@ -80,13 +80,16 @@ INIT_SCRIPT << EOF
   docker exec compose_owncloud_1 occ app:list 'openidconnect|oauth2'
   sleep 5
 
- #  # workaround for https://github.com/owncloud-docker/base/pull/140
- #  docker-compose -f merged.yml exec owncloud occ market:uninstall openidconnect
- #  docker-compose -f merged.yml exec owncloud wget $openidconnect_url -O /tmp/o.tar.gz
- #  docker-compose -f merged.yml exec owncloud occ market:install -n -l /tmp/o.tar.gz
- #  docker-compose -f merged.yml exec owncloud occ app:enable openidconnect
- docker-compose -f merged.yml exec owncloud occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
+  # echo 'starting a temp shell. type exit to continue'
+  # bash
 
+  # workaround for https://github.com/owncloud-docker/base/pull/140
+  docker-compose -f merged.yml exec owncloud occ market:uninstall openidconnect
+  docker-compose -f merged.yml exec owncloud wget $openidconnect_url -O /tmp/o.tar.gz
+  docker-compose -f merged.yml exec owncloud occ market:install -n -l /tmp/o.tar.gz
+  docker-compose -f merged.yml exec owncloud occ app:enable openidconnect
+  docker-compose -f merged.yml exec owncloud occ app:list 'openidconnect|oauth2' && echo OWNCLOUD IS READY
+ 
   while ! docker exec compose_owncloud_1 occ user:sync -l 2>/dev/null | grep 'User_LDAP'; do
     echo "Waiting for user_ldap to be come ready ..."
     sleep 5;

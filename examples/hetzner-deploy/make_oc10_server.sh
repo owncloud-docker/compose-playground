@@ -14,6 +14,9 @@ HTTP_PORT=80
 INIT_SCRIPT << EOF
   mkdir -p /root/ocmount
   docker run --name oc-$d_vers -d --rm -v /root/ocmount:/mnt/data -p $HTTP_PORT:8080 owncloud/server:$vers
+  sleep 3 # wait for owncloud to initialize
+  install_app() { curl -L -s $1 | su - www-data -s /bin/sh -c 'tar zxvf - -C /root/ocmount/apps'; }
+  install_app https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz
   
   echo "Try: docker logs -f oc-$d_vers"
   echo "Try: docker exec -ti oc-$d_vers bash"
