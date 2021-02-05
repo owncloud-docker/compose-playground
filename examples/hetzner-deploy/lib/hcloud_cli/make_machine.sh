@@ -152,6 +152,7 @@ if [ -n "$extra_pkg" ]; then
   case "$server_image" in
     ubuntu*|debian*)
       ssh root@$IPADDR sh -x -s <<END
+	export LC_ALL=C
         apt-get update
         apt-get upgrade -y
         apt-get install -y $extra_pkg
@@ -159,6 +160,7 @@ END
 	;;
     fedora*|centos*)
       ssh root@$IPADDR sh -x -s <<END
+	export LC_ALL=C
         yum install -y $extra_pkg
 END
 	;;
