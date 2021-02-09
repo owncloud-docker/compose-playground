@@ -1,5 +1,9 @@
 #! /bin/sh
-version=0.5
+#
+# This asumes that the machine already exists with ip address $OC_DEPLOY_ADDR
+# and is reachable with 'ssh root@$OC_DEPLOY_ADDR'
+#
+version=0.6
 
 exec 3>&1 1>&2	        # all output goes to stderr.
 export LC_ALL=C		# prevent tr and sed to explode on mac.
@@ -7,6 +11,7 @@ set -e
 
 extra_pkg=""
 do_login=false
+used_for="server_testing"
 NAME=
 # getopts cannot do long names and needs more code.
 while [ "$#" -gt 0 ]; do
@@ -18,6 +23,7 @@ while [ "$#" -gt 0 ]; do
     -i|--image) shift ;;
     -t|--type) shift ;;
     -u|--unique) ;;
+    -f|--used-for) used_for="$2"; shift ;;
     -h|--help) NAME=-h ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
     *) NAME="$1" ;;
@@ -46,6 +52,7 @@ if [ "$NAME" = '-h' ]; then
     -t|--type
     -d|--datacenter
     -s|--ssh-key-names
+    -f|--used-for
 
   The MACHINE_NAME is unused.
 

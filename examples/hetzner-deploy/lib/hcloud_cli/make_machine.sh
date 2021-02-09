@@ -28,6 +28,7 @@ datacenter="fsn1-dc14"
 server_type="cx21"
 mk_unique=false
 do_login=false
+used_for="server_testing"
 NAME=
 
 # getopts cannot do long names and needs more code.
@@ -40,6 +41,7 @@ while [ "$#" -gt 0 ]; do
     -t|--type) server_type="$2"; shift ;;
     -u|--unique) mk_unique=true ;;
     -l|--login) do_login=true ;;
+    -f|--used-for) used_for="$2"; shift ;;
     -h|--help) NAME=-h ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
     *) NAME="$1" ;;
@@ -71,6 +73,7 @@ if [ "$NAME" = '-h' ]; then
     -p|--packages ...       comma-separated list of linux packages to install
     -u|--unique             make name unique by prepending user and appending a suffix
     -l|--login              ssh into the machine, when ready
+    -f|--used-for           label with purpose of the machine. Default: $used_for
 
   HCLOUD_TOKEN is specific to a project at https://console.hetzner.cloud
   consult with the project owner to get a token.
@@ -131,7 +134,7 @@ fi
 ssh_key_mult="$(echo "$HCLOUD_SSHKEY_NAMES" | sed -e 's/,/ --ssh-key /g')"
 
 set -x
-bin/hcloud server create --name "$NAME" --image "$server_image" --type "$server_type" --label "origin=hcloud_cli-make_machine.sh" --label "owner=$HCLOUD_USER" --ssh-key $ssh_key_mult
+bin/hcloud server create --name "$NAME" --image "$server_image" --type "$server_type" --label "origin=hcloud_cli_make_machine_sh" --label "owner=$HCLOUD_USER" --label "used_for="$used_for" --ssh-key $ssh_key_mult
 IPADDR="$(bin/hcloud server ip "$NAME")"
 test -z "$IPADDR" && exit 1
 

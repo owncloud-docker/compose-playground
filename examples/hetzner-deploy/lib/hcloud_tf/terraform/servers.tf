@@ -11,6 +11,7 @@ resource "hcloud_server" "server" {
   labels      = {
     owner     = "${var.server_owner}"
     origin    = "${var.server_origin}"
+    used_for  = "${var.server_used_for}"
   }
 
   lifecycle {

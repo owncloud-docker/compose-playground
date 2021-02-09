@@ -14,7 +14,8 @@
 # jw, 2020-05-14	v0.4	%s interpolation on the machine name, support for direct login
 # jw, 2020-05-15	v0.5	major refactoring to support local and predeployed systems too.
 # jw, 2020-05-22	v0.6	porting to mac
-version=0.6
+# jw, 2021-02-10	v0.7	added --used-for option.
+version=0.7
 
 exec 3>&1 1>&2		# all output goes to stderr.
 export LC_ALL=C		# prevent tr and sed to explode on mac.
@@ -44,6 +45,7 @@ datacenter="fsn1-dc14"
 server_type="cx21"
 mk_unique=false
 do_login=false
+used_for="server_testing"
 NAME=
 
 # getopts cannot do long names and needs more code.
@@ -56,6 +58,7 @@ while [ "$#" -gt 0 ]; do
     -t|--type) server_type="$2"; shift ;;
     -u|--unique) mk_unique=true ;;
     -l|--login) do_login=true ;;
+    -f|--used-for) used_for="$2"; shift ;;
     -h|--help) NAME=-h ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
     *) NAME="$1" ;;
@@ -86,6 +89,7 @@ if [ "$NAME" = '-h' ]; then
     -p|--packages ...       comma-separated list of linux packages to install
     -u|--unique             make name unique by prepending user and appending a suffix
     -l|--login              ssh into the machine, when ready
+    -f|--used-for           label with purpose of the machine: Default: $used_for
 
   HCLOUD_TOKEN is specific to a project at https://console.hetzner.cloud
   consult with the project owner to get a token.
@@ -154,6 +158,7 @@ bin/terraform plan -var="server_owner=$HCLOUD_USER" -var="server_names=[\"$NAME\
                    -var="ssh_keys=[$ssh_keys]" -var="server_keys=[$ssh_key_names]" \
                    -var="server_datacenter=$datacenter" \
                    -var="server_types=[\"$server_type\"]" \
+                   -var="server_used_for=$used_for" \
                    -var="server_image=$server_image" -out $NAME.plan
 
 bin/terraform apply $NAME.plan

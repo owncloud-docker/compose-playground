@@ -34,19 +34,22 @@ ssh_key_names = os.environ.get('HCLOUD_SSHKEY_NAMES', '')
 server_image = "ubuntu-20.04"
 datacenter = "fsn1-dc14"
 server_type = "cx21"
+used_for = "server_testing"
 debug = False
 
-parser = argparse.ArgumentParser(description=sys.argv[0]+" V0.1")
-parser.add_argument('-i', '--image',       type=str, default=server_image, help="server image. Default: "+server_image)
-parser.add_argument('-t', '--type',        type=str, default=server_type, help="server type. Default: "+server_type)
+parser = argparse.ArgumentParser(description=sys.argv[0]+" V0.2")
+parser.add_argument('-i', '--image',          type=str, default=server_image, help="server image. Default: "+server_image)
+parser.add_argument('-t', '--type',           type=str, default=server_type, help="server type. Default: "+server_type)
 parser.add_argument('-d', '--datacenter',     type=str, default=datacenter, help="server datacenter. Default: "+datacenter)
 parser.add_argument('-s', '--ssh-key-names',  type=str, help="comma-separated names of uploaded public keys. Default: env HCLOUD_SSHKEY_NAMES", default=ssh_key_names)
 parser.add_argument('-p', '--packages',       type=str, help="comma-separated list of linux packages to install")
 parser.add_argument('-u', '--unique',         action='store_true', help="make name unique by prepending user and appending a suffix")
 parser.add_argument('-l', '--login',          action='store_true', help="ssh into the machine, when ready")
+parser.add_argument('-f', '--used-for',       action='store_true', default=used_for, help="label with purpose of machine. Default: "+used_for)
 parser.add_argument('MACHINE_NAME', nargs='?', help="optional machine name")
 args = parser.parse_args()
 NAME = args.MACHINE_NAME
+used_for = args.used_for
 if not NAME: NAME = args.image
 NAME = NAME.translate( { ord('.'):ord('-'), ord('_'):ord('-') } )       # avoid _ and . in name. Always
 
@@ -104,7 +107,7 @@ user = user.split('@')[0]       # strip domain part, if any
 suff = ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(5))
 if args.unique: NAME = '-'.join([user, NAME, suff])
 
-labels = { 'owner': user, 'origin': 'make_machine.py' }
+labels = { 'owner': user, 'origin': 'make_machine_py', 'used_for': used_for }
 ssh_key_list = []
 for k in ssh_key_names:
   bk = client.ssh_keys.get_by_name(k)
