@@ -5,7 +5,7 @@
 
 echo "Estimated setup time: 3 minutes ..."
 
-source lib/make_machine.sh -u oc-10-linux-pkg -p git,screen,docker.io,wget
+source lib/make_machine.sh -u oc-10-linux-pkg -p git,screen,docker.io,wget "$@"
 
 INIT_SCRIPT << EOF
 export LC_ALL=C

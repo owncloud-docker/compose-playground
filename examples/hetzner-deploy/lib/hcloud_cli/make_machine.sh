@@ -30,6 +30,7 @@ mk_unique=false
 do_login=false
 used_for="server_testing"
 NAME=
+PARAM=
 
 # getopts cannot do long names and needs more code.
 while [ "$#" -gt 0 ]; do
@@ -39,12 +40,13 @@ while [ "$#" -gt 0 ]; do
     -p|--packages) extra_pkg="$2"; shift ;;
     -i|--image) server_image="$2"; shift ;;
     -t|--type) server_type="$2"; shift ;;
-    -u|--unique) mk_unique=true ;;
+    -u|--unique) mk_unique=true; NAME="$2"; shift ;;
+    -n|--name) NAME="$2"; shift ;;
     -l|--login) do_login=true ;;
     -f|--used-for) used_for="$2"; shift ;;
     -h|--help) NAME=-h ;;
     -*) echo "Unknown option '$1'. Try --help"; exit 1 ;;
-    *) NAME="$1" ;;
+    *) test -z "$PARAM" && PARAM="$1" || PARAM="$PARAM $1" ;;
   esac
   shift
 done
@@ -60,8 +62,8 @@ if [ "$NAME" = '-h' ]; then
   Usage:
     export HCLOUD_SSHKEY_NAMES="jw@owncloud.com"
     export HCLOUD_TOKEN=123..........xyz
-    $0 [OPTIONS] MACHINE_NAME
-    \$(bash ./make_machine.sh ...)
+    $0 [OPTIONS] -n MACHINE_NAME
+    eval \$(bash ./make_machine.sh ...)
     source ./make_machine.sh ...
 
   Where options are:
@@ -71,7 +73,8 @@ if [ "$NAME" = '-h' ]; then
     -d|--datacenter ...	    server datacenter. Default: $datacenter
     -s|--ssh-key-names ...  comma-separated names of uploaded public keys
     -p|--packages ...       comma-separated list of linux packages to install
-    -u|--unique             make name unique by prepending user and appending a suffix
+    -u|--unique NAME        make name unique by prepending user and appending a suffix
+    -n|--name NAME          specify a name. Default: derive from image
     -l|--login              ssh into the machine, when ready
     -f|--used-for           label with purpose of the machine. Default: $used_for
 
@@ -86,9 +89,9 @@ if [ "$NAME" = '-h' ]; then
   Example: 'make_machine.sh -u eostest' might result in a machine named 'jw-eostest-3z4ya'
 
   Return values:
-    "export IPADDR=... NAME=..." is printed on stdout describing the deploy target.
+    "export IPADDR=... NAME=... PARAM='...'" is printed on stdout describing the deploy target.
 EOF
-  test ! -t 3 && echo 1>&3 "export IPADDR= NAME=-h"
+  test ! -t 3 && echo 1>&3 "export IPADDR= NAME=-h PARAM="
   exit 1
 fi
 
@@ -199,5 +202,5 @@ END
 fi
 sleep 2
 
-echo 1>&3 "export IPADDR=$IPADDR NAME=$NAME"
+echo 1>&3 "export IPADDR=$IPADDR NAME=$NAME PARAM='$PARAM'"
 exit 0

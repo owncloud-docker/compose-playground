@@ -7,11 +7,11 @@ echo "Estimated setup time: 5 minutes ..."
 
 vers=10.6.0
 tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
-files_antivirus_version=0.16.0RC1	# comment to disable/enable
+
+if [ -z "$1" ]; echo "Usage: $0 https://public_url_of/app.tar.gz ... local/dir_with/app.tar.gz ..."; exit 1; fi
 
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
 source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert "$@"
-
 
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
@@ -74,38 +74,58 @@ cd
 
 #################################################################
 
-install_app() { curl -L -s \$1 | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
+install_app() { su www-data -s /bin/sh -c "tar zxf - -C  /var/www/owncloud/apps-external" < \$1; }
 
-if [ -n "$files_antivirus_version" ]; then
-  rm -rf /var/www/owncloud/apps/files_antivirus 
-  install_app https://github.com/owncloud/files_antivirus/releases/download/v$files_antivirus_version/files_antivirus-$files_antivirus_version.tar.gz
-  occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
-  occ config:app:set files_antivirus av_mode --value="socket"
-  occ app:check files_antivirus         	# https://github.com/owncloud/files_antivirus/issues/394
-  occ app:enable files_antivirus
-  occ app:list files_antivirus
+for param in \$PARAM; do
+  case "\$param" in
+    *.tar.gz)
+  esac
+    app=\$(basename \$param)
+    app_name=\$(echo "\$app" | sed -e 's/[-\\.].*//')
+    install_app \$app
+    case "\$app" in
+      files_antivirus*)
+        rm -rf /var/www/owncloud/apps/files_antivirus 
+        occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
+        occ config:app:set files_antivirus av_mode --value="socket"
+        occ app:check files_antivirus         	# https://github.com/owncloud/files_antivirus/issues/394
+        occ app:enable files_antivirus
+      
+        apt install -y clamav clamav-daemon
+        echo >> /etc/clamav/clamd.conf "TCPSocket 3310"
+        sed -i -e 's/LogVerbose false/LogVerbose true/' /etc/clamav/*.conf
+        /etc/init.d/clamav-daemon restart
+        sleep 20	# waiting for clamd to get ready...
+        set -x
+        wget https://secure.eicar.org/eicar.com.txt
+        clamscan eicar.com.txt
+        set +x
+        for i in 10 9 8 7 6 5 4 3 2 1; do
+          test -e /var/run/clamav/clamd.ctl && break;
+          echo " ... waiting for socket ... \$i min"
+          sleep 20
+          test -e /var/run/clamav/clamd.ctl && break;
+          sleep 20
+          test -e /var/run/clamav/clamd.ctl && break;
+          sleep 20
+          /etc/init.d/clamav-daemon restart
+        done
+        netstat -a | grep clam
+      ;;
 
-  apt install -y clamav clamav-daemon
-  echo >> /etc/clamav/clamd.conf "TCPSocket 3310"
-  sed -i -e 's/LogVerbose false/LogVerbose true/' /etc/clamav/*.conf
-  /etc/init.d/clamav-daemon restart
-  sleep 20	# waiting for clamd to get ready...
-  set -x
-  wget https://secure.eicar.org/eicar.com.txt
-  clamscan eicar.com.txt
-  set +x
-  for i in 10 9 8 7 6 5 4 3 2 1; do
-    test -e /var/run/clamav/clamd.ctl && break;
-    echo " ... waiting for socket ... \$i min"
-    sleep 20
-    test -e /var/run/clamav/clamd.ctl && break;
-    sleep 20
-    test -e /var/run/clamav/clamd.ctl && break;
-    sleep 20
-    /etc/init.d/clamav-daemon restart
-  done
-  netstat -a | grep clam
-fi
+      *)
+        echo "\$app installed. Try this to get activate: occ app:enable \$app_name"
+      ;;
+  
+    esac
+    occ app:list files_antivirus
+    ;;
+
+    *)
+      echo "App install: not a *.tar.gz file: \$param"
+    ;;
+done
+
 
 uptime
 echo "Try: firefox https://$IPADDR/owncloud"

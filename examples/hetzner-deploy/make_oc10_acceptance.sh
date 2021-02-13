@@ -8,7 +8,7 @@ echo "Estimated setup time: 8 minutes ..."
 
 vers=10.6.0beta1
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)	# -$(date +%Y%m%d)
-source lib/make_machine.sh -u acceptance-$d_vers -p git,screen,docker.io,composer,make,libxml2-utils,apache2,libapache2-mod-php,openssl,php-imagick,php-common,php-curl,php-gd,php-imap,php-intl,php-json,php-mbstring,php-mysql,php-ssh2,php-xml,php-zip,php-apcu,php-ldap,wget
+source lib/make_machine.sh -u acceptance-$d_vers -p git,screen,docker.io,composer,make,libxml2-utils,apache2,libapache2-mod-php,openssl,php-imagick,php-common,php-curl,php-gd,php-imap,php-intl,php-json,php-mbstring,php-mysql,php-ssh2,php-xml,php-zip,php-apcu,php-ldap,wget "$@"
 
 # from https://github.com/owncloud-docker/server/pull/204#issuecomment-714388044
 example_make_cmd="make test-acceptance-webui BEHAT_FEATURE=tests/acceptance/features/webUIAdminSettings/adminAppsSettings.feature"

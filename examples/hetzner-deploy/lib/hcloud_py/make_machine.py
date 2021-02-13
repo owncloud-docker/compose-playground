@@ -43,12 +43,16 @@ parser.add_argument('-t', '--type',           type=str, default=server_type, hel
 parser.add_argument('-d', '--datacenter',     type=str, default=datacenter, help="server datacenter. Default: "+datacenter)
 parser.add_argument('-s', '--ssh-key-names',  type=str, help="comma-separated names of uploaded public keys. Default: env HCLOUD_SSHKEY_NAMES", default=ssh_key_names)
 parser.add_argument('-p', '--packages',       type=str, help="comma-separated list of linux packages to install")
-parser.add_argument('-u', '--unique',         action='store_true', help="make name unique by prepending user and appending a suffix")
+parser.add_argument('-u', '--unique',         type=str, help="make name unique by prepending user and appending a suffix")
+parser.add_argument('-n', '--name',           type=str, help="specify machine name. Default: from image name")
 parser.add_argument('-l', '--login',          action='store_true', help="ssh into the machine, when ready")
 parser.add_argument('-f', '--used-for',       action='store_true', default=used_for, help="label with purpose of machine. Default: "+used_for)
-parser.add_argument('MACHINE_NAME', nargs='?', help="optional machine name")
+parser.add_argument('PARAM', nargs='*', help="optional parameters")
 args = parser.parse_args()
-NAME = args.MACHINE_NAME
+NAME = args.name
+if args.unique:
+   NAME = args.unique
+
 used_for = args.used_for
 if not NAME: NAME = args.image
 NAME = NAME.translate( { ord('.'):ord('-'), ord('_'):ord('-') } )       # avoid _ and . in name. Always
@@ -181,4 +185,4 @@ if rc != 0:
   print("ERROR: subprocess.call return code = %d" % rc, file=sys.stderr)
   sys.exit(1)
 
-print("export IPADDR=%s NAME=%s" % (IPADDR, NAME))
+print("export IPADDR=%s NAME=%s PARAM='%s'" % (IPADDR, NAME, ' '.join(args.PARAM)))

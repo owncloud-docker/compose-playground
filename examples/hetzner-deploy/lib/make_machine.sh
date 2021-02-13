@@ -19,11 +19,13 @@ test "$OC_DEPLOY" = hcloud_py && suf=py || suf=sh
 echo 1>&2 "Using OC_DEPLOY=$OC_DEPLOY ..."
 NAME=
 IPADDR=
-$($libdir/$OC_DEPLOY/make_machine.$suf "$@")
+eval $($libdir/$OC_DEPLOY/make_machine.$suf "$@")
 
 if [ -z "$IPADDR" ]; then
   if [ "$NAME" = '-h' ]; then		# usage was printed.
     cat <<EOF
+
+Additional parameters can be URLs or filenames. They are copied into the machine.
 
 Additonal environment variables:
 
@@ -36,6 +38,17 @@ EOF
   fi
   exit 1;
 fi
+
+for param in "$PARAM"; do
+  if [ -e "$param" ]; then
+    echo "+ scp -q -r '$param' root@$IPADDR:"
+    scp -q -r "$param" root@$IPADDR:
+  else
+    echo "+ ssh root@$IPADDR wget -q '$param' "
+    ssh root@$IPADDR wget -q "$param" 
+  fi
+  echo "$0: param: $param"
+done
 
 tmpscriptfile=./tmpscript$$.sh
 scriptfile=$tmpscriptfile

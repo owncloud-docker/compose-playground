@@ -11,7 +11,7 @@
 # 2020-04-15, jw@owncloud.com
 #
 
-source lib/make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose
+source lib/make_machine.sh -u ocis-test -p git,screen,build-essential,docker.io,docker-compose "$@"
 
 INIT_SCRIPT << EOF
   # compose docker container

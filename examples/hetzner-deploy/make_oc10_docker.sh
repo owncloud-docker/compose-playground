@@ -7,7 +7,7 @@ echo "Estimated setup time: 2 minutes ..."
 
 vers=10.6.0
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source lib/make_machine.sh -u oc-$d_vers -p git,screen,docker.io,wget
+source lib/make_machine.sh -u oc-$d_vers -p git,screen,docker.io,wget "$@"
 
 HTTP_PORT=80
 

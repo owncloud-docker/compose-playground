@@ -20,7 +20,7 @@ echo "Estimated setup time: 8 minutes ..."
 vers=2.0.0RC1
 oauth2_vers=0.4.4
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose
+source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose "$@"
 
 comp_yml=kopano/konnect/docker-compose.yml
 reg_yml=kopano/konnect/konnectd-identifier-registration.yaml

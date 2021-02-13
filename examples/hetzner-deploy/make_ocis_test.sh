@@ -34,7 +34,7 @@ TRAEFIK_DOMAIN=traefik.$BASE_DOMAIN
 OCIS_DOMAIN=web.$BASE_DOMAIN
 
 # use a cx31 -- we need more than 40GB disk space.
-source lib/make_machine.sh -t cx31 -u ocis-${OCIS_VERSION} -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils
+source lib/make_machine.sh -t cx31 -u ocis-${OCIS_VERSION} -p git,vim,screen,docker.io,docker-compose,binutils,ldap-utils "$@"
 set -x
 
 if [ -z "$IPADDR" ]; then
