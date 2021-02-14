@@ -7,11 +7,9 @@ echo "Estimated setup time: 5 minutes ..."
 
 vers=10.6.0
 tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
-files_antivirus_version=0.16.0RC1	# comment to disable/enable
 
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
 source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert "$@"
-
 
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
@@ -69,44 +67,18 @@ occ config:system:set memcache.locking --value '\OC\Memcache\Redis'
 occ config:system:set redis --type json --value '{"host": "127.0.0.1", "port": "6379"}'
 
 curl -k https://$IPADDR/owncloud/status.php
-echo; sleep 5
-cd
-
-#################################################################
-
-install_app() { curl -L -s \$1 | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
-
-if [ -n "$files_antivirus_version" ]; then
-  rm -rf /var/www/owncloud/apps/files_antivirus 
-  install_app https://github.com/owncloud/files_antivirus/releases/download/v$files_antivirus_version/files_antivirus-$files_antivirus_version.tar.gz
-  occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
-  occ config:app:set files_antivirus av_mode --value="socket"
-  occ app:check files_antivirus         	# https://github.com/owncloud/files_antivirus/issues/394
-  occ app:enable files_antivirus
-  occ app:list files_antivirus
-
-  apt install -y clamav clamav-daemon
-  echo >> /etc/clamav/clamd.conf "TCPSocket 3310"
-  sed -i -e 's/LogVerbose false/LogVerbose true/' /etc/clamav/*.conf
-  /etc/init.d/clamav-daemon restart
-  sleep 20	# waiting for clamd to get ready...
-  set -x
-  wget https://secure.eicar.org/eicar.com.txt
-  clamscan eicar.com.txt
-  set +x
-  for i in 10 9 8 7 6 5 4 3 2 1; do
-    test -e /var/run/clamav/clamd.ctl && break;
-    echo " ... waiting for socket ... \$i min"
-    sleep 20
-    test -e /var/run/clamav/clamd.ctl && break;
-    sleep 20
-    test -e /var/run/clamav/clamd.ctl && break;
-    sleep 20
-    /etc/init.d/clamav-daemon restart
-  done
-  netstat -a | grep clam
-fi
-
+# Accept local files and remote URLs
+install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
+install_app_gh() { curl -L -s "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz" | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
 uptime
-echo "Try: firefox https://$IPADDR/owncloud"
+cat << EOM
+Server $vers is ready. You can now try the following commands
+from within this machine:
+	install_app ./icap-0.1.0RC2.tar.gz
+	install_app https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz
+	install_app_gh files_antivirus 0.16.0RC1
+
+from remote:
+	firefox https://$IPADDR/owncloud
+
 EOF
