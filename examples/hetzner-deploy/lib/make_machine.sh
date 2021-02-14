@@ -39,16 +39,26 @@ EOF
   exit 1;
 fi
 
-for param in "$PARAM"; do
+echo "$PARAM"
+
+PARAM_BASENAME=
+for param in $PARAM; do
   if [ -e "$param" ]; then
     echo "+ scp -q -r '$param' root@$IPADDR:"
     scp -q -r "$param" root@$IPADDR:
   else
-    echo "+ ssh root@$IPADDR wget -q '$param' "
-    ssh root@$IPADDR wget -q "$param" 
+    echo "+ ssh root@$IPADDR wget '$param' "
+    ssh root@$IPADDR wget --progress=bar:force:noscroll "$param"
   fi
-  echo "$0: param: $param"
+  sleep 2
+  if [ -z "$PARAM_BASENAME" ]; then
+    PARAM_BASENAME="$(basename $param)"
+  else
+    PARAM_BASENAME="$PARAM_BASENAME $(basename $param)"
+  fi
 done
+
+echo "$PARAM_BASENAME"
 
 tmpscriptfile=./tmpscript$$.sh
 scriptfile=$tmpscriptfile
@@ -56,8 +66,12 @@ scriptfolder=
 function LOAD_SCRIPT {
   if [ -z "$1" ]; then
      # inline style usage with <<EOF or such ...
-     cat > $scriptfile
+     echo  > $scriptfile "export PARAM='$PARAM'"
+     echo >> $scriptfile "export PARAM_BASENAME='$PARAM_BASENAME'"
+     echo >> $scriptfile "ls -l \$PARAM_BASENAME"
+     cat  >> $scriptfile
   else
+     # TODO: add INIT.bashrc prolog like above
      scriptfolder=$(dirname "$1")
      if [ "$scriptfolder" == "." ]; then
        scriptfolder=
