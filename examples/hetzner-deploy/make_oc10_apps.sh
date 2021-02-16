@@ -182,6 +182,9 @@ for param in \$PARAM; do
           echo "  occ config:system:set files-antivirus.icap.req-service --value=req"
           echo "  occ config:system:set files-antivirus.icap.port        --value=11344"
 	  echo ""
+          echo "To switch off icap: (Must do this before disabling or uninstalling icap)"
+          echo "  occ config:system:delete files-antivirus.scanner-class"
+	  echo ""
         fi
       ;;
 
