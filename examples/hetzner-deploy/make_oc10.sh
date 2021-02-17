@@ -14,11 +14,13 @@ source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert "$@
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
 INIT_SCRIPT << EOF
-LC_ALL=C
+export LC_ALL=C LANGUAGE=C
 # FROM https://doc.owncloud.com/server/admin_manual/installation/ubuntu_18_04.html
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server wget
-apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap 	# MISSING: php-smbclient
+apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
+# apt install -y php-pear php7.4-dev libsmbclient-dev make; pecl install smbclient-stable	# compile php-smbclient from source
+# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 
 cd /var/www
 curl $tar | tar jxf -
@@ -67,15 +69,19 @@ occ config:system:set memcache.locking --value '\OC\Memcache\Redis'
 occ config:system:set redis --type json --value '{"host": "127.0.0.1", "port": "6379"}'
 
 curl -k https://$IPADDR/owncloud/status.php
+echo; sleep 5
+cd
+
+#################################################################
 # Accept local files and remote URLs
 install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
-install_app_gh() { curl -L -s "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz" | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
+install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz"; }
+
 uptime
 cat << EOM
 Server $vers is ready. You can now try the following commands
 from within this machine:
 	install_app ./icap-0.1.0RC2.tar.gz
-	install_app https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz
 	install_app_gh files_antivirus 0.16.0RC1
 
 from remote:

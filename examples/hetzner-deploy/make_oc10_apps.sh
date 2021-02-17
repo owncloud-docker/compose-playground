@@ -28,7 +28,9 @@ export LC_ALL=C LANGUAGE=C
 # FROM https://doc.owncloud.com/server/admin_manual/installation/ubuntu_18_04.html
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server wget
-apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap 	# MISSING: php-smbclient
+apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
+# apt install -y php-pear php7.4-dev libsmbclient-dev make; pecl install smbclient-stable	# compile php-smbclient from source
+# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 
 cd /var/www
 curl $tar | tar jxf -
@@ -84,7 +86,7 @@ cd
 
 # Accept local files and remote URLs
 install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
-install_app_gh() { curl -L -s "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz" | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
+install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz"; }
 
 for param in \$PARAM; do
   # find app tar.gz files by looking for an appinfo/info.xml in them.
@@ -206,5 +208,13 @@ done
 
 
 uptime
-echo "Try: firefox https://$IPADDR/owncloud"
+cat << EOM
+Server $vers is ready. You can now try the following commands
+from within this machine:
+	install_app ./icap-0.1.0RC2.tar.gz
+	install_app_gh files_antivirus 0.16.0RC1
+
+from remote:
+	firefox https://$IPADDR/owncloud
+EOM
 EOF
