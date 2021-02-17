@@ -19,7 +19,7 @@ if [ -z "$1" ]; then
 fi
 
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert "$@"
+source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "$@"
 
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
@@ -78,13 +78,30 @@ occ config:system:set memcache.local --value '\OC\Memcache\APCu'
 occ config:system:set memcache.locking --value '\OC\Memcache\Redis'
 occ config:system:set redis --type json --value '{"host": "127.0.0.1", "port": "6379"}'
 
+## initialize mailhog
+docker run --rm --name mailhog -d -p 8025:8025 mailhog/mailhog
+hog_ip=$(docker inspect mailhog | jq .[0].NetworkSettings.IPAddress -r)
+mysql owncloud -e 'UPDATE oc_accounts SET email="admin@oc.example.com" WHERE user_id="admin";'
+occ config:system:set mail_domain       --value oc.example.com
+occ config:system:set mail_from_address --value mail
+occ config:system:set mail_smtpmode     --value smtp
+occ config:system:set mail_smtphost     --value $hog_ip
+occ config:system:set mail_smtpport     --value 1025
+
+## external SFTP storage
+apt install -y pure-ftpd
+ftppass=ftp${RANDOM}data
+echo -e "$ftppass\n$ftppass" | adduser ftpdata --gecos ""
+occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=$ftppass
+
+
 curl -k https://$IPADDR/owncloud/status.php
 echo; sleep 5
 cd
 
 #################################################################
 
-# Accept local files and remote URLs
+# install_app accepts local files and remote URLs
 install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
 install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz"; }
 
