@@ -80,5 +80,5 @@ from within this machine:
 
 from remote:
 	firefox https://$IPADDR/owncloud
-
+EOM
 EOF
