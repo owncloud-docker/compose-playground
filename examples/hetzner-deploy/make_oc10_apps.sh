@@ -63,7 +63,7 @@ sudo -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
 EOOCC
 chmod a+x /usr/bin/occ
 
-mysql -u root -e "DROP DATABASE owncloud;" || true
+mysql -u root -e "DROP DATABASE owncloud;" 2>/dev/null || true
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'";
 occ maintenance:install --database "mysql" --database-name "owncloud" --database-user "owncloud" --database-pass "$dbpass" --admin-user "admin" --admin-pass "admin"
 
@@ -114,7 +114,7 @@ for param in \$PARAM; do
       windows_network_drive*)
 	# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 	# A php-smbclient package exists only for ubuntu-18.04, we compile it from source.
-	apt install -y php-pear php7.4-dev libsmbclient-dev make smbclient; pecl install smbclient-stable
+	apt install -y php-pear php7.4-dev libsmbclient libsmbclient-dev make smbclient; pecl install smbclient-stable
 	echo 'extension="smbclient.so"' > /etc/php/7.4/mods-available/smbclient.ini
 	phpenmod -v ALL smbclient
 	service apache2 reload
@@ -127,7 +127,7 @@ for param in \$PARAM; do
 	occ app:enable files_external
         occ app:enable windows_network_drive	# CAUTION: triggers license grace period! 
 	#TODO screen session with: occ wnd:listen -vvv \$smb_ip shared testy testy	# from https://github.com/owncloud/windows_network_drive/pull/148/files
-	#TODO Admin -> Storage -> Windows Network Drive \$smb_ip \shared "" "" testy testy
+	#TODO Admin -> Storage -> Windows Network Drive \$smb_ip /shared "" "" testy testy
 	;;
 
       files_antivirus*)

@@ -53,7 +53,7 @@ sudo -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
 EOOCC
 chmod a+x /usr/bin/occ
 
-mysql -u root -e "DROP DATABASE owncloud;" || true
+mysql -u root -e "DROP DATABASE owncloud;" 2>/dev/null || true
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'";
 occ maintenance:install --database "mysql" --database-name "owncloud" --database-user "owncloud" --database-pass "$dbpass" --admin-user "admin" --admin-pass "admin"
 
