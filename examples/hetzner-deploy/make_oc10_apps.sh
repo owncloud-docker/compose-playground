@@ -29,8 +29,6 @@ export LC_ALL=C LANGUAGE=C
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server wget
 apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
-# apt install -y php-pear php7.4-dev libsmbclient-dev make; pecl install smbclient-stable	# compile php-smbclient from source
-# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 
 cd /var/www
 curl $tar | tar jxf -
@@ -80,19 +78,19 @@ occ config:system:set redis --type json --value '{"host": "127.0.0.1", "port": "
 
 ## initialize mailhog
 docker run --rm --name mailhog -d -p 8025:8025 mailhog/mailhog
-hog_ip=$(docker inspect mailhog | jq .[0].NetworkSettings.IPAddress -r)
+hog_ip=\$(docker inspect mailhog | jq .[0].NetworkSettings.IPAddress -r)
 mysql owncloud -e 'UPDATE oc_accounts SET email="admin@oc.example.com" WHERE user_id="admin";'
 occ config:system:set mail_domain       --value oc.example.com
 occ config:system:set mail_from_address --value mail
 occ config:system:set mail_smtpmode     --value smtp
-occ config:system:set mail_smtphost     --value $hog_ip
+occ config:system:set mail_smtphost     --value \$hog_ip
 occ config:system:set mail_smtpport     --value 1025
 
 ## external SFTP storage
 apt install -y pure-ftpd
 ftppass=ftp${RANDOM}data
-echo -e "$ftppass\n$ftppass" | adduser ftpdata --gecos ""
-occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=$ftppass
+echo -e "\$ftppass\\n\$ftppass" | adduser ftpdata --gecos ""
+occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=\$ftppass
 
 
 curl -k https://$IPADDR/owncloud/status.php
@@ -113,6 +111,25 @@ for param in \$PARAM; do
     app_name=\$(echo "\$app" | sed -e 's/[-\\.].*//')
     install_app "\$app"
     case "\$app" in
+      windows_network_drive*)
+	# See also https://packages.ubuntu.com/search?keywords=php-smbclient
+	# A php-smbclient package exists only for ubuntu-18.04, we compile it from source.
+	apt install -y php-pear php7.4-dev libsmbclient-dev make smbclient; pecl install smbclient-stable
+	echo 'extension="smbclient.so"' > /etc/php/7.4/mods-available/smbclient.ini
+	phpenmod -v ALL smbclient
+	service apache2 reload
+	#
+	mkdir -p /home/samba; chmod -R 777 /home/samba
+	docker run --rm -v /home/samba:/shared -d --name samba dperson/samba -u "testy;testy" -s "shared;/shared;yes;no;yes" -n
+	smb_ip=\$(docker inspect samba | jq .[0].NetworkSettings.IPAddress -r)
+        wget https://secure.eicar.org/eicar.com
+	smbclient //\$smb_ip/shared -U testy testy -c 'put eicar.com; dir'
+	occ app:enable files_external
+        occ app:enable windows_network_drive	# CAUTION: triggers license grace period! 
+	#TODO screen session with: occ wnd:listen -vvv \$smb_ip shared testy testy	# from https://github.com/owncloud/windows_network_drive/pull/148/files
+	#TODO Admin -> Storage -> Windows Network Drive \$smb_ip \shared "" "" testy testy
+	;;
+
       files_antivirus*)
         rm -rf /var/www/owncloud/apps/files_antivirus
         occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
@@ -226,12 +243,13 @@ done
 
 uptime
 cat << EOM
-Server $vers is ready. You can now try the following commands
-from within this machine:
+( Mailhog access: http://$IPADDR:8025 )
+Server $vers is ready. You can now try the following commands:
+From within this machine
 	install_app ./icap-0.1.0RC2.tar.gz
 	install_app_gh files_antivirus 0.16.0RC1
 
-from remote:
+From remote
 	firefox https://$IPADDR/owncloud
 EOM
 EOF

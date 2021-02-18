@@ -19,8 +19,6 @@ export LC_ALL=C LANGUAGE=C
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server wget
 apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
-# apt install -y php-pear php7.4-dev libsmbclient-dev make; pecl install smbclient-stable	# compile php-smbclient from source
-# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 
 cd /var/www
 curl $tar | tar jxf -
@@ -96,12 +94,13 @@ install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/downloa
 
 uptime
 cat << EOM
-Server $vers is ready. You can now try the following commands
-from within this machine:
+( Mailhog access: http://$IPADDR:8025 )
+Server $vers is ready. You can now try the following commands:
+From within this machine
 	install_app ./icap-0.1.0RC2.tar.gz
 	install_app_gh files_antivirus 0.16.0RC1
 
-from remote:
+From remote
 	firefox https://$IPADDR/owncloud
 EOM
 EOF
