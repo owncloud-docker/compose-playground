@@ -37,6 +37,11 @@ Alias /owncloud "/var/www/owncloud/"
  SetEnv HOME /var/www/owncloud
  SetEnv HTTP_HOME /var/www/owncloud
 </Directory>
+
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=15552000; includeSubDomains"
+</IfModule>
+
 EOCONF
 for mod in ssl headers env dir mime unique_id; do
   a2enmod \$mod
@@ -61,6 +66,7 @@ occ config:system:set trusted_domains 1 --value="$IPADDR"
 
 echo "*/15  *  *  *  * /var/www/owncloud/occ system:cron" > /var/spool/cron/crontabs/www-data
 chown www-data.crontab /var/spool/cron/crontabs/www-data
+occ background:cron
 
 occ config:system:set memcache.local --value '\OC\Memcache\APCu'
 occ config:system:set memcache.locking --value '\OC\Memcache\Redis'

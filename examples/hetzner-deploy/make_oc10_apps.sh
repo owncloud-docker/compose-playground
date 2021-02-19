@@ -19,7 +19,7 @@ if [ -z "$1" ]; then
 fi
 
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "$@"
+source $(dirname $0)/lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "$@"
 
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
@@ -47,6 +47,11 @@ Alias /owncloud "/var/www/owncloud/"
  SetEnv HOME /var/www/owncloud
  SetEnv HTTP_HOME /var/www/owncloud
 </Directory>
+
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=15552000; includeSubDomains"
+</IfModule>
+
 EOCONF
 for mod in ssl headers env dir mime unique_id; do
   a2enmod \$mod
@@ -71,6 +76,7 @@ occ config:system:set trusted_domains 1 --value="$IPADDR"
 
 echo "*/15  *  *  *  * /var/www/owncloud/occ system:cron" > /var/spool/cron/crontabs/www-data
 chown www-data.crontab /var/spool/cron/crontabs/www-data
+occ background:cron
 
 occ config:system:set memcache.local --value '\OC\Memcache\APCu'
 occ config:system:set memcache.locking --value '\OC\Memcache\Redis'
@@ -91,6 +97,7 @@ apt install -y pure-ftpd
 ftppass=ftp${RANDOM}data
 echo -e "\$ftppass\\n\$ftppass" | adduser ftpdata --gecos ""
 occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=\$ftppass
+occ config:app:set core enable_external_storage --value yes
 
 
 curl -k https://$IPADDR/owncloud/status.php
@@ -103,6 +110,7 @@ cd
 install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
 install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz"; }
 
+apps_installed=
 for param in \$PARAM; do
   # find app tar.gz files by looking for an appinfo/info.xml in them.
   param="\$(basename \$param)"
@@ -110,6 +118,7 @@ for param in \$PARAM; do
     app="\$(basename "\$param")"
     app_name=\$(echo "\$app" | sed -e 's/[-\\.].*//')
     install_app "\$app"
+    apps_installed="\$apps_installed \$app_name"
     case "\$app" in
       windows_network_drive*)
 	# See also https://packages.ubuntu.com/search?keywords=php-smbclient
@@ -124,10 +133,11 @@ for param in \$PARAM; do
 	smb_ip=\$(docker inspect samba | jq .[0].NetworkSettings.IPAddress -r)
         wget https://secure.eicar.org/eicar.com
 	smbclient //\$smb_ip/shared -U testy testy -c 'put eicar.com; dir'
-	occ app:enable files_external
         occ app:enable windows_network_drive	# CAUTION: triggers license grace period! 
-	#TODO screen session with: occ wnd:listen -vvv \$smb_ip shared testy testy	# from https://github.com/owncloud/windows_network_drive/pull/148/files
-	#TODO Admin -> Storage -> Windows Network Drive \$smb_ip /shared "" "" testy testy
+	occ config:app:set core enable_external_storage --value yes
+	occ files_external:create /WND windows_network_drive password::password -c host=\$smb_ip -c share="/shared" -c user=testy -c password=testy
+	sleep 2
+	screen -d -m -S wnd_listen occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
 	;;
 
       files_antivirus*)
@@ -163,7 +173,7 @@ for param in \$PARAM; do
         apt install -y jq p7zip-full postgresql docker.io
         # first: ClamAV c-icap
         apt install -y jq
-        screen -d -m -S c-icap docker run --rm --name c-icap -ti -p1344:1344 deepdiver/icap-clamav-service
+        screen -d -m -S c-icap docker run --rm --name c-icap -ti deepdiver/icap-clamav-service
         for i in 10 9 8 7 6 5 4 3 2 1; do
           cicap_addr=\$(docker inspect c-icap 2>/dev/null| jq .[0].NetworkSettings.IPAddress -r);
           test "\$cicap_addr" != null -a "\$cicap_addr" != "" && break;
@@ -240,6 +250,19 @@ for param in \$PARAM; do
   fi
 done
 
+for app in \$apps_installed; do
+  echo -n "Checking app \$app ... "
+  occ integrity:check-app \$app && echo OK.
+done
+
+grace_period="\$(occ config:app:get core grace_period)"
+if [ -n "\$grace_period" ]; then
+  cat <<GRACE
+  Enterprise grace_period activated. Please add a license.key or try:
+	sed -i -e 's@60 \\* 24;@60 * 24 * 30;@' /var/www/owncloud/lib/private/License/LicenseManager.php
+	occ config:system:set grace_period.demo_key.show_popup --type boolean --value false
+GRACE
+fi
 
 uptime
 cat << EOM
