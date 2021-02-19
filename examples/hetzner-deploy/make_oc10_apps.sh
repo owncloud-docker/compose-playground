@@ -120,6 +120,11 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
+      metrics*)
+	occ app:enable \$app_name	# CAUTION: triggers license grace period!
+	occ config:system:set "metrics_shared_secret" --value 123456
+	;;
+
       windows_network_drive*)
 	# See also https://packages.ubuntu.com/search?keywords=php-smbclient
 	# A php-smbclient package exists only for ubuntu-18.04, we compile it from source.
@@ -133,7 +138,7 @@ for param in \$PARAM; do
 	smb_ip=\$(docker inspect samba | jq .[0].NetworkSettings.IPAddress -r)
         wget https://secure.eicar.org/eicar.com
 	smbclient //\$smb_ip/shared -U testy testy -c 'put eicar.com; dir'
-        occ app:enable windows_network_drive	# CAUTION: triggers license grace period! 
+        occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	occ config:app:set core enable_external_storage --value yes
 	occ files_external:create /WND windows_network_drive password::password -c host=\$smb_ip -c share="/shared" -c user=testy -c password=testy
 	sleep 2
