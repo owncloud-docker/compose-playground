@@ -265,7 +265,8 @@ if [ -n "\$grace_period" ]; then
   cat <<GRACE
   Enterprise grace_period activated. Please add a license.key or try:
 	sed -i -e 's@60 \\* 24;@60 * 24 * 30;@' /var/www/owncloud/lib/private/License/LicenseManager.php
-	occ config:system:set grace_period.demo_key.show_popup --type boolean --value false
+	occ c:s:set integrity.check.disabled --type bool --value true
+	occ c:s:set grace_period.demo_key.show_popup --type bool --value false
 GRACE
 fi
 
