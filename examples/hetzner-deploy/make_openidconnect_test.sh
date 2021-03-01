@@ -17,17 +17,20 @@
 
 echo "Estimated setup time: 8 minutes ..."
 
-vers=2.0.0RC1
+vers=2.0.0
 oauth2_vers=0.4.4
+
+test -z "$HOSTNAME_SUFFIX" && HOSTNAME_SUFFIX=test
+
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source lib/make_machine.sh -u openidconnect-$d_vers-test -p git,screen,docker.io,docker-compose "$@"
+source lib/make_machine.sh -u oidc-$d_vers-$HOSTNAME_SUFFIX -p git,screen,docker.io,docker-compose "$@"
 
 comp_yml=kopano/konnect/docker-compose.yml
 reg_yml=kopano/konnect/konnectd-identifier-registration.yaml
 openidconnect_url=https://github.com/owncloud/openidconnect/releases/download/v$vers/openidconnect-$vers.tar.gz
 oauth2_url=https://github.com/owncloud/oauth2/releases/download/v$oauth2_vers/oauth2-$oauth2_vers.tar.gz
 
-OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0	# found on https://hub.docker.com/r/owncloud/server/tags/
+test -z "$OWNCLOUD_RELEASE_DOCKER_TAG" && OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0	# found on https://hub.docker.com/r/owncloud/server/tags/
 d_tag=$(echo $OWNCLOUD_RELEASE_DOCKER_TAG  | tr '[A-Z]' '[a-z]' | tr . -)
 
 ## choose with or without version numbers and timestamps, in case we want multiple systems.
@@ -102,8 +105,8 @@ INIT_SCRIPT << EOF
 	docker-compose -f merged.yml logs -f
 
 # you may now first need to add the DNS entries at https://dash.cloudflare.com
-	$IPADDR $KOPANO_KONNECT_DOMAIN
-	$IPADDR $OWNCLOUD_DOMAIN
+	cf_dns_add $IPADDR $KOPANO_KONNECT_DOMAIN
+	cf_dns_add $IPADDR $OWNCLOUD_DOMAIN
 
 # wait 10 min or restart caddy (as often as needed)
 	docker-compose -f merged.yml restart caddy

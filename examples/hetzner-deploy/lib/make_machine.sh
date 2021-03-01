@@ -1,5 +1,8 @@
 #! /bin/bash
 # Factory switcher to choose between hcloud_tf, hcloud_py, and simple.
+#
+# 2021-03-01 jw, 	support for POSTINIT_MSG, POSTINIT_BASHRC added.
+#
 
 if [ -z "$BASH_SOURCE" ]; then
   libdir=$(dirname $0)/lib	# a source command does not update $0, we have to add the lib ourselves. grrr.
@@ -85,17 +88,26 @@ function LOAD_SCRIPT {
 function RUN_SCRIPT {
   if [ "$OC_DEPLOY_ADDR" = localhost -o "$OC_DEPLOY_ADDR" = 127.0.0.1 ]; then
     sudo bash $scriptfile
+    test -n "$POSTINIT_MSG" echo "$POSTINIT_MSG"
   else
     if [ -z "$scriptfolder" ]; then
-      echo 'set +x' >> $scriptfile
+      test -n "$POSTINIT_BASHRC" && echo "$POSTINIT_BASHRC" | ssh root@$IPADDR "cat > POSTINIT.bashrc"
+      test -n "$POSTINIT_MSG"    && echo "$POSTINIT_MSG"    | ssh root@$IPADDR "cat > POSTINIT.msg"
+      echo 'set +x; cd ~' >> $scriptfile
+      echo 'test -f ~/POSTINIT.bashrc && . ~/POSTINIT.bashrc' >> $scriptfile
+      echo 'test -f ~/POSTINIT.msg && cat ~/POSTINIT.msg' >> $scriptfile
       echo '. ~/.bashrc' >> $scriptfile
       scp -q $scriptfile root@$IPADDR:INIT.bashrc
       ssh -t root@$IPADDR bash --rcfile INIT.bashrc
     else
       scp -q -r $scriptfolder root@$IPADDR:INIT
+      test -n "$POSTINIT_BASHRC" && echo "$POSTINIT_BASHRC" | ssh root@$IPADDR "cat > ~/INIT/POSTINIT.bashrc"
+      test -n "$POSTINIT_MSG"    && echo "$POSTINIT_MSG"    | ssh root@$IPADDR "cat > ~/INIT/POSTINIT.msg"
       echo >  $tmpscriptfile "cd INIT; source $(basename $scriptfile)"
-      echo >> $tmpscriptfile "set +x"
-      echo >> $tmpscriptfile "cd ~; source ~/.bashrc"
+      echo >> $tmpscriptfile "set +x; cd ~"
+      echo >> $tmpscriptfile "test -f ~/INIT/POSTINIT.bashrc && source ~/INIT/POSTINIT.bashrc"
+      echo >> $tmpscriptfile 'test -f ~/INIT/POSTINIT.msg && cat ~/INIT/POSTINIT.msg'
+      echo >> $tmpscriptfile "source ~/.bashrc"
       scp -q  $tmpscriptfile root@$IPADDR:INIT.bashrc
       ssh -t root@$IPADDR bash --rcfile INIT.bashrc
     fi
