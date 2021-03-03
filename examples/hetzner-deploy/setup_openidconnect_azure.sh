@@ -14,7 +14,7 @@ oc_exec sed -i -e \"s/'openid-connect' =>/'openid-connect-off' =>/\" config/conf
 cat <<EO_AZ_CONF | docker_exec -T owncloud sh -c 'cat > config/openidconnect_azure.config.php'
 <?php
 \\\$CONFIG = array (
-  'openidconnect' =>
+  'openid-connect' =>
   array (
     // from Directory (tenant) ID
     'provider-url' => 'https://login.microsoftonline.com/XXX_DUMMY_XXX/v2.0',
@@ -76,7 +76,7 @@ To finalize the switch to Azure-AD setup do:
 	-> Manage -> Authenticaton -> Web -> Redirect URIs
 		-> Add URI
 
-(To switch back to Kopano, change 'openid-connect-disabled' to 'openid-connect' in config.php and remove openidconnect_azure.config.php)
+(To switch back to Kopano, change 'openid-connect-off' to 'openid-connect' in config.php and remove openidconnect_azure.config.php)
 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 "
 
