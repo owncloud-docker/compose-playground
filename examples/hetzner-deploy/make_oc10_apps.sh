@@ -149,8 +149,8 @@ for param in \$PARAM; do
         rm -rf /var/www/owncloud/apps/files_antivirus
         occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
         occ config:app:set files_antivirus av_mode --value="socket"
-        occ app:check files_antivirus         	# https://github.com/owncloud/files_antivirus/issues/394
-        occ app:enable files_antivirus
+        occ app:check \$app_name         	# https://github.com/owncloud/files_antivirus/issues/394
+        occ app:enable \$app_name
 
         apt install -y clamav clamav-daemon
         echo >> /etc/clamav/clamd.conf "TCPSocket 3310"
@@ -186,7 +186,7 @@ for param in \$PARAM; do
         done
         echo -e "\r\n\r" | netcat "\$cicap_addr" 1344 | grep Server
         occ app:enable files_antivirus
-        occ app:enable icap
+        occ app:enable \$app_name
         occ config:system:set files-antivirus.scanner-class    --value='OCA\\ICAP\\Scanner'
         occ config:system:set files-antivirus.icap.host        --value="\$cicap_addr"
         occ config:system:set files-antivirus.icap.req-service --value=avscan         # 'avscan': c-icap clamav; 'req': Kaspersky
@@ -244,20 +244,20 @@ for param in \$PARAM; do
       ;;
 
     esac
-    occ app:list files_antivirus
+    occ app:list \$app_name
 
   else
     if [ -e "/root/\$param" ]; then
       echo "File added: /root/\$param"
     else
-      echo "env var PARAM contains basename '$param', but no such file added."
+      echo "env var PARAM contains basename '\$param', but no such file added."
     fi
   fi
 done
 
 for app in \$apps_installed; do
   echo -n "Checking app \$app ... "
-  occ integrity:check-app \$app && echo OK.
+  occ integrity:check-app \$app && echo "OK." || echo -e "  OOPS. If needed, use:\n\t occ c:s:s integrity.check.disabled --type bool --value true"
 done
 
 grace_period="\$(occ config:app:get core grace_period)"
@@ -273,7 +273,7 @@ fi
 uptime
 cat << EOM
 ( Mailhog access: http://$IPADDR:8025 )
-Server $vers is ready. You can now try the following commands:
+Server $vers is ready. You can now try e.g. commands like these:
 From within this machine
 	install_app ./icap-0.1.0RC2.tar.gz
 	install_app_gh files_antivirus 0.16.0RC1
