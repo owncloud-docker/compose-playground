@@ -120,6 +120,21 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
+      wopi*)
+	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
+	wopi_fqdn="wopi-$(date +%Y%m%d).jw-qa.owncloud.works"
+	occ app:enable \$app_name	# CAUTION: triggers license grace period!
+	occ config:system:set wopi.token.key --value "\$wopi_key"
+	occ config:system:set wopi.office-online.server --value 'https://mso.owncloud.works'
+	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
+	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
+	echo >> ~/POSTINIT.msg "WOPI: The following manual steps are needed to use wopi"
+	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
+	echo >> ~/POSTINIT.msg "WOPI:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -d \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "WOPI:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
+	;;
+
       metrics*)
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	occ config:system:set "metrics_shared_secret" --value 123456
