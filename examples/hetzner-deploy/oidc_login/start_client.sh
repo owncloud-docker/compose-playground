@@ -28,7 +28,7 @@ shift; shift
 shift; shift
 
 test -z "$client_name" && client_name=owncloud
-test -z "$server_url"  && server_url=https://demo.owncloud.com
+test -z "$server_url"  && server_url=https://demo.example.com
 test -z "$user_name"   && user_name=demo
 test -z "$password"    && password=demo
 

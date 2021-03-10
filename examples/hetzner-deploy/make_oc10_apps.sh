@@ -193,7 +193,7 @@ for param in \$PARAM; do
 	echo >> ~/POSTINIT.msg "WOPI: The following manual steps are needed to use wopi"
 	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
 	echo >> ~/POSTINIT.msg "WOPI:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -m qa@example.com --no-eff-email --agree-tos -d \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "WOPI:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
 
@@ -206,7 +206,7 @@ for param in \$PARAM; do
 	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS: The following manual steps are needed to use richdocuments"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - To get a certificate, run:        certbot -m qa@example.com --no-eff-email --agree-tos -d \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
 

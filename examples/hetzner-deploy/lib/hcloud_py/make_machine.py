@@ -129,7 +129,7 @@ server = response.server
 IPADDR = server.data_model.public_net.ipv4.ip
 print("Machine created: %s" % IPADDR, file=sys.stderr)
 
-server.change_dns_ptr(IPADDR, NAME+'.hcloud.owncloud.com')       # needs an FQDN
+server.change_dns_ptr(IPADDR, NAME+'.hcloud.example.com')       # needs an FQDN
 
 # CAUTION: keep in sync with ../hcloud_tf/make_machine.sh
 script = """

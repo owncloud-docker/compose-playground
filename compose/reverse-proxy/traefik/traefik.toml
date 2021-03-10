@@ -19,7 +19,7 @@ address = ":8000"
 # Enable ACME (Let's Encrypt): automatic SSL
 [acme]
 # Email address used for registration
-email = "devops@owncloud.com"
+email = "admin@example.com"
 storageFile = "/etc/traefik/acme/acme.json"
 entryPoint = "https"
 onDemand = false

@@ -9,7 +9,7 @@ Not tested on Mac. (Pull requests welcome)
 
 * Have access to a project at https://console.hetzner.cloud (invitation accepted)
 * Have a hcloud API token for the project project.
-* Have your public ssh key uploaded into the project. Below use the name of your ssh-key instead of `jw@owncloud.com`
+* Have your public ssh key uploaded into the project. Below use the name of your ssh-key instead of `user@example.com`
 * Run from your local Ubuntu machine:
 
 ```
@@ -17,8 +17,8 @@ sudo apt install git
 git clone https://github.com/owncloud-docker/compose-playground
 cd compose-playground/examples/hetzner-deploy
 
-export HCLOUD_SSHKEY_NAMES=jw@owncloud.com
-export HCLOUD_TOKEN=mZdZX......................................................L8bml
+export HCLOUD_SSHKEY_NAMES=user@example.com
+export HCLOUD_TOKEN=asdf......................................................12345
 ./make_oc10.sh
 ```
 
