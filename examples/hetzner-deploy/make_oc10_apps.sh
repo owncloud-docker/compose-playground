@@ -6,20 +6,82 @@
 # - files_antivirus with a local clamav
 # - icap with dockerized clamav-c-icap
 # - icap with (if tar and key are present) Kaspersky Scan Engine
+# - metrics, wopi, windows_network_drive
+#
+# support for github download:  owncloud/appname=vTAG	(private repos also supported!)
+# - the download is resolved locally
+# - using your GITHUB_USER and GITHUB_TOKEN (if needed)
+# - and sent to the target system via scp.
 
 echo "Estimated setup time: 5 minutes ..."
 
 vers=10.6.0
 tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
+test -n "$OC10_VERSION" && vers="$OC10_VERSION"
+test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 
-if [ -z "$1" ]; then
-  echo "Usage example:"
-  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key"
+if [ -z "$1" -o "$1" = "-h" ]; then
+  echo "Usage examples:"
+  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
+  echo "  $0 metrics"
+  echo "  $0 owncloud/metrics=v0.6.1RC2"
+  echo ""
+  echo "File URLs are passed into the machine and downloaded there."
+  echo "File names existing locally are copied into the machine."
+  echo "Other parameters that do not look like URLs and do not exist as local files"
+  echo "  should be names of github/owncloud projects."
+  echo "  The latest release tar.gz is downloaded or a release asset matching a specific tag specified after '='."
+  echo ""
+  echo "To start without extra apps or extra files, use: $0 --"
   exit 1
 fi
 
+tmpdir="/tmp/make_oc10_apps_dl_$$"
+mkdir -p $tmpdir
+test "$1" = "--" && shift
+ARGV=()
+for arg in "$@"; do
+  case arg in
+    http://*)
+      ;;
+    https://*)
+      ;;
+    *)
+      if [ -e $arg ]; then
+	echo "Using local file $arg ..."
+      else
+	echo "$arg" | grep -q / || arg="owncloud/$arg"
+	oc_app="$(echo "$arg" | sed -e 's/[:=].*$//')"
+	tagname="$(echo "$arg" | sed -e 's/.*[:=]//')"
+	echo "Using https://github.com/$oc_app ..."
+        curl=curl
+        test -n "$GITHUB_USER" -a -n "$GITHUB_TOKEN" && curl="curl -u $GITHUB_USER:$GITHUB_TOKEN"
+        releases_api_url="https://api.github.com/repos/$oc_app/releases"
+        test "$oc_app" = "$arg" && tagname=$($curl -s "$releases_api_url" | jq '.[0].tag_name' -r 2>/dev/null)
+	rel_json="$($curl -s "$releases_api_url" | jq '.[] | select(.tag_name == "'"$tagname"'")')"
+        if [ -z "$rel_json" -o "$rel_json" = "null" ]; then
+          echo "ERROR: no release tag $tagname seen in: https://github.com/$oc_app/releases"
+          echo "  Is $arg correct?"
+          test "$curl" = curl && echo '  Or retry after setting environment variables GITHUB_USER and GITHUB_TOKEN'
+          exit 0
+        fi
+        asseturl=$(echo  "$rel_json" | jq '.assets[0].url' -r 2>/dev/null)
+        assetname=$(echo "$rel_json" | jq '.assets[0].name' -r 2>/dev/null)
+	echo "... expanded to $asseturl -> $assetname (from tag $tagname)"
+	arg="$tmpdir/$assetname"
+	$curl -L -H 'Accept: application/octet-stream' "$asseturl" > "$arg"
+      fi
+
+      ;;
+  esac
+  ARGV+=($arg)
+done
+
+
 d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source $(dirname $0)/lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "$@"
+source $(dirname $0)/lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "${ARGV[@]}"
+
+rm -rf $tmpdir
 
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
@@ -121,18 +183,31 @@ for param in \$PARAM; do
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
       wopi*)
+	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
 	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 	wopi_fqdn="wopi-$(date +%Y%m%d).jw-qa.owncloud.works"
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	occ config:system:set wopi.token.key --value "\$wopi_key"
 	occ config:system:set wopi.office-online.server --value 'https://mso.owncloud.works'
 	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
-	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
 	echo >> ~/POSTINIT.msg "WOPI: The following manual steps are needed to use wopi"
 	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
 	echo >> ~/POSTINIT.msg "WOPI:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -d \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "WOPI:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
+	;;
+
+      richdocuments*)
+	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
+	wopi_fqdn="richdoc-$(date +%Y%m%d).jw-qa.owncloud.works"
+	occ app:enable \$app_name	# CAUTION: triggers license grace period!
+	# occ config:app:set richdocuments wopi_url --value https://collabora.owncloud.works:443
+	occ config:app:set richdocuments wopi_url --value https://collabora.owncloud-demo.com:443
+	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS: The following manual steps are needed to use richdocuments"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
 
       metrics*)
