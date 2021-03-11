@@ -105,8 +105,8 @@ INIT_SCRIPT << EOF
 	docker-compose -f merged.yml logs -f
 
 # you may now first need to add the DNS entries at https://dash.cloudflare.com
-	cf_dns_add $IPADDR $KOPANO_KONNECT_DOMAIN
-	cf_dns_add $IPADDR $OWNCLOUD_DOMAIN
+	cf_dns $IPADDR $KOPANO_KONNECT_DOMAIN
+	cf_dns $IPADDR $OWNCLOUD_DOMAIN
 
 # wait 10 min or restart caddy (as often as needed)
 	docker-compose -f merged.yml restart caddy

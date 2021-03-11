@@ -138,7 +138,6 @@ occ config:system:set trusted_domains 1 --value="$IPADDR"
 
 echo "*/5  *  *  *  * /var/www/owncloud/occ system:cron" > /var/spool/cron/crontabs/www-data
 chown www-data.crontab /var/spool/cron/crontabs/www-data
-# chmod 666 /var/spool/cron/crontabs/www-data	# allow root to write???
 occ background:cron
 
 occ config:system:set memcache.local --value '\OC\Memcache\APCu'
@@ -185,6 +184,7 @@ for param in \$PARAM; do
     case "\$app" in
       user_ldap*)
 	# sync users
+	chown root /var/spool/cron/crontabs/www-data	# not even root can write there, otherwise. :-(
 	echo "*/5 * * * * /var/www/owncloud/occ user:sync 'OCA\User_LDAP\User_Proxy' -m disable -vvv >> /var/log/ldap-sync/user-sync.log 2>&1" >> /var/spool/cron/crontabs/www-data
 	chown www-data.crontab  /var/spool/cron/crontabs/www-data
 	chmod 0600  /var/spool/cron/crontabs/www-data
@@ -204,7 +204,7 @@ for param in \$PARAM; do
 	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "WOPI: The following manual steps are needed to use wopi"
 	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
-	echo >> ~/POSTINIT.msg "WOPI:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "WOPI:  - Register at cloudflare     cf_dns $IPADDR \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "WOPI:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
@@ -217,7 +217,7 @@ for param in \$PARAM; do
 	occ config:app:set richdocuments wopi_url --value https://collabora.owncloud-demo.com:443
 	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS: The following manual steps are needed to use richdocuments"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Register at dash.cloudflare.com:  $IPADDR \$wopi_fqdn"
+	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Register at cloudflare     cf_dns $IPADDR \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
 	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;

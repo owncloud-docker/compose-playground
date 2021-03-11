@@ -137,7 +137,7 @@ fi
 ssh_key_mult="$(echo "$HCLOUD_SSHKEY_NAMES" | sed -e 's/,/ --ssh-key /g')"
 
 set -x
-bin/hcloud server create --name "$NAME" --image "$server_image" --type "$server_type" --label "origin=hcloud_cli_make_machine_sh" --label "owner=$HCLOUD_USER" --label "used_for="$used_for" --ssh-key $ssh_key_mult
+bin/hcloud server create --name "$NAME" --image "$server_image" --type "$server_type" --label "origin=hcloud_cli_make_machine_sh" --label "owner=$HCLOUD_USER" --label "used_for=$used_for" --ssh-key $ssh_key_mult
 IPADDR="$(bin/hcloud server ip "$NAME")"
 test -z "$IPADDR" && exit 1
 

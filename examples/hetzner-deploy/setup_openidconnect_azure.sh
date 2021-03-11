@@ -14,6 +14,7 @@ oc_exec sed -i -e \"s/'openid-connect' =>/'openid-connect-off' =>/\" config/conf
 cat <<EO_AZ_CONF | docker_exec -T owncloud sh -c 'cat > config/openidconnect_azure.config.php'
 <?php
 \\\$CONFIG = array (
+  'http.cookie.samesite' => 'None',
   'openid-connect' =>
   array (
     // from Directory (tenant) ID
@@ -49,9 +50,8 @@ cat <<EO_AZ_CONF | docker_exec -T owncloud sh -c 'cat > config/openidconnect_azu
   )
 );
 EO_AZ_CONF
-"
 
-export POSTINIT_MSG="
+cat <<EOM
 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 ATTENTION: The Kopano IDP config is disabled. The .well-known URL returns empty until the azure-ad config is done.
 To finalize the switch to Azure-AD setup do:
@@ -75,9 +75,13 @@ To finalize the switch to Azure-AD setup do:
 4) at https://aad.portal.azure.com  -> ownCloud-QA
 	-> Manage -> Authenticaton -> Web -> Redirect URIs
 		-> Add URI
+    		https://\$OWNCLOUD_DOMAIN
+    		https://\$OWNCLOUD_DOMAIN/index.php/apps/openidconnect/redirect
+		-> Save
 
 (To switch back to Kopano, change 'openid-connect-off' to 'openid-connect' in config.php and remove openidconnect_azure.config.php)
 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+EOM
 "
 
-bash ./make_openidconnect_test.sh
+bash ./make_openidconnect_test.sh "$@"
