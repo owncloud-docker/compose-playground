@@ -115,7 +115,7 @@ Alias /owncloud "/var/www/owncloud/"
 </IfModule>
 
 EOCONF
-for mod in ssl headers env dir mime unique_id; do
+for mod in ssl headers env dir mime unique_id rewrite setenviv; do
   a2enmod \$mod
 done
 for site in owncloud default-ssl; do
@@ -136,8 +136,9 @@ occ maintenance:install --database "mysql" --database-name "owncloud" --database
 
 occ config:system:set trusted_domains 1 --value="$IPADDR"
 
-echo "*/15  *  *  *  * /var/www/owncloud/occ system:cron" > /var/spool/cron/crontabs/www-data
+echo "*/5  *  *  *  * /var/www/owncloud/occ system:cron" > /var/spool/cron/crontabs/www-data
 chown www-data.crontab /var/spool/cron/crontabs/www-data
+# chmod 666 /var/spool/cron/crontabs/www-data	# allow root to write???
 occ background:cron
 
 occ config:system:set memcache.local --value '\OC\Memcache\APCu'
@@ -182,6 +183,17 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
+      user_ldap*)
+	# sync users
+	echo "*/5 * * * * /var/www/owncloud/occ user:sync 'OCA\User_LDAP\User_Proxy' -m disable -vvv >> /var/log/ldap-sync/user-sync.log 2>&1" >> /var/spool/cron/crontabs/www-data
+	chown www-data.crontab  /var/spool/cron/crontabs/www-data
+	chmod 0600  /var/spool/cron/crontabs/www-data
+	mkdir -p /var/log/ldap-sync
+	touch /var/log/ldap-sync/user-sync.log
+	chown www-data. /var/log/ldap-sync/user-sync.log
+	echo "CAUTION: ldap setup not implemented yet!"
+	;;
+
       wopi*)
 	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
 	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
