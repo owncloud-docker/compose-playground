@@ -62,13 +62,13 @@ $config = array(
 			'uid' => array('email'),
 			'eduPersonAffiliation' => array('member', 'student'),
 			'quota' => array('100G'),
-			'email' => array('email@owncloud.com')
+			'email' => array('email@example.com')
 		),
 		'all:all' => array(
 			'uid' => array('all'),
 			'eduPersonAffiliation' => array('member', 'student'),
 			'quota' => array('100G'),
-			'email' => array('all@owncloud.com'),
+			'email' => array('all@example.com'),
 			'displayName' => array('All Fields')
 		),
         'employee:employeepass' => array(
@@ -263,7 +263,7 @@ $config = array(
         // %username% in this pattern will be replaced with the users username.
         //
         // This option is not used if the search.enable option is set to TRUE.
-        'dnpattern' => 'uid=%username%,ou=people,dc=owncloudqa,dc=com',
+        'dnpattern' => 'uid=%username%,ou=people,dc=example,dc=com',
 
         // As an alternative to specifying a pattern for the users DN, it is possible to
         // search for the username in a set of attributes. This is enabled by this option.
@@ -272,7 +272,7 @@ $config = array(
         // The DN which will be used as a base for the search.
         // This can be a single string, in which case only that DN is searched, or an
         // array of strings, in which case they will be searched in the order given.
-        'search.base' => 'dc=owncloudqa,dc=com',
+        'search.base' => 'dc=example,dc=com',
 
         // The attribute(s) the username should match against.
         //

@@ -20,7 +20,7 @@ services:
       - testnet
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
-      LDAP_DOMAIN: "owncloud.com"
+      LDAP_DOMAIN: "example.com"
       LDAP_ORGANISATION: "ownCloud"
       LDAP_ADMIN_PASSWORD: "admin"
     healthcheck:

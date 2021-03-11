@@ -39,8 +39,8 @@ services:
       - signing_private_key=/kopano/ssl/konnectd-tokens-signing-key.pem
       - validation_keys_path=/kopano/ssl/konnectkeys
       - KONNECT_BACKEND=ldap
-      - LDAP_BASEDN=dc=owncloudqa,dc=com
-      - LDAP_BINDDN=cn=admin,dc=owncloudqa,dc=com
+      - LDAP_BASEDN=dc=example,dc=com
+      - LDAP_BINDDN=cn=admin,dc=example,dc=com
       - LDAP_BINDPW=owncloud123
       - LDAP_EMAIL_ATTRIBUTE=mail
       - LDAP_FILTER=(objectClass=organizationalPerson)

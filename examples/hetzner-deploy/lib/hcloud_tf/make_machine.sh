@@ -77,7 +77,7 @@ if [ "$NAME" = '-h' ]; then
   $0 V$version
 
   Usage:
-    export HCLOUD_SSHKEY_NAMES="jw@owncloud.com"
+    export HCLOUD_SSHKEY_NAMES="user@example.com"
     export HCLOUD_TOKEN=123..........xyz
     $0 [OPTIONS] -n MACHINE_NAME
     eval \$(bash ./make_machine.sh ...)
