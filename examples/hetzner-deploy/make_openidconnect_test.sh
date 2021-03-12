@@ -34,8 +34,8 @@ test -z "$OWNCLOUD_RELEASE_DOCKER_TAG" && OWNCLOUD_RELEASE_DOCKER_TAG=10.6.0	# f
 d_tag=$(echo $OWNCLOUD_RELEASE_DOCKER_TAG  | tr '[A-Z]' '[a-z]' | tr . -)
 
 ## choose with or without version numbers and timestamps, in case we want multiple systems.
-KOPANO_KONNECT_DOMAIN=konnect.oidc-$d_vers.jw-qa.owncloud.works
-OWNCLOUD_DOMAIN=oc-$d_tag.oidc-$d_vers.jw-qa.owncloud.works
+KOPANO_KONNECT_DOMAIN=konnect-oidc-$d_vers.jw-qa.owncloud.works
+OWNCLOUD_DOMAIN=oc-$d_tag-oidc-$d_vers.jw-qa.owncloud.works
 # KOPANO_KONNECT_DOMAIN=konnect.oidc-jw-qa.owncloud.works
 # OWNCLOUD_DOMAIN=owncloud.oidc-jw-qa.owncloud.works
 
