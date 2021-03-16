@@ -347,6 +347,8 @@ for param in \$PARAM; do
 
     esac
     occ app:list \$app_name
+    occ upgrade	# just in case, e.g. pdf_viewer 0.12.0 needs it.
+    occ app:list \$app_name
 
   else
     if [ -e "/root/\$param" ]; then
