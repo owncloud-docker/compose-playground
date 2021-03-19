@@ -112,7 +112,7 @@ if not ssh_key_names and not ssh_pub_key:
 
 user = ssh_key_names[0] if ssh_key_names else ssh_pub_key[2]    # get user from key name, from local pubkey suffix, or from $USER
 user = user.split('@')[0]       # strip domain part, if any
-suff = ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(5))
+suff = ''.join(random.choice(string.ascii_lowercase+string.digits) for i in range(3))
 if args.unique: NAME = '-'.join([user, NAME, suff])
 
 labels = { 'owner': user, 'origin': 'make_machine_py', 'used_for': used_for }
@@ -161,11 +161,13 @@ do_login="%s"
 ssh-keygen -f ~/.ssh/known_hosts -R $IPADDR	# needed to make life easier later.
 # StrictHostKeyChecking=no automatically adds new host keys and accepts changed host keys.
 
-for i in 1 2 3 4 5 6 7 8 last; do
-  sleep 5
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 999 last; do
+  to=5
+  test "$i" -gt 10 && to=15
+  sleep $to
   echo -n .
-  timeout 5 ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$IPADDR uptime && break
-  if [ $i = last ]; then
+  timeout $to ssh -o ConnectTimeout=5 -o CheckHostIP=no -o StrictHostKeyChecking=no -o PasswordAuthentication=no root@$IPADDR uptime && break
+  if [ "$i" = "999" ]; then
     echo "Error: cannot ssh into machine at $IPADDR -- tried multiple times."
     exit 1
   fi

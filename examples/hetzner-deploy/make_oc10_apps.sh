@@ -22,18 +22,24 @@ test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 
 if [ -z "$1" -o "$1" = "-h" ]; then
   echo "Usage examples:"
-  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
+  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key"
   echo "  $0 customgroups"
   echo "  $0 owncloud/metrics=v0.6.1RC2"
+  echo "  $0 https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
   echo "  $0 --"
   echo ""
+  echo "Local file names are copied into the machine."
   echo "File URLs are passed into the machine and downloaded there."
-  echo "File names existing locally are copied into the machine."
-  echo "Other parameters that do not look like URLs and do not exist as local files"
+  echo "Other parameters that do not look like URLs and do not exist as local files:"
   echo "  should be names of github/owncloud projects."
   echo "  The latest release tar.gz is downloaded or a release asset matching a specific tag specified after '='."
   echo ""
   echo "To start without extra apps or extra files, use: $0 --"
+  echo ""
+  echo "Environment:"
+  echo "   OC10_DNSNAME=oc1070rc1-DATE	set the FQDN to oc1070rc1-$(date +%Y%m%d).jw-qa.owncloud.works (Default: as needed by apps)"
+  echo "   OC10_VERSION=10.7.0-rc1	set the version label. Should match the download url. Default: $vers"
+  echo "   OC10_TAR_URL=...	        define the download url. Default: $tar"
   exit 1
 fi
 
@@ -78,9 +84,11 @@ for arg in "$@"; do
   ARGV+=($arg)
 done
 
+h_name="$OC10_DNSNAME"
+test -z "$_hname" && hname=oc-$vers-DATE
+d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
 
-d_vers=$(echo $vers  | tr '[A-Z]' '[a-z]' | tr . -)-$(date +%Y%m%d)
-source $(dirname $0)/lib/make_machine.sh -u oc-$d_vers -p git,screen,wget,apache2,ssl-cert,docker.io,jq "${ARGV[@]}"
+source $(dirname $0)/lib/make_machine.sh -u $d_name -p git,screen,wget,apache2,ssl-cert,docker.io,jq "${ARGV[@]}"
 
 rm -rf $tmpdir
 
@@ -127,7 +135,7 @@ service apache2 restart
 cat << EOOCC > /usr/bin/occ
 #! /bin/sh
 cd /var/www/owncloud
-sudo -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
+sudo -E -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
 EOOCC
 chmod a+x /usr/bin/occ
 
@@ -162,6 +170,7 @@ echo -e "\$ftppass\\n\$ftppass" | adduser ftpdata --gecos ""
 occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=\$ftppass
 occ config:app:set core enable_external_storage --value yes
 
+test -n "$OC10_DNSNAME" &&  oc10_fqdn="$(echo "$OC10_DNSNAME" | sed -e "s/DATE/$(date +%Y%m%d)/").jw-qa.owncloud.works"
 
 curl -k https://$IPADDR/owncloud/status.php
 echo; sleep 5
@@ -205,31 +214,19 @@ for param in \$PARAM; do
 	;;
 
       wopi*)
-	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
 	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
-	wopi_fqdn="wopi-$(date +%Y%m%d).jw-qa.owncloud.works"
+	test -z "\$oc10_fqdn" && oc10_fqdn="wopi-$(date +%Y%m%d).jw-qa.owncloud.works"
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	occ config:system:set wopi.token.key --value "\$wopi_key"
 	occ config:system:set wopi.office-online.server --value 'https://mso.owncloud.works'
-	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "WOPI: The following manual steps are needed to use wopi"
 	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
-	echo >> ~/POSTINIT.msg "WOPI:  - Register at cloudflare     cf_dns $IPADDR \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "WOPI:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "WOPI:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
 
       richdocuments*)
-	apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
-	wopi_fqdn="richdoc-$(date +%Y%m%d).jw-qa.owncloud.works"
+	test -z "\$oc10_fqdn" && oc10_fqdn="richdoc-$(date +%Y%m%d).jw-qa.owncloud.works"
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	# occ config:app:set richdocuments wopi_url --value https://collabora.owncloud.works:443
 	occ config:app:set richdocuments wopi_url --value https://collabora.owncloud-demo.com:443
-	occ config:system:set trusted_domains 2 --value="\$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS: The following manual steps are needed to use richdocuments"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Register at cloudflare     cf_dns $IPADDR \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos -d \$wopi_fqdn"
-	echo >> ~/POSTINIT.msg "RICHDOCUMENTS:  - Then try:                         firefox https://\$wopi_fqdn/owncloud"
 	;;
 
       metrics*)
@@ -368,6 +365,15 @@ for param in \$PARAM; do
     fi
   fi
 done
+
+if [ -n "\$oc10_fqdn" ]; then
+  apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
+  occ config:system:set trusted_domains 2 --value="\$oc10_fqdn"
+  echo >> ~/POSTINIT.msg "DNS: The following manual steps are needed to setup your dns name:"
+  echo >> ~/POSTINIT.msg "DNS:  - Register at cloudflare     cf_dns $IPADDR \$oc10_fqdn"
+  echo >> ~/POSTINIT.msg "DNS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos --redirect -d \$oc10_fqdn"
+  echo >> ~/POSTINIT.msg "DNS:  - Then try:                         firefox https://\$oc10_fqdn/owncloud"
+fi
 
 for app in \$apps_installed; do
   echo -n "Checking app \$app ... "

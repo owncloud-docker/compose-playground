@@ -136,7 +136,7 @@ fi
 
 NAME="$(echo $NAME | tr ._ -)"	# avoid _ and . in name. Always
 NAME_BASE=$NAME
-$mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 5)"
+$mk_unique && NAME="$HCLOUD_USER-$NAME-$(tr -dc 'a-z0-9' < /dev/urandom | head -c 3)"
 
 if [ "$NAME" != "$NAME_BASE" ]; then
   echo "MACHINE_NAME '$NAME_BASE' expanded to '$NAME'"
