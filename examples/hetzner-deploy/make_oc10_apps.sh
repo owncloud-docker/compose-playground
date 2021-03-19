@@ -25,6 +25,7 @@ if [ -z "$1" -o "$1" = "-h" ]; then
   echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
   echo "  $0 customgroups"
   echo "  $0 owncloud/metrics=v0.6.1RC2"
+  echo "  $0 --"
   echo ""
   echo "File URLs are passed into the machine and downloaded there."
   echo "File names existing locally are copied into the machine."
@@ -52,7 +53,7 @@ for arg in "$@"; do
       else
 	echo "$arg" | grep -q / || arg="owncloud/$arg"
 	oc_app="$(echo "$arg" | sed -e 's/[:=].*$//')"
-	tagname="$(echo "$arg" | sed -e 's/.*[:=]//')"
+	tagname="v$(echo "$arg" | sed -e 's/.*[:=]//' -e 's/^v//')"	# should work with or without leading v.
 	echo "Using https://github.com/$oc_app ..."
         curl=curl
         test -n "$GITHUB_USER" -a -n "$GITHUB_TOKEN" && curl="curl -u $GITHUB_USER:$GITHUB_TOKEN"

@@ -19,7 +19,7 @@ cd compose-playground/examples/hetzner-deploy
 
 export HCLOUD_SSHKEY_NAMES=jw@owncloud.com
 export HCLOUD_TOKEN=mZdZX......................................................L8bml
-./make_oc10_apps.sh
+./make_oc10_apps.sh --
 ```
 
 ## Simple example with manually created machine

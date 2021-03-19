@@ -14,6 +14,7 @@
 # that was already uploaded. Also with terraform there is no way to inspect uploaded keys and avoid sich conflicts.
 
 # See also:
+#  https://hcloud-python.readthedocs.io/en/latest/
 #  https://github.com/hetznercloud/hcloud-python/tree/master/examples
 #
 # Requires:
@@ -25,6 +26,7 @@ from hcloud import Client
 from hcloud.images.domain import Image
 from hcloud.ssh_keys.domain import SSHKey
 from hcloud.server_types.domain import ServerType
+from hcloud.images.client import ImagesClient
 
 hcloud_api_token = os.environ.get('HCLOUD_TOKEN')
 if hcloud_api_token == None:
@@ -125,8 +127,23 @@ if ssh_pub_key:
   k = client.ssh_keys.create(name=ssh_pub_key[2], public_key=ssh_pub_key[0]+' '+ssh_pub_key[1])
   ssh_key_list.append(k)
 
+def find_image(client, name):
+  """ finds images, snapshots, or backups
+  """
+  ic = ImagesClient(client)
+  for i in ic.get_all():
+    if i.name == name:
+      print("Using image '%s' by name, type=%s" % (name, i.type), file=sys.stderr)
+      return i
+  for i in ic.get_all():
+    if i.description == name:
+      print("Using image '%s' by descrption, type=%s" % (name, i.type), file=sys.stderr)
+      return i
+
+img = find_image(client, args.image)
+
 if debug: print(NAME, args.type, args.image, args.datacenter, ssh_key_names, ssh_pub_key, ssh_key_list, packages, file=sys.stderr)
-response = client.servers.create(name=NAME, server_type=ServerType(args.type), image=Image(args.image), ssh_keys=ssh_key_list, labels=labels)
+response = client.servers.create(name=NAME, server_type=ServerType(args.type), image=img, ssh_keys=ssh_key_list, labels=labels)
 server = response.server
 IPADDR = server.data_model.public_net.ipv4.ip
 print("Machine created: %s" % IPADDR, file=sys.stderr)
