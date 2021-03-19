@@ -23,7 +23,7 @@ test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 if [ -z "$1" -o "$1" = "-h" ]; then
   echo "Usage examples:"
   echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
-  echo "  $0 metrics"
+  echo "  $0 customgroups"
   echo "  $0 owncloud/metrics=v0.6.1RC2"
   echo ""
   echo "File URLs are passed into the machine and downloaded there."
@@ -93,7 +93,7 @@ apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu
 apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
 
 cd /var/www
-curl $tar | tar jxf -
+curl $tar | tar jxf - || exit 1
 chown -R www-data. owncloud
 
 cat <<EOCONF > /etc/apache2/sites-available/owncloud.conf
@@ -182,6 +182,15 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
+      encryption*)
+	occ app:enable encryption
+        occ app:list encryption
+        occ encryption:list-modules
+        occ encryption:enable
+        occ encryption:select-encryption-type masterkey --no-interaction
+        occ encryption:status
+	;;
+
       user_ldap*)
 	# sync users
 	chown root /var/spool/cron/crontabs/www-data	# not even root can write there, otherwise. :-(
