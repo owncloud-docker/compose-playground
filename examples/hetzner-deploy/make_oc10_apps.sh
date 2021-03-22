@@ -85,7 +85,7 @@ for arg in "$@"; do
 done
 
 h_name="$OC10_DNSNAME"
-test -z "$_hname" && hname=oc-$vers-DATE
+test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
 
 source $(dirname $0)/lib/make_machine.sh -u $d_name -p git,screen,wget,apache2,ssl-cert,docker.io,jq "${ARGV[@]}"
