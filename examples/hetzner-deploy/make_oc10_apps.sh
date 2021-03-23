@@ -101,7 +101,7 @@ export LC_ALL=C LANGUAGE=C
 # FROM https://doc.owncloud.com/server/admin_manual/installation/ubuntu_18_04.html
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server wget
-apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap
+apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap ldap-utils
 
 cd /var/www
 curl $tar | tar jxf - || exit 1
