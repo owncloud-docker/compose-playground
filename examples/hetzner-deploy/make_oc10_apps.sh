@@ -15,8 +15,8 @@
 
 echo "Estimated setup time: 5 minutes ..."
 
-vers=10.7.0-rc1
-tar=https://download.owncloud.org/community/testing/owncloud-complete-20210315.tar.bz2
+vers=10.7.0-rc2
+tar=https://download.owncloud.org/community/testing/owncloud-complete-20210323.tar.bz2
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
 test "$vers" = "10.6.0" && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
 test "$vers" = "10.5.0" && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
