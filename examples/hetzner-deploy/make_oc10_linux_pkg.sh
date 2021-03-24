@@ -13,7 +13,7 @@ wget -nv https://download.owncloud.org/download/repositories/production/Ubuntu_2
 echo 'deb http://download.owncloud.org/download/repositories/production/Ubuntu_20.04/ /' > /etc/apt/sources.list.d/owncloud.list
 apt update
 apt install -y owncloud-complete-files
-apt install -y apache2 libapache2-mod-php ssl-cert php-bz2 php-sqlite3 php-mysql php-curl php-gd php-imagick php-intl php-mbstring php-xml php-zip
+apt install -y apache2 libapache2-mod-php ssl-cert php-bz2 php-sqlite3 php-mysql php-curl php-gd php-imagick php-intl php-mbstring php-xml php-zip php-gmp
 set -x
 cp /usr/share/doc/owncloud-complete-files/owncloud-config-apache.conf.default /etc/apache2/conf-available/owncloud.conf
 a2dismod mpm_event
