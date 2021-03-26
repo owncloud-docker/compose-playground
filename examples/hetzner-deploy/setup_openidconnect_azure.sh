@@ -4,7 +4,7 @@
 # (instead of default kopano)
 
 export HOSTNAME_SUFFIX=azure
-export OWNCLOUD_RELEASE_DOCKER_TAG=10.7.0-rc2
+export OWNCLOUD_RELEASE_DOCKER_TAG=10.7.0
 
 export POSTINIT_BASHRC="
 oc_hostname=\"\$(sed -ne 's/127.* oc-/oc-/p' /etc/hosts)\"
