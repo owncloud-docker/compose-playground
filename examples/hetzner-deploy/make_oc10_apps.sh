@@ -24,7 +24,7 @@ test "$vers" = "10.6.0" -o "$vers" = "10.6" && tar=https://download.owncloud.org
 test "$vers" = "10.5.0" -o "$vers" = "10.5" && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
 test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 
-if [ -z "$1" -o "$1" = "-h" ]; then
+if [ -z "$1" -o "$1" = "-" -o "$1" = "-h" ]; then
   echo "Usage examples:"
   echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key"
   echo "  $0 customgroups"
@@ -142,6 +142,32 @@ cd /var/www/owncloud
 sudo -E -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
 EOOCC
 chmod a+x /usr/bin/occ
+
+cat << EOAI > /usr/bin/app_install
+#! /bin/sh
+if [ -z "\\\$1" ]; then
+  echo "Usage: \\\$0 APPTAR_FILE|APPTAR_URL|-"
+  exit 0
+fi
+mkdir /var/www/owncloud/apps-external/_tmp
+if [ "\\\$1" = '-' ]; then
+  tar xzf - -C /var/www/owncloud/apps-external/_tmp || exit 1
+elif [ -e "\\\$1" ]; then
+  tar xf "\\\$1" -C /var/www/owncloud/apps-external/_tmp || exit 1
+else
+  curl -L "\\\$1" | tar zxf - -C /var/www/owncloud/apps-external/_tmp || exit 1
+fi
+cd /var/www/owncloud/apps-external
+appname="\\\$(cd _tmp; ls)"
+mv _tmp/\\\$appname .
+rmdir _tmp || exit 1
+chown -R www-data. \\\$appname
+occ app:list \\\$appname
+echo "Press ENTER to enable \\\$appname, or CTRL-C to keep it as is."; read a
+occ app:enable \\\$appname
+occ app:list \\\$appname
+EOAI
+chmod a+x /usr/bin/app_install
 
 mysql -u root -e "DROP DATABASE owncloud;" 2>/dev/null || true
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'";
