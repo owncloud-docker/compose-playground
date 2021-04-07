@@ -159,7 +159,9 @@ else
 fi
 cd /var/www/owncloud/apps-external
 appname="\\\$(cd _tmp; ls)"
+test -d \\\$appname && mv \\\$appname _tmp/old_\\\$appname
 mv _tmp/\\\$appname .
+rm -rf _tmp/old_\\\$appname
 rmdir _tmp || exit 1
 chown -R www-data. \\\$appname
 occ app:list \\\$appname
@@ -265,8 +267,18 @@ for param in \$PARAM; do
 	;;
 
       windows_network_drive*)
-	# See also https://packages.ubuntu.com/search?keywords=php-smbclient
-	# A php-smbclient package exists only for ubuntu-18.04, we compile it from source.
+	#----------------------------------------------------------------------------
+	# A php-smbclient package exists only for ubuntu-18.04, we can use ondrey's ppa or compile it from source.
+	#----------------------------------------------------------------------------
+	# tbro: Unfortunately, Ondrej took some very weird decisions in the past,
+	# like building his own libssl and openssl packages for Xenial (16.04)
+	# - see here https://launchpad.net/~ondrej/+archive/ubuntu/php/+build/15652889
+	# So I wouldn't recommend any customer to use this repo. Even not for
+	# host setups as it blocks updates of libssl / openssl from
+	# xenial-security (official repo) as the version was messed up and in
+	# the end this led to a security upgrade of ssl being considered as a
+	# "Downgrade" by apt, which than would not be installed.
+	#----------------------------------------------------------------------------
 	apt install -y php-pear php7.4-dev libsmbclient libsmbclient-dev make smbclient; pecl install smbclient-stable
 	echo 'extension="smbclient.so"' > /etc/php/7.4/mods-available/smbclient.ini
 	phpenmod -v ALL smbclient
