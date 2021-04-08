@@ -4,8 +4,8 @@
 #
 # Special apps supported:
 # - files_antivirus with a local clamav
-# - icap with dockerized clamav-c-icap
-# - icap with (if tar and key are present) Kaspersky Scan Engine
+# - files_antivirus with dockerized clamav-c-icap
+# - files_antivirus with (if tar and key are present) Kaspersky Scan Engine
 # - metrics, wopi, windows_network_drive
 #
 # support for github download:  owncloud/appname=vTAG	(private repos also supported!)
@@ -26,7 +26,7 @@ test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 
 if [ -z "$1" -o "$1" = "-" -o "$1" = "-h" ]; then
   echo "Usage examples:"
-  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz ~/Download/apps/icap-1.0.0RC2.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key"
+  echo "  $0 https://github.com/owncloud/files_antivirus/releases/download/v0.16.0RC1/files_antivirus-0.16.0RC1.tar.gz Kaspersky_ScanEngine-Linux-x86_64-2.0.0.1157-Release.tar.gz 575F7141.key"
   echo "  $0 customgroups"
   echo "  $0 owncloud/metrics=v0.6.1RC2"
   echo "  $0 https://storage.marketplace.owncloud.com/apps/metrics-1.0.0.tar.gz"
@@ -298,8 +298,6 @@ for param in \$PARAM; do
 
       files_antivirus*)
         rm -rf /var/www/owncloud/apps/files_antivirus
-        occ config:app:set files_antivirus av_socket --value="/var/run/clamav/clamd.ctl"
-        occ config:app:set files_antivirus av_mode --value="socket"
         occ app:check \$app_name         	# https://github.com/owncloud/files_antivirus/issues/394
         occ app:enable \$app_name
 
@@ -307,6 +305,7 @@ for param in \$PARAM; do
         echo >> /etc/clamav/clamd.conf "TCPSocket 3310"
         sed -i -e 's/LogVerbose false/LogVerbose true/' /etc/clamav/*.conf
         /etc/init.d/clamav-daemon restart
+
         sleep 20	# waiting for clamd to get ready...
         set -x
         wget https://secure.eicar.org/eicar.com.txt
@@ -323,9 +322,8 @@ for param in \$PARAM; do
           /etc/init.d/clamav-daemon restart
         done
         netstat -a | grep clam
-      ;;
 
-      icap*)
+	### and also icap option enabled. User has to choose in the end.
         apt install -y jq p7zip-full postgresql docker.io
         # first: ClamAV c-icap
         apt install -y jq
@@ -336,13 +334,18 @@ for param in \$PARAM; do
           echo "waiting for c-icap: \$i"; sleep 5;
         done
         echo -e "\r\n\r" | netcat "\$cicap_addr" 1344 | grep Server
-        occ app:enable files_antivirus
-        occ app:enable \$app_name
-        occ config:system:set files-antivirus.scanner-class    --value='OCA\\ICAP\\Scanner'
-        occ config:system:set files-antivirus.icap.host        --value="\$cicap_addr"
-        occ config:system:set files-antivirus.icap.req-service --value=avscan         # 'avscan': c-icap clamav; 'req': Kaspersky
-        occ config:system:set files-antivirus.icap.port        --value=1344
-        occ config:system:set files-antivirus.icap.max-transmission --value=4294967296
+
+	### If socket version
+        occ config:app:set files_antivirus av_socket          --value="/var/run/clamav/clamd.ctl"
+        # occ config:app:set files_antivirus av_mode          --value="socket"
+
+	### Else Config for icap
+        occ config:app:set files_antivirus av_host            --value="\$cicap_addr"
+        occ config:app:set files_antivirus av_port 	      --value="1344"
+        occ config:app:set files_antivirus av_mode            --value="icap"			# 'icap' Triggers Grace Period
+        occ config:app:set files_antivirus av_request_service --value="avscan"			# 'avscan': c-icap clamav; 'req': Kaspersky
+        occ config:app:set files_antivirus av_response_header --value="X-Infection-Found"	# 'X-Virus-ID': Kaspersky, 'X-Infection-Found': clamav-icap
+        occ config:app:set files_antivirus av_infected_action --value="delete"			# 'delete', 'only_log'
 
         # second: Kaspersky Scanengine
         echo "listen_addresses = '*'" >> /etc/postgresql/12/main/postgresql.conf        # we don't know the IP yet.
@@ -369,8 +372,8 @@ for param in \$PARAM; do
             sleep 1
           done
           for i in 1 2 3 4; do sleep 3; cat screenlog.0; done
-          ## Per default Kaspersky does not send the virus name in a header,
-          sed -i -e 's@<VirusNameICAPHeader.*@<VirusNameICAPHeader>X-Infection-Found</VirusNameICAPHeader> <SentVirusNameICAPHeader>X-Infection-Found</SentVirusNameICAPHeader>@' /opt/kaspersky/ScanEngine/etc/kavicapd.xml
+          ## Per default Kaspersky does not send the virus name in a header, the sed below should not be needed.
+          # sed -i -e 's@<VirusNameICAPHeader.*@<VirusNameICAPHeader>X-Infection-Found</VirusNameICAPHeader> <SentVirusNameICAPHeader>X-Infection-Found</SentVirusNameICAPHeader>@' /opt/kaspersky/ScanEngine/etc/kavicapd.xml
           /opt/kaspersky/ScanEngine/etc/init.d/kavicapd restart
 
           echo ""
@@ -380,12 +383,14 @@ for param in \$PARAM; do
           echo "To review icap settings, use:"
           echo "  occ config:list --output=plain | grep files-antivirus.icap"
           echo "To switch icap from from clamav-icap to kaspersky run these commands:"
-          echo "  occ config:system:set files-antivirus.icap.host        --value=127.0.0.1"
-          echo "  occ config:system:set files-antivirus.icap.req-service --value=req"
-          echo "  occ config:system:set files-antivirus.icap.port        --value=11344"
+          echo "  occ config:app:set files_antivirus av_host             --value=127.0.0.1"
+          echo "  occ config:app:set files_antivirus av_port 	         --value=11344"
+          echo "  occ config:app:set files_antivirus av_mode             --value=icap"
+          echo "  occ config:app:set files_antivirus av_request_service  --value=req"
+          echo "  occ config:app:set files_antivirus av_response_header --value='X-Virus-ID'"
 	  echo ""
-          echo "To switch off icap: (Must do this before disabling or uninstalling icap)"
-          echo "  occ config:system:delete files-antivirus.scanner-class"
+          echo "To switch off icap:"
+          echo "  occ config:app:set files_antivirus av_mode             --value=socket"
 	  echo ""
         fi
       ;;

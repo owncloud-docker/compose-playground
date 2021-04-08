@@ -3,9 +3,8 @@
 # prepare a test setup for files_antrivirus with icap
 #
 
-av_version=0.16.0RC1
+av_version=1.0.0Beta1
 av_app=https://github.com/owncloud/files_antivirus/releases/download/v$av_version/files_antivirus-$av_version.tar.gz 
-icap_app=~/Downloads/apps/icap-1.0.0RC2.tar.gz		# cannot use a URL, it is in a private repo
 
 if [ -z "$KASKPERSKY_KSE_RELEASE_URL" ]; then
   echo "Env var KASKPERSKY_KSE_RELEASE_URL not set. Please specify a fresh(!) file download url as used when clicking on the share website. (Or a local filename)"
@@ -22,5 +21,5 @@ fi
 if [ -z "$KASKPERSKY_KSE_LICENSE" -o -z "$KASKPERSKY_KSE_RELEASE_URL" ]; then exit 1; fi
 
 set -x
-bash ./make_oc10_apps.sh $av_app $icap_app $KASKPERSKY_KSE_RELEASE_URL $KASKPERSKY_KSE_LICENSE
+bash ./make_oc10_apps.sh $av_app $KASKPERSKY_KSE_RELEASE_URL $KASKPERSKY_KSE_LICENSE
 
