@@ -210,9 +210,7 @@ cd
 
 #################################################################
 
-# install_app accepts local files and remote URLs
 install_app() { ( test -f "\$1" && cat "\$1" || curl -L -s "\$1" ) | su www-data -s /bin/sh -c 'tar zxvf - -C /var/www/owncloud/apps-external'; }
-install_app_gh() { install_app "https://github.com/owncloud/\$1/releases/download/v\$2/\$1-\$2.tar.gz"; }
 
 apps_installed=
 for param in \$PARAM; do
@@ -440,10 +438,7 @@ fi
 uptime
 cat << EOM
 ( Mailhog access: http://$IPADDR:8025 )
-Server $vers is ready. You can now try e.g. commands like these:
-From within this machine
-	install_app ./icap-0.1.0RC2.tar.gz
-	install_app_gh files_antivirus 0.16.0RC1
+Server $vers is ready.
 
 From remote
 	firefox https://$IPADDR/owncloud
