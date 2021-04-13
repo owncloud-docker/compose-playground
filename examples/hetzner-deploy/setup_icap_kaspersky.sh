@@ -6,6 +6,9 @@
 # av_app=files_antrivirus=1.0.0Beta1
 av_app=files_antivirus 			## Without url or version: Grab the latest tag from github.
 
+test -n "$1" && KASKPERSKY_KSE_RELEASE_URL="$1"
+test -n "$2" && KASKPERSKY_KSE_LICENSE="$2"
+
 if [ -z "$KASKPERSKY_KSE_RELEASE_URL" ]; then
   echo "Env var KASKPERSKY_KSE_RELEASE_URL not set. Please specify a fresh(!) file download url as used when clicking on the share website. (Or a local filename)"
 fi
