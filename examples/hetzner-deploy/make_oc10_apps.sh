@@ -341,8 +341,10 @@ for param in \$PARAM; do
         occ config:app:set files_antivirus av_host            --value="\$cicap_addr"
         occ config:app:set files_antivirus av_port 	      --value="1344"
         occ config:app:set files_antivirus av_mode            --value="icap"			# 'icap' Triggers Grace Period
-        occ config:app:set files_antivirus av_request_service --value="avscan"			# 'avscan': c-icap clamav; 'req': Kaspersky
-        occ config:app:set files_antivirus av_response_header --value="X-Infection-Found"	# 'X-Virus-ID': Kaspersky, 'X-Infection-Found': clamav-icap
+	# c-icap clamav: 'avscan', Kaspersky: 'req', MacAfee: 'wwreqmod'
+        occ config:app:set files_antivirus av_request_service --value="avscan"
+	# c-icap clamav: 'X-Infection-Found', Kaspersky: 'X-Virus-ID', MacAfee: not applicable
+        occ config:app:set files_antivirus av_response_header --value="X-Infection-Found"
         occ config:app:set files_antivirus av_infected_action --value="delete"			# 'delete', 'only_log'
 
         # second: Kaspersky Scanengine
