@@ -106,6 +106,10 @@ apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu
 apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap ldap-utils
 
 cd /var/www
+if [ -f owncloud/config/config.php ]; then
+ echo "ERROR: /var/www/owncloud/config/config.php already exists."
+ echo "ERROR: Cannot continue. Please (backup and) remove."
+fi
 curl $tar | tar jxf - || exit 1
 chown -R www-data. owncloud
 
@@ -172,8 +176,8 @@ EOAI
 chmod a+x /usr/bin/app_install
 
 mysql -u root -e "DROP DATABASE owncloud;" 2>/dev/null || true
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'";
-occ maintenance:install --database "mysql" --database-name "owncloud" --database-user "owncloud" --database-pass "$dbpass" --admin-user "admin" --admin-pass "admin"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'"
+occ maintenance:install --database "mysql" --database-name "owncloud" --database-user "owncloud" --database-pass "$dbpass" --admin-user "admin" --admin-pass "admin" || exit 1
 
 occ config:system:set trusted_domains 1 --value="$IPADDR"
 
@@ -186,6 +190,7 @@ occ config:system:set memcache.locking --value '\OC\Memcache\Redis'
 occ config:system:set redis --type json --value '{"host": "127.0.0.1", "port": "6379"}'
 
 ## initialize mailhog
+docker rm mailhog --force 2>/dev/null && true
 docker run --rm --name mailhog -d -p 8025:8025 mailhog/mailhog
 hog_ip=\$(docker inspect mailhog | jq .[0].NetworkSettings.IPAddress -r)
 mysql owncloud -e 'UPDATE oc_accounts SET email="admin@oc.example.com" WHERE user_id="admin";'

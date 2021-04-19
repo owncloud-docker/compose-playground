@@ -88,7 +88,7 @@ function LOAD_SCRIPT {
 function RUN_SCRIPT {
   if [ "$OC_DEPLOY_ADDR" = localhost -o "$OC_DEPLOY_ADDR" = 127.0.0.1 ]; then
     sudo bash $scriptfile
-    test -n "$POSTINIT_MSG" echo "$POSTINIT_MSG"
+    test -n "$POSTINIT_MSG" && echo "$POSTINIT_MSG"
   else
     if [ -z "$scriptfolder" ]; then
       test -n "$POSTINIT_BASHRC" && echo "$POSTINIT_BASHRC" | ssh root@$IPADDR "cat > POSTINIT.bashrc"
