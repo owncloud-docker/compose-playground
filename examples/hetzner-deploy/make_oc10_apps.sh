@@ -128,7 +128,7 @@ Alias /owncloud "/var/www/owncloud/"
 </IfModule>
 
 EOCONF
-for mod in ssl headers env dir mime unique_id rewrite setenviv; do
+for mod in ssl headers env dir mime unique_id rewrite setenvif; do
   a2enmod \$mod
 done
 for site in owncloud default-ssl; do
