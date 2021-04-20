@@ -16,7 +16,7 @@
 echo "Estimated setup time: 5 minutes ..."
 
 vers=10.7.0
-tar=https://download.owncloud.org/community/testing/owncloud-complete-20210326.tar.bz2
+tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test -n "$OC_VERSION" && vers="$OC_VERSION"
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
 test "$vers" = "10.7.0" -o "$vers" = "10.7" && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
@@ -132,7 +132,8 @@ Alias /owncloud "/var/www/owncloud/"
 </IfModule>
 
 EOCONF
-for mod in ssl headers env dir mime unique_id rewrite setenvif; do
+a2dismod mpm_event	# conflicts with php7.4
+for mod in php7.4 ssl headers env dir mime unique_id rewrite setenvif; do
   a2enmod \$mod
 done
 for site in owncloud default-ssl; do
@@ -203,6 +204,7 @@ occ config:system:set mail_smtpport     --value 1025
 ## external SFTP storage
 apt install -y pure-ftpd
 ftppass=ftp${RANDOM}data
+deluser ftpdata 2>/dev/null && true
 echo -e "\$ftppass\\n\$ftppass" | adduser ftpdata --gecos ""
 occ files_external:create /SFTP sftp password::password -c host=localhost -c root="/home/ftpdata" -c user=ftpdata -c password=\$ftppass
 occ config:app:set core enable_external_storage --value yes
