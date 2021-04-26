@@ -298,7 +298,7 @@ for param in \$PARAM; do
 	occ config:app:set core enable_external_storage --value yes
 	occ files_external:create /WND windows_network_drive password::password -c host=\$smb_ip -c share="/shared" -c user=testy -c password=testy
 	sleep 2
-	screen -d -m -S wnd_listen occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
+	screen -d -m -S wnd_listen -L screenlog-wnd_listen -L occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
 	;;
 
       files_antivirus*)
@@ -332,7 +332,7 @@ for param in \$PARAM; do
         apt install -y jq p7zip-full postgresql docker.io
         # first: ClamAV c-icap
         apt install -y jq
-        screen -d -m -S c-icap docker run --rm --name c-icap -ti deepdiver/icap-clamav-service
+        screen -d -m -S c-icap -Logfile screenlog-c-icap -L docker run --rm --name c-icap -ti deepdiver/icap-clamav-service
         for i in 10 9 8 7 6 5 4 3 2 1; do
           cicap_addr=\$(docker inspect c-icap 2>/dev/null| jq .[0].NetworkSettings.IPAddress -r);
           test "\$cicap_addr" != null -a "\$cicap_addr" != "" && break;
@@ -371,14 +371,14 @@ for param in \$PARAM; do
         else
           tar xf "\$tarname"
           tartop="\$(tar tf "\$tarname" | head -n 1 | sed -e 's@^/@@' -e 's@^./@@' -e 's@/.*@@')"
-          ( cd "\$tartop"; screen -d -m -L -S kasinstall ./install )
+          ( cd "\$tartop"; screen -d -m -Logfile screenlog-kasinstall -L -S kasinstall ./install )
           for a in "" q Yes Yes Yes No 127.0.0.1:5432 postgres ps4kas icap Ps4_kasp Ps4_kasp 2 11344 No No /tmp 1 /root/ Yes; do
             screen -S kasinstall -X stuff "\$a\\n" || echo "failed to stuff \$a"
             sleep 1
-            cat screenlog.0
+            cat screenlog-kasinstall
             sleep 1
           done
-          for i in 1 2 3 4; do sleep 3; cat screenlog.0; done
+          for i in 1 2 3 4; do sleep 3; cat screenlog-kasinstall; done
           ## Per default Kaspersky does not send the virus name in a header, the sed below should not be needed.
           # sed -i -e 's@<VirusNameICAPHeader.*@<VirusNameICAPHeader>X-Infection-Found</VirusNameICAPHeader> <SentVirusNameICAPHeader>X-Infection-Found</SentVirusNameICAPHeader>@' /opt/kaspersky/ScanEngine/etc/kavicapd.xml
           /opt/kaspersky/ScanEngine/etc/init.d/kavicapd restart
