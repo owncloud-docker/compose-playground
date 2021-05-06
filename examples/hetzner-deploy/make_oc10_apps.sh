@@ -289,8 +289,13 @@ for param in \$PARAM; do
 	phpenmod -v ALL smbclient
 	service apache2 reload
 	#
-	mkdir -p /home/samba; chmod -R 777 /home/samba
-	docker run --rm -v /home/samba:/shared -d --name samba dperson/samba -u "testy;testy" -s "shared;/shared;yes;no;yes" -n
+	mkdir -p /home/samba/{demo,user1}; chmod -R 777 /home/samba
+	#
+	# with docker-compose use: --network compose_default
+	# with docker-compose use: .[0].NetworkSettings.Networks.compose_default.IPAddress
+	# with docker-compose use: smbclient //samba/shared -U testy testy -c dir
+	#
+	docker run --rm -v /home/samba:/shared -d --name samba dperson/samba -u "admin;admin" -u "testy;testy" -u "demo;demo" -u "user1;user1" -s "shared;/shared;;no;;all" -s "demo;/shared/demo;;no;;demo,admin" -s "user1;/shared/user1;;no;;user1,testy " -n -p
 	smb_ip=\$(docker inspect samba | jq .[0].NetworkSettings.IPAddress -r)
         wget https://secure.eicar.org/eicar.com
 	smbclient //\$smb_ip/shared -U testy testy -c 'put eicar.com; dir'
@@ -298,7 +303,7 @@ for param in \$PARAM; do
 	occ config:app:set core enable_external_storage --value yes
 	occ files_external:create /WND windows_network_drive password::password -c host=\$smb_ip -c share="/shared" -c user=testy -c password=testy
 	sleep 2
-	screen -d -m -S wnd_listen -L screenlog-wnd_listen -L occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
+	screen -d -m -S wnd_listen -Logfile screenlog-wnd_listen -L occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
 	;;
 
       files_antivirus*)
