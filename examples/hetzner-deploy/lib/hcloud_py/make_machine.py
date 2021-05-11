@@ -32,10 +32,12 @@ hcloud_api_token = os.environ.get('HCLOUD_TOKEN')
 if hcloud_api_token == None:
   print("Environment variable HCLOUD_TOKEN not set.", file=sys.stderr)
   sys.exit(1)
+
 ssh_key_names = os.environ.get('HCLOUD_SSHKEY_NAMES', '')
 server_image = os.environ.get('HCLOUD_SERVER_IMAGE')
 if server_image == None:
   server_image = "ubuntu-20.04"
+
 datacenter = "fsn1-dc14"
 server_type = "cx11"
 used_for = "server_testing"
@@ -122,7 +124,9 @@ for k in ssh_key_names:
   if not bk:
     print("ERROR: key name '%s' is not kowwn at hcloud" % k, file=sys.stderr)
     sys.exit(1)
+
   ssh_key_list.append(client.ssh_keys.get_by_name(k))
+
 if ssh_pub_key:
   k = client.ssh_keys.create(name=ssh_pub_key[2], public_key=ssh_pub_key[0]+' '+ssh_pub_key[1])
   ssh_key_list.append(k)
@@ -146,7 +150,8 @@ if debug: print(NAME, args.type, args.image, args.datacenter, ssh_key_names, ssh
 response = client.servers.create(name=NAME, server_type=ServerType(args.type), image=img, ssh_keys=ssh_key_list, labels=labels)
 server = response.server
 IPADDR = server.data_model.public_net.ipv4.ip
-print("Machine created: %s" % IPADDR, file=sys.stderr)
+model = server.data_model.server_type.data_model
+print("Machine created: type=%s cpus=%s mem=%sgb disk=%sgb addr=%s" % (model.name, model.cores, model.memory, model.disk, IPADDR), file=sys.stderr)
 
 server.change_dns_ptr(IPADDR, NAME+'.hcloud.owncloud.com')       # needs an FQDN
 

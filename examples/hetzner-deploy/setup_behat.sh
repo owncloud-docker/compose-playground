@@ -3,6 +3,7 @@
 # 2020-10-26, jw@owncloud.com
 #
 # https://doc.owncloud.com/server/developer_manual/testing/ui-testing.html
+# See also: https://github.com/owncloud/files_texteditor/issues/345#issuecomment-834498939
 
 echo "Estimated setup time: 8 minutes ..."
 

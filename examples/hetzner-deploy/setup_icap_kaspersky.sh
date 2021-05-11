@@ -3,7 +3,7 @@
 # prepare a test setup for files_antrivirus with icap & Kaspersky
 #
 
-# av_app=files_antrivirus=1.0.0Beta1
+# av_app=files_antrivirus=1.0.0-beta2
 av_app=files_antivirus 			## Without url or version: Grab the latest tag from github.
 
 test -n "$1" && KASKPERSKY_KSE_RELEASE_URL="$1"
