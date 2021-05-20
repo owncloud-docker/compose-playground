@@ -47,7 +47,6 @@ if [ -z "$1" -o "$1" = "-" -o "$1" = "-h" ]; then
   exit 1
 fi
 
-INITd=\$HOME/init.d
 tmpdir="/tmp/make_oc10_apps_dl_$$"
 mkdir -p $tmpdir
 test "$1" = "--" && shift
@@ -102,6 +101,9 @@ rm -rf $tmpdir
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
 INIT_SCRIPT << EOF
+INITd=\$HOME/init.d
+ls -la \$INITd
+
 export LC_ALL=C LANGUAGE=C
 # FROM https://doc.owncloud.com/server/admin_manual/installation/ubuntu_18_04.html
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
@@ -313,7 +315,8 @@ for param in \$PARAM; do
 	;;
 
       *)
-        if -f [ \$INITd/\$app_name.sh ]; then
+	set -x
+        if [ -f \$INITd/\$app_name.sh ]; then
           echo "\$app installed. Running \$INITd/\$app_name.sh ..."
           source \$INITd/\$app_name.sh
 	else
