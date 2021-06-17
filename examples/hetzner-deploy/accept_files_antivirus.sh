@@ -1,3 +1,4 @@
+# see also administration-internal/tools/release/oc_apps_drone_tests.py
 set -x
 version=v10.7.0
 qa_tar=owncloud-complete-20210326-qa.tar.bz2
