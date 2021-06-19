@@ -101,8 +101,8 @@ rm -rf $tmpdir
 dbpass="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
 
 INIT_SCRIPT << EOF
-INITd=\$HOME/init.d
-ls -la \$INITd
+TASKd=\$HOME/task
+ls -la \$TASKd
 
 export LC_ALL=C LANGUAGE=C
 # FROM https://doc.owncloud.com/server/admin_manual/installation/ubuntu_18_04.html
@@ -237,14 +237,6 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
-      encryption*)
-	occ app:enable encryption
-        occ app:list encryption
-        occ encryption:list-modules
-        occ encryption:enable
-        occ encryption:select-encryption-type masterkey --no-interaction
-        occ encryption:status
-	;;
 
       user_ldap*)
 	# sync users
@@ -316,9 +308,9 @@ for param in \$PARAM; do
 
       *)
 	set -x
-        if [ -f \$INITd/\$app_name.sh ]; then
-          echo "\$app installed. Running \$INITd/\$app_name.sh ..."
-          source \$INITd/\$app_name.sh
+        if [ -f \$TASKd/\$app_name.sh ]; then
+          echo "\$app requested. Running \$TASKd/\$app_name.sh ..."
+          source \$TASKd/\$app_name.sh
 	else
           echo "\$app installed. Try this to get activate: occ app:enable \$app_name"
 	fi
