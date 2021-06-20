@@ -73,6 +73,7 @@ for arg in "$@"; do
         if [ -z "$rel_json" -o "$rel_json" = "null" ]; then
           echo "ERROR: no release tag $tagname seen in: https://github.com/$oc_app/releases"
           echo "  Is $arg correct?"
+          echo "  To specify a version, use APPNAME=vN.N.N"
           test "$curl" = curl && echo '  Or retry after setting environment variables GITHUB_USER and GITHUB_TOKEN'
           exit 0
         fi
@@ -311,6 +312,11 @@ for param in \$PARAM; do
         if [ -f \$TASKd/\$app_name.sh ]; then
           echo "\$app requested. Running \$TASKd/\$app_name.sh ..."
           source \$TASKd/\$app_name.sh
+          if [ "$?" = 0 ]; then
+	    echo >> ~/POSTINIT.msg "SUCCESS: \$TASKd/\$app_name.sh"
+          else
+	    echo >> ~/POSTINIT.msg "WARNING: \$TASKd/\$app_name.sh return code $ret, check log."
+          fi
 	else
           echo "\$app installed. Try this to get activate: occ app:enable \$app_name"
 	fi

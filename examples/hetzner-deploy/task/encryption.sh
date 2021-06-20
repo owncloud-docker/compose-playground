@@ -4,8 +4,6 @@
 #
 # - encryption with hsmdaemon & softHSM
 
-set -x
-
 if [ "$(echo hsmdaemon*.zip)" = 'hsmdaemon*.zip' ]; then
   echo "hsmdaemon-*.zip not deployed."
   echo "configuring encryption app without hsm support..."
@@ -80,14 +78,15 @@ pin = "1234"
 slot = $slot 			# The token has been initialized and is reassigned to slot 1188462905
 EO_TOML
 
-./hsmdaemon install
+install -m 755 ./hsmdaemon /usr/local/bin/hsmdaemon
+/usr/local/bin/hsmdaemon install
 service hsmdaemon start
 
 ./hsmdaemon genkey test		# this does not get added to the slots
 test_key=$(tail /var/log/hsm.log | grep 'generated keypair' | jq .tokenID -r)
 
 if [ "$test_key" = null ]; then
-  echo "ERROR: failed to produce a test key. Consult admin_manual -> hsmdaemon"
+  echo 1>&2 "ERROR: failed to produce a test key. Consult admin_manual -> hsmdaemon"
   exit 1
 fi
 
@@ -98,9 +97,11 @@ fi
 hello="Hello, world!"
 test_enc=$(./hsmdaemon encrypt $test_key $(echo "$hello" | base64) | tee /dev/stderr)
 if [ -z "$test_enc" ]; then
-  echo "ERROR: failed to encode '$hello'. Consult admin_manual -> hsmdaemon"
+  echo 1>&2 "ERROR: failed to encode '$hello'. Consult admin_manual -> hsmdaemon"
   exit 1
 fi
+
+# TODO: test decode a la https://github.com/owncloud/encryption/issues/263#issuecomment-864616432
 
 occ config:app:set encryption hsm.jwt.secret --value $hsm_jwt_secret
 occ config:app:set encryption hsm.url --value 'http://localhost:8513'
