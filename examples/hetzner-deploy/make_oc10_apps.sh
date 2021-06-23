@@ -89,6 +89,8 @@ for arg in "$@"; do
   ARGV+=($arg)
 done
 
+## Default to always have a DNS name. Uncomment the next line, to skip preparations for DNS.
+test -z "$OC10_DNSNAME" && OC10_DNSNAME=oc-$vers-DATE
 h_name="$OC10_DNSNAME"
 test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
@@ -110,6 +112,8 @@ export LC_ALL=C LANGUAGE=C
 apt install -y apache2 libapache2-mod-php mariadb-server openssl php-imagick php-common php-curl php-gd php-imap php-intl
 apt install -y php-json php-mbstring php-mysql php-ssh2 php-xml php-zip php-apcu php-redis redis-server php-gmp wget
 apt install -y ssh bzip2 rsync curl jq inetutils-ping smbclient coreutils php-ldap ldap-utils
+# We almost always assign a DNS name.
+apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
 
 cd /var/www
 if [ -f owncloud/config/config.php ]; then
@@ -260,13 +264,6 @@ for param in \$PARAM; do
 	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
 	;;
 
-      richdocuments*)
-	test -z "\$oc10_fqdn" && oc10_fqdn="richdoc-$(date +%Y%m%d).jw-qa.owncloud.works"
-	occ app:enable \$app_name	# CAUTION: triggers license grace period!
-	# occ config:app:set richdocuments wopi_url --value https://collabora.owncloud.works:443
-	occ config:app:set richdocuments wopi_url --value https://collabora.owncloud-demo.com:443
-	;;
-
       metrics*)
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
 	occ config:system:set "metrics_shared_secret" --value 123456
@@ -337,7 +334,6 @@ for param in \$PARAM; do
 done
 
 if [ -n "\$oc10_fqdn" ]; then
-  apt install -y certbot python3-certbot-apache python3-certbot-dns-cloudflare
   occ config:system:set trusted_domains 2 --value="\$oc10_fqdn"
   echo >> ~/POSTINIT.msg "DNS: The following manual steps are needed to setup your dns name:"
   echo >> ~/POSTINIT.msg "DNS:  - Register at cloudflare     cf_dns $IPADDR \$oc10_fqdn"
