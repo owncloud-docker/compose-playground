@@ -12,11 +12,16 @@ ldap_pass="owncloud"			# grep -h olcRootPW /etc/ldap/slapd.d/*/*.ldif
 ldap_base="dc=example,dc=com"		# grep -i BASE /etc/ldap/ldap.conf
 ldap_scope="subtree"			# base, one, sub or children
 ldap_opts="-LLL -d 0"			# -LLL: do not include comments, -d 0: no debugging
-# ldap_opts="$ldap_opts -H ldap://$ldap_server -D $ldap_login -w $ldap_pass -b $ldap_base -s $ldap_scope"
+ldap_proto="ldap"			# switch to ldaps, if available.
 
 ## upgrade Gerald's openldap server to allow LDAPS
+# see also: https://openldap.org/doc/admin24/slapdconf2.html
 # sed -i -e 's@^SLAPD_SERVICES=.*@SLAPD_SERVICES="ldap:/// ldaps:/// ldapi:///"@' /etc/default/slapd
 # service slapd restart
+## SSL Does not work. The test command fails with "no peer certificate available:
+openssl s_client -connect $ldap_server:636 < /dev/null && ldap_proto=ldaps
+
+ldap_opts="$ldap_opts -H $ldap_proto://$ldap_server -D $ldap_login -w $ldap_pass -b $ldap_base -s $ldap_scope"
 
 
 ## get all potential owncloud users, but don't show the classes, only dn, cn, uid, mail
