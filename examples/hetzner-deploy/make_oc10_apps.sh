@@ -15,10 +15,11 @@
 
 echo "Estimated setup time: 5 minutes ..."
 
-vers=10.7.0
+vers=10.8.0beta1
 tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test -n "$OC_VERSION" && vers="$OC_VERSION"
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
+test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
 test "$vers" = "10.7.0" -o "$vers" = "10.7" && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test "$vers" = "10.6.0" -o "$vers" = "10.6" && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
 test "$vers" = "10.5.0" -o "$vers" = "10.5" && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
@@ -90,7 +91,7 @@ for arg in "$@"; do
 done
 
 ## Default to always have a DNS name. Uncomment the next line, to skip preparations for DNS.
-test -z "$OC10_DNSNAME" && OC10_DNSNAME=oc-$vers-DATE
+test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc-$vers-DATE" | tr . -)
 h_name="$OC10_DNSNAME"
 test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
@@ -120,6 +121,7 @@ if [ -f owncloud/config/config.php ]; then
  echo "ERROR: /var/www/owncloud/config/config.php already exists."
  echo "ERROR: Cannot continue. Please (backup and) remove."
 fi
+echo "... installing $tar"
 curl $tar | tar jxf - || exit 1
 chown -R www-data. owncloud
 
@@ -242,18 +244,6 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
-
-      user_ldap*)
-	# sync users
-	chown root /var/spool/cron/crontabs/www-data	# not even root can write there, otherwise. :-(
-	echo "*/5 * * * * /var/www/owncloud/occ user:sync 'OCA\User_LDAP\User_Proxy' -m disable -vvv >> /var/log/ldap-sync/user-sync.log 2>&1" >> /var/spool/cron/crontabs/www-data
-	chown www-data.crontab  /var/spool/cron/crontabs/www-data
-	chmod 0600  /var/spool/cron/crontabs/www-data
-	mkdir -p /var/log/ldap-sync
-	touch /var/log/ldap-sync/user-sync.log
-	chown www-data. /var/log/ldap-sync/user-sync.log
-	echo "CAUTION: ldap setup not implemented yet!"
-	;;
 
       wopi*)
 	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
