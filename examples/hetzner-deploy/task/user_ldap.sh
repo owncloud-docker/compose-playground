@@ -30,9 +30,18 @@ ldapsearch $opts '(&(objectClass=inetOrgPerson)(uid=*))' cn uid mail	# inetOrgPe
 ## list all groups and their members. (gidNumber of the users are not used here..., that is a different query)
 ldapsearch $opts '(&(objectClass=posixGroup)(cn=*group*))' cn memberUid
 
+# TODO:
+# enable revers Group Membership in openLDAP, so that user entries have a memberOf field.
+# https://www.openldap.org/doc/admin24/overlays.html#Reverse%20Group%20Membership%20Maintenance
+
+# Bug: default is s01ldap_display_name is displayName, although the gui shows DisplayName cn.
+# fix:
+
 
 occ app:enable user_ldap
-# New LDAP logins can attempt to reuse existing accounts if: They match the resolved username attribute. They have User_Proxy set as their backend
+# New LDAP logins can attempt to reuse existing accounts if:
+# - They match the resolved username attribute.
+# - They have User_Proxy set as their backend
 occ config:app:set user_ldap reuse_accounts --value=yes
 
 # https://doc.owncloud.com/server/admin_manual/configuration/user/user_auth_ldap.html#ldaps-configuration

@@ -91,7 +91,8 @@ for arg in "$@"; do
 done
 
 ## Default to always have a DNS name. Uncomment the next line, to skip preparations for DNS.
-test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc-$vers-DATE" | tr . -)
+firstarg="-$(echo "${ARGV[0]}" | sed -e 's@.*/@@' -e 's@\b\.tar\.gz\b@@' )"	# cut away any path prefix, and any tar.gz suffix
+test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc$vers$firstarg-DATE" | tr -d .=)
 h_name="$OC10_DNSNAME"
 test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
@@ -160,7 +161,14 @@ sudo -E -u www-data /usr/bin/php /var/www/owncloud/occ "\\\$@"
 EOOCC
 chmod a+x /usr/bin/occ
 
-cat << EOAI > /usr/bin/app_install
+cat << EOLV > /usr/bin/oc_log_view
+#! /bin/sh
+set -x
+tail -f /var/www/owncloud/data/owncloud.log | grep -v Session::validateToken | grep -v Session::checkTokenCredentials | grep -v DefaultTokenProvider::
+EOLV
+chmod a+x /usr/bin/oc_log_view
+
+cat << EOAI > /usr/bin/oc_app_install
 #! /bin/sh
 if [ -z "\\\$1" ]; then
   echo "Usage: \\\$0 APPTAR_FILE|APPTAR_URL|-"
@@ -186,7 +194,7 @@ echo "Press ENTER to enable \\\$appname, or CTRL-C to keep it as is."; read a
 occ app:enable \\\$appname
 occ app:list \\\$appname
 EOAI
-chmod a+x /usr/bin/app_install
+chmod a+x /usr/bin/oc_app_install
 
 mysql -u root -e "DROP DATABASE owncloud;" 2>/dev/null || true
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS owncloud; GRANT ALL PRIVILEGES ON owncloud.* TO owncloud@localhost IDENTIFIED BY '$dbpass'"
@@ -325,6 +333,7 @@ done
 
 if [ -n "\$oc10_fqdn" ]; then
   occ config:system:set trusted_domains 2 --value="\$oc10_fqdn"
+  occ config:system:set overwrite.cli.url --value="https://\$oc10_fqdn/owncloud"	# Avoid http://localhost in notifcations emails.
   echo >> ~/POSTINIT.msg "DNS: The following manual steps are needed to setup your dns name:"
   echo >> ~/POSTINIT.msg "DNS:  - Register at cloudflare     cf_dns $IPADDR \$oc10_fqdn"
   echo >> ~/POSTINIT.msg "DNS:  - To get a certificate, run:        certbot -m qa@owncloud.com --no-eff-email --agree-tos --redirect -d \$oc10_fqdn"
