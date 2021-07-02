@@ -92,7 +92,7 @@ done
 
 ## Default to always have a DNS name. Uncomment the next line, to skip preparations for DNS.
 firstarg="-$(echo "${ARGV[0]}" | sed -e 's@.*/@@' -e 's@\b\.tar\.gz\b@@' )"	# cut away any path prefix, and any tar.gz suffix
-test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc$vers$firstarg-DATE" | tr -d .=)
+test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc$vers$firstarg-DATE" | tr '[A-Z]' '[a-z]' | tr -d .=)
 h_name="$OC10_DNSNAME"
 test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
@@ -252,15 +252,6 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
-
-      wopi*)
-	wopi_key="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)"
-	test -z "\$oc10_fqdn" && oc10_fqdn="wopi-$(date +%Y%m%d).jw-qa.owncloud.works"
-	occ app:enable \$app_name	# CAUTION: triggers license grace period!
-	occ config:system:set wopi.token.key --value "\$wopi_key"
-	occ config:system:set wopi.office-online.server --value 'https://mso.owncloud.works'
-	echo >> ~/POSTINIT.msg "WOPI:  - To check the office-server, run:  occ c:s:g wopi.office-online.server"
-	;;
 
       metrics*)
 	occ app:enable \$app_name	# CAUTION: triggers license grace period!
