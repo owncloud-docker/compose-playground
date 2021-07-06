@@ -15,10 +15,11 @@
 
 echo "Estimated setup time: 5 minutes ..."
 
-vers=10.8.0beta1
+vers=10.8.0beta2
 tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test -n "$OC_VERSION" && vers="$OC_VERSION"
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
+test "$vers" = "10.8.0-beta2" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210705.tar.bz2
 test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
 test "$vers" = "10.7.0" -o "$vers" = "10.7" && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test "$vers" = "10.6.0" -o "$vers" = "10.6" && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
@@ -37,7 +38,7 @@ if [ -z "$1" -o "$1" = "-" -o "$1" = "-h" ]; then
   echo "File URLs are passed into the machine and downloaded there."
   echo "Other parameters that do not look like URLs and do not exist as local files:"
   echo "  should be names of github/owncloud projects."
-  echo "  The latest release tar.gz is downloaded or a release asset matching a specific tag specified after '='."
+  echo "  The latest release tar.gz is downloaded or a release asset matching a tag specified after '='."
   echo ""
   echo "To start without extra apps or extra files, use: $0 --"
   echo ""
@@ -252,47 +253,6 @@ for param in \$PARAM; do
     install_app "\$app"
     apps_installed="\$apps_installed \$app_name"
     case "\$app" in
-
-      metrics*)
-	occ app:enable \$app_name	# CAUTION: triggers license grace period!
-	occ config:system:set "metrics_shared_secret" --value 123456
-	;;
-
-      windows_network_drive*)
-	#----------------------------------------------------------------------------
-	# A php-smbclient package exists only for ubuntu-18.04, we can use ondrey's ppa or compile it from source.
-	#----------------------------------------------------------------------------
-	# tbro: Unfortunately, Ondrej took some very weird decisions in the past,
-	# like building his own libssl and openssl packages for Xenial (16.04)
-	# - see here https://launchpad.net/~ondrej/+archive/ubuntu/php/+build/15652889
-	# So I wouldn't recommend any customer to use this repo. Even not for
-	# host setups as it blocks updates of libssl / openssl from
-	# xenial-security (official repo) as the version was messed up and in
-	# the end this led to a security upgrade of ssl being considered as a
-	# "Downgrade" by apt, which than would not be installed.
-	#----------------------------------------------------------------------------
-	apt install -y php-pear php7.4-dev libsmbclient libsmbclient-dev make smbclient; pecl install smbclient-stable
-	echo 'extension="smbclient.so"' > /etc/php/7.4/mods-available/smbclient.ini
-	phpenmod -v ALL smbclient
-	service apache2 reload
-	#
-	mkdir -p /home/samba/{demo,user1}; chmod -R 777 /home/samba
-	#
-	# with docker-compose use: --network compose_default
-	# with docker-compose use: .[0].NetworkSettings.Networks.compose_default.IPAddress
-	# with docker-compose use: smbclient //samba/shared -U testy testy -c dir
-	#
-	docker run --rm -v /home/samba:/shared -d --name samba dperson/samba -u "admin;admin" -u "testy;testy" -u "demo;demo" -u "user1;user1" -s "shared;/shared;;no;;all" -s "demo;/shared/demo;;no;;demo,admin" -s "user1;/shared/user1;;no;;user1,testy " -n -p
-	smb_ip=\$(docker inspect samba | jq .[0].NetworkSettings.IPAddress -r)
-        wget https://secure.eicar.org/eicar.com
-	smbclient //\$smb_ip/shared -U testy testy -c 'put eicar.com; dir'
-        occ app:enable \$app_name	# CAUTION: triggers license grace period!
-	occ config:app:set core enable_external_storage --value yes
-	occ files_external:create /WND windows_network_drive password::password -c host=\$smb_ip -c share="/shared" -c user=testy -c password=testy
-	sleep 2
-	screen -d -m -S wnd_listen -Logfile screenlog-wnd_listen -L occ wnd:listen -vvv \$smb_ip shared testy testy 	# from https://github.com/owncloud/windows_network_drive/pull/148/files
-	;;
-
       *)
 	set -x
         if [ -f \$TASKd/\$app_name.sh ]; then
