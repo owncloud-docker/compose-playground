@@ -20,10 +20,10 @@ tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test -n "$OC_VERSION" && vers="$OC_VERSION"
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
 test "$vers" = "10.8.0-beta2" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210705.tar.bz2
-test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
-test "$vers" = "10.7.0" -o "$vers" = "10.7" && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
-test "$vers" = "10.6.0" -o "$vers" = "10.6" && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
-test "$vers" = "10.5.0" -o "$vers" = "10.5" && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
+test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta2" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
+test "$vers" = "10.7.0"       -o "$vers" = "10.7"        && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
+test "$vers" = "10.6.0"       -o "$vers" = "10.6"        && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
+test "$vers" = "10.5.0"       -o "$vers" = "10.5"        && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
 test -n "$OC10_TAR_URL" &&  tar="$OC10_TAR_URL"
 
 if [ -z "$1" -o "$1" = "-" -o "$1" = "-h" ]; then
@@ -93,7 +93,7 @@ done
 
 ## Default to always have a DNS name. Uncomment the next line, to skip preparations for DNS.
 firstarg="-$(echo "${ARGV[0]}" | sed -e 's@.*/@@' -e 's@\b\.tar\.gz\b@@' )"	# cut away any path prefix, and any tar.gz suffix
-test -z "$OC10_DNSNAME" && OC10_DNSNAME=$(echo "oc$vers$firstarg-DATE" | tr '[A-Z]' '[a-z]' | tr -d .=)
+test -z "$OC10_DNSNAME" && OC10_DNSNAME="$(echo "oc$vers$firstarg" | tr '[A-Z]' '[a-z]' | tr -d .=)-DATE"
 h_name="$OC10_DNSNAME"
 test -z "$h_name" && h_name=oc-$vers-DATE
 d_name=$(echo $h_name  | sed -e "s/DATE/$(date +%Y%m%d)/" | tr '[A-Z]' '[a-z]' | tr . -)
