@@ -14,7 +14,8 @@
 # the end this led to a security upgrade of ssl being considered as a
 # "Downgrade" by apt, which than would not be installed.
 #----------------------------------------------------------------------------
-apt install -y php-pear php7.4-dev libsmbclient libsmbclient-dev make smbclient; pecl install smbclient-stable
+apt install -y php-pear php7.4-dev libsmbclient libsmbclient-dev make smbclient || exit -1
+pecl install smbclient-stable || exit 1
 echo 'extension="smbclient.so"' > /etc/php/7.4/mods-available/smbclient.ini
 phpenmod -v ALL smbclient
 service apache2 reload
