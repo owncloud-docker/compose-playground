@@ -19,8 +19,8 @@ vers=10.8.0beta2
 tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test -n "$OC_VERSION" && vers="$OC_VERSION"
 test -n "$OC10_VERSION" && vers="$OC10_VERSION"
-test "$vers" = "10.8.0-beta2" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210705.tar.bz2
-test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta2" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
+test "$vers" = "10.8.0-beta2" -o "$vers" = "10.8.0beta2" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210705.tar.bz2
+test "$vers" = "10.8.0-beta1" -o "$vers" = "10.8.0beta1" && tar=https://download.owncloud.org/community/testing/owncloud-complete-20210621.tar.bz2
 test "$vers" = "10.7.0"       -o "$vers" = "10.7"        && tar=https://download.owncloud.org/community/owncloud-complete-20210326.tar.bz2
 test "$vers" = "10.6.0"       -o "$vers" = "10.6"        && tar=https://download.owncloud.org/community/owncloud-complete-20201216.tar.bz2
 test "$vers" = "10.5.0"       -o "$vers" = "10.5"        && tar=https://download.owncloud.org/community/owncloud-complete-20200731.tar.bz2
