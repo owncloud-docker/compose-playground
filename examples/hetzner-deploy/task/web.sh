@@ -1,6 +1,14 @@
 #! /bin/bash
 #
-# https://owncloud.dev/clients/web/deployments/oc10-app/
+# Reference: https://owncloud.dev/clients/web/deployments/oc10-app/
+#
+conf=/var/www/owncloud/config/config.json
+if [ -f $conf ]; then
+  echo "$0 skipped, config file already exists."
+  echo "HINT: To re-run this script, remove $conf"
+  exit 0
+fi
+
 test -z "$oc10_fqdn" && oc10_fqdn="web-$(date +%Y%m%d).jw-qa.owncloud.works"
 occ app:enable oauth2
 occ app:enable web
@@ -9,6 +17,7 @@ client_secret="$(tr -dc 'a-z0-9' < /dev/urandom | head -c 32)"
 web_baseurl="https://$oc10_fqdn/index.php/apps/web"
 occ config:system:set web.baseUrl --value $web_baseurl
 occ oauth:add-client "ownCloud Web" $client_id $client_secret $web_baseurl/oidc-callback.html
+
 # rewriteLinks=true: redirect public and private links to the new web UI
 occ config:system:set web.rewriteLinks --type boolean --value true
 ## defaultapp='web': make the new web UI the default entry point. (classic UI: defaultapp='files')
@@ -16,7 +25,6 @@ occ config:system:set web.rewriteLinks --type boolean --value true
 # occ config:system:set defaultapp --value web
 
 # Inconsistent https and http usage: see https://github.com/owncloud/web/issues/5491
-conf=/var/www/owncloud/config/config.json
 cat <<EOF > $conf
 {
   "server" : "https://$oc10_fqdn",
