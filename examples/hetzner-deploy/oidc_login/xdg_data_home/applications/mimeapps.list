@@ -1,3 +1,0 @@
-[Default Applications]
-x-scheme-handler/https=oidc_login_redirect.desktop
-x-scheme-handler/http=oidc_login_redirect.desktop
